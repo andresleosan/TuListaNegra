@@ -10,7 +10,7 @@ Lo que solo el dueño puede hacer o decidir. Responde debajo de la fila o bórra
 | Crear el repositorio remoto. | Push. |
 | Cuentas de pago de ALS DevStudio para `PAYMENT_ACCOUNTS_JSON`. | Pago real de pases. |
 | Clave de DeepSeek como secreto (`DEEPSEEK_API_KEY`) y encender `AI_READY`. Al encender: probar una frase real, porque el cliente solo se ha probado contra respuestas simuladas. Para leer fotos de cuadernos hace falta además el binding de Workers AI (`"ai": { "binding": "AI" }` en `wrangler.jsonc`; cobra por uso) y probar una foto real. | Fase 3 en real (frases y migrador de cuadernos). |
-| WhatsApp: decidir número propio o reenvío desde Sarin Bot; número verificado y plantillas aprobadas en Meta; encender `WHATSAPP_SEND_READY`. | Fase 4 en real. |
+| WhatsApp: decidir número propio o reenvío desde Sarin Bot (comparación en `docs/spec/contrato-sarin.md`, sección c; la A es la más simple); número verificado y plantillas aprobadas en Meta; poner `WHATSAPP_APP_SECRET` y `WHATSAPP_VERIFY_TOKEN` como secretos y encender `WHATSAPP_SEND_READY` a la vez (con el interruptor apagado el webhook rechaza a propósito los secretos reales, para no recoger mensajes del público). | Fase 4 en real. |
 | Abogado: términos y política de datos, reglas de cobranza, DeepSeek como proveedor fuera del país, plazos de conservación y semáforo. | LEG-01, SEM-01, `SIGNUP_READY`. |
 | Contador: cómo se facturan los pases. | Cobro formal. |
 | Dominio `tulistanegra.com`. | Lanzamiento. |

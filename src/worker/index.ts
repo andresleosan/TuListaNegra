@@ -8,12 +8,13 @@ import { deudores } from './rutas/deudores';
 import { negocio } from './rutas/negocio';
 import { superadmin } from './rutas/superadmin';
 import { suscripcion } from './rutas/suscripcion';
+import { whatsapp } from './rutas/whatsapp';
 import { esSuperadmin } from './superadmin';
 
 export const app = new Hono<AppEnv>();
 
-/** Rutas de /api que NO exigen sesión. Todo lo demás la exige por defecto. */
-export const RUTAS_PUBLICAS = new Set(['/api/health']);
+/** Rutas de /api que NO exigen sesión. Todo lo demás la exige por defecto. El webhook se autentica con su firma HMAC. */
+export const RUTAS_PUBLICAS = new Set(['/api/health', '/api/whatsapp/webhook']);
 
 /** Rutas con sesión que NO pasan por el guardián del negocio (aún no hay negocio, o tienen su propio control). */
 export const sinNegocio = (metodo: string, ruta: string) =>
@@ -33,6 +34,7 @@ app.route('/api/suscripcion', suscripcion);
 app.route('/api/archivos', archivos);
 app.route('/api/cuadernos', cuadernos);
 app.route('/api/superadmin', superadmin);
+app.route('/api/whatsapp', whatsapp);
 
 app.notFound((c) => c.json({ error: 'no_encontrado' }, 404));
 

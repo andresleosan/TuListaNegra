@@ -17,3 +17,10 @@ SOPORTE_CONTACTO=<whatsapp-o-correo-de-soporte>
 
 # NO definas TEST_JWKS_JSON a mano ni en Cloudflare: sustituye las llaves de Google por unas locales.
 # Solo lo escribe scripts/dev-identidad.mjs para el simulador, y `pnpm check:release` impide que llegue a producción.
+
+# WhatsApp (fase 4). Con WHATSAPP_SEND_READY en "0" todo va al simulador local y nada sale a la red.
+# Secreto de la app de Meta: el webhook rechaza (401) todo POST sin una firma hecha con él. En local, inventa uno
+# que empiece por «tln-dev-whatsapp-»: `pnpm check:release` impide que ese prefijo llegue a la configuración de producción.
+WHATSAPP_APP_SECRET=<tln-dev-whatsapp-secreto-inventado>
+# Token del reto GET de alta del webhook (el mismo que se escribe en el panel de Meta).
+WHATSAPP_VERIFY_TOKEN=<token-de-verificacion-inventado>

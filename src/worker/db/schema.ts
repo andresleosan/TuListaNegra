@@ -177,3 +177,47 @@ export const subscription_notices = sqliteTable(
     check('notices_kind_ck', en('kind', TIPOS_AVISO)),
   ],
 );
+
+export const DIRECCIONES_WA = ['ENTRANTE', 'SALIENTE'] as const;
+export const TIPOS_WA = ['template', 'text', 'buttons', 'image', 'button'] as const;
+/** Resultado del envío (`accepted`, `rejected`, `unknown`) y, después, los estados que avisa Meta. */
+export const ESTADOS_WA = ['accepted', 'rejected', 'unknown', 'sent', 'delivered', 'read', 'failed'] as const;
+
+/**
+ * Bandeja de WhatsApp (WAP-01, docs/spec/contrato-sarin.md): entrantes y salientes, del simulador o de Meta.
+ * `wa_message_id` único = un evento repetido no se procesa dos veces; `request_id` único = un envío repetido no sale dos veces.
+ * Un envío rechazado no tiene `wa_message_id` (SQLite permite varios NULL en un índice único).
+ */
+export const whatsapp_messages = sqliteTable(
+  'whatsapp_messages',
+  {
+    id: text().primaryKey(), // wam_…
+    direction: text({ enum: DIRECCIONES_WA }).notNull(),
+    wa_message_id: text(),
+    request_id: text(), // solo salientes
+    phone: text().notNull(), // E.164 del otro lado
+    phone_number_id: text(), // número nuestro, si se conoce
+    business_id: text().references(() => businesses.id), // vacío hasta el enrutamiento (WAP-04)
+    kind: text({ enum: TIPOS_WA }).notNull(),
+    template: text(),
+    content_json: text().notNull(), // variables y texto resuelto, o el contenido del entrante
+    buttons_json: text(),
+    reply_to_wa_message_id: text(),
+    status: text({ enum: ESTADOS_WA }).notNull(),
+    error_code: text(), // código de rechazo (WINDOW_CLOSED…) o de error de Meta
+    callback_data: text(),
+    occurred_at: integer().notNull(), // envío o fecha del entrante según Meta
+    created_at: integer().notNull(),
+    status_updated_at: integer(),
+  },
+  (t) => [
+    uniqueIndex('wa_message_id_uq').on(t.wa_message_id),
+    uniqueIndex('wa_request_id_uq').on(t.request_id),
+    index('wa_phone_idx').on(t.phone, t.direction, t.occurred_at), // último entrante de un teléfono (ventana de 24 h)
+    check('wa_direction_ck', en('direction', DIRECCIONES_WA)),
+    check('wa_kind_ck', en('kind', TIPOS_WA)),
+    check('wa_status_ck', en('status', ESTADOS_WA)),
+    // Entrante: siempre trae su id de Meta. Saliente: siempre lleva su clave de idempotencia.
+    check('wa_ids_ck', sql`(${t.direction} = 'ENTRANTE' AND ${t.wa_message_id} IS NOT NULL) OR (${t.direction} = 'SALIENTE' AND ${t.request_id} IS NOT NULL)`),
+  ],
+);

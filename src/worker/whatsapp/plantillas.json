@@ -1,0 +1,35 @@
+{
+  "_fuente": "Catálogo LOCAL del simulador (contrato-sarin.md, d.3). Nombres y textos provisionales hasta que Meta apruebe las plantillas. Cobros: quién cobra, cuánto, cómo pagar y cómo darse de baja (B6).",
+  "plantillas": [
+    {
+      "nombre": "cobro_vecino_amigable",
+      "idioma": "es_CO",
+      "variables": 4,
+      "texto": "Hola {{1}}, le saluda {{2}}. Le recordamos con mucho gusto que tiene un saldo pendiente de {{3}}. {{4}} Si ya pagó, no tenga en cuenta este mensaje. Si no quiere recibir más recordatorios, responda SALIR."
+    },
+    {
+      "nombre": "cobro_corte_de_quincena",
+      "idioma": "es_CO",
+      "variables": 4,
+      "texto": "Hola {{1}}, le escribe {{2}}. Llegó la quincena y su saldo pendiente con nosotros es de {{3}}. {{4}} Si ya pagó, no tenga en cuenta este mensaje. Si no quiere recibir más recordatorios, responda SALIR."
+    },
+    {
+      "nombre": "cobro_aviso_firme",
+      "idioma": "es_CO",
+      "variables": 4,
+      "texto": "{{1}}, le escribe {{2}}. Su saldo pendiente es de {{3}} y ya pasó el plazo acordado. Le pedimos ponerse al día o decirnos qué día puede pagar. {{4}} Si ya pagó, no tenga en cuenta este mensaje. Si no quiere recibir más recordatorios, responda SALIR."
+    },
+    {
+      "nombre": "aviso_abono_pendiente",
+      "idioma": "es_CO",
+      "variables": 3,
+      "texto": "{{1}} envió un comprobante de pago por {{2}} (código {{3}}). Revíselo y apruébelo o recházelo."
+    },
+    {
+      "nombre": "codigo_verificacion",
+      "idioma": "es_CO",
+      "variables": 1,
+      "texto": "Su código de verificación de TuListaNegra es {{1}}. No lo comparta con nadie."
+    }
+  ]
+}

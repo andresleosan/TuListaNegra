@@ -11,6 +11,10 @@ declare namespace Cloudflare {
     DEEPSEEK_API_KEY?: string;
     /** Workers AI (visión del migrador de cuadernos). Se añade como binding al encender AI_READY; solo se usa con AI_READY = "1". */
     AI?: Ai;
+    /** Secreto de la app de Meta: firma (HMAC-SHA-256) de cada POST al webhook de WhatsApp. Sin él, el webhook responde 401 a todo. */
+    WHATSAPP_APP_SECRET?: string;
+    /** Token que Meta repite en el reto GET de alta del webhook. Sin él, el reto responde 403. */
+    WHATSAPP_VERIFY_TOKEN?: string;
     /** Solo pruebas y simulador local: JWKS propio en vez del de Google. check:release impide que llegue a producción. */
     TEST_JWKS_JSON?: string;
   }

@@ -2,6 +2,7 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · WAP-01 · Existe la base de WhatsApp: webhook firmado, registro de mensajes sin duplicados y un simulador que permite probar toda la fase 4 sin Meta y sin escribir a nadie. Sin cambio visible. · 23 → 24 de 39
 - 2026-11-14 · SUP-01..04 · El superadministrador tiene su consola: revisa capturas y aprueba o rechaza pagos con motivo, busca negocios y les da cortesía, gratis, suspensión o reactivación con motivo, y ve los indicadores. · 19 → 23 de 39
 - 2026-11-14 · SUS-01, AJU-01 · El tendero elige su pase, ve dónde pagar y sube la captura desde la app; en Ajustes cambia cómo le pagan, los días para pasar a mora y el tono de cobro, y lo ve en el recibo y en el cobro. · 17 → 19 de 39
 - 2026-11-14 · MOS-03, MOS-04 · Cada deudor tiene su ficha con saldo corrido y recibo compartible por WhatsApp; Morosos los ordena por antigüedad y cobra con tres tonos, sin abrir nada si el horario o el permiso no lo dejan. · 15 → 17 de 39

@@ -2,7 +2,7 @@
   "id": "WAP-01",
   "fase": "F4",
   "titulo": "`SarinGateway`, simulador local, webhook firmado y tabla `whatsapp_messages`.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "schema"
   ],
   "criterio": "Firma inválida → 401; evento repetido no se procesa dos veces; el simulador permite el recorrido completo sin Meta.",
-  "hecho": "",
+  "hecho": "Tabla whatsapp_messages (migración aditiva 0003; wa_message_id y request_id únicos). src/worker/whatsapp/: tipos de SarinGateway del contrato, SimulatedGateway (sin red; catálogo local de plantillas que rechaza INVALID_TEMPLATE; ventana de 24 h; mismo requestId → un solo envío; reloj inyectable; medios de muestra) y gatewayPara (con WHATSAPP_SEND_READY ≠ \"1\" siempre el simulado; con \"1\" falla cerrado hasta implementar la variante A o B). Webhook público /api/whatsapp/webhook: reto GET en tiempo constante; POST con 413 por cabecera y por lectura real, firma HMAC-SHA-256 verificada antes de parsear, UTF-8 estricto + zod, entrantes por wa_message_id con ON CONFLICT DO NOTHING y estados que nunca retroceden. Inyector firmado para pruebas (src/worker/test/whatsapp.ts) y candado en check:release para el prefijo de desarrollo.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "WAP-02, WAP-03 y WAP-08 ya pueden empezar. El gateway real (A o B) espera la decisión del dueño.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run --project worker → 566 pruebas pasan (71 de WhatsApp): firma ausente, mal formada, de otro secreto, de otro cuerpo o sin secreto → 401 sin escribir; > 1 MiB por cabecera o por lectura → 413; JSON o sobre inválido firmado → 400; mismo evento dos veces, dos a la vez o repetido en el lote → una fila; estados desordenados no retroceden; recorrido completo plantilla → entrante firmado → sent/delivered/read sin red (fetch vigilado). El subagente rompió el código a propósito 5 veces y las pruebas lo detectaron.",
+    "2026-11-14: revisión independiente sin hallazgos graves; arreglados con prueba: (1, A1.6) con el interruptor apagado el simulador solo acepta secretos con prefijo tln-dev-whatsapp-: con un secreto real de Meta el webhook da 401 y el reto 403, así no se recogen mensajes del público; (3) un mensaje o estado con forma inesperada se descarta sin tumbar el lote; (6) el 401 no revela si hay secreto configurado. A MEJORAS: candado sobre los secretos reales de Cloudflare, casos unknown/RATE_LIMITED del simulador y límite de frecuencia del webhook.",
+    "No comprobado contra Meta real (cuerpos interactivo/botón/imagen, códigos de error, plantillas aprobadas): supuestos (e) del contrato."
+  ],
   "actualizado": "2026-11-14"
 }

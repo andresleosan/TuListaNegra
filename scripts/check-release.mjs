@@ -26,8 +26,14 @@ for (const ruta of ['wrangler.jsonc', 'dist/tulistanegra/wrangler.json']) {
     if (ruta.startsWith('dist/')) fallos.push(`Falta ${ruta}: ejecuta \`pnpm build\` antes.`);
     continue;
   }
-  const prohibidas = leer(ruta).match(/"TEST_[A-Z0-9_]*"/g);
+  const contenido = leer(ruta);
+  const prohibidas = contenido.match(/"TEST_[A-Z0-9_]*"/g);
   if (prohibidas) fallos.push(`${ruta} contiene configuración de pruebas: ${[...new Set(prohibidas)].join(', ')}.`);
+  // WAP-01 (contrato-sarin.md, d.10): el secreto de desarrollo de WhatsApp (src/worker/test/whatsapp.ts y .dev.vars) empieza
+  // por este prefijo y no puede llegar a producción. Los secretos reales van en Cloudflare, nunca en la configuración versionada.
+  if (contenido.includes('tln-dev-whatsapp')) fallos.push(`${ruta} contiene el secreto de desarrollo de WhatsApp.`);
+  const secretosWa = contenido.match(/"WHATSAPP_(APP_SECRET|VERIFY_TOKEN)"/g);
+  if (secretosWa) fallos.push(`${ruta} declara secretos de WhatsApp en la configuración: ${[...new Set(secretosWa)].join(', ')}; van como secretos de Cloudflare.`);
 }
 
 // A1.7: el simulador local de ingreso (src/web/sesion/simulador.ts) es solo de desarrollo y no puede ir en el bundle.
