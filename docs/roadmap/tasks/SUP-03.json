@@ -2,7 +2,7 @@
   "id": "SUP-03",
   "fase": "F2",
   "titulo": "Negocios: días de cortesía, **suscripción gratis sin vencimiento**, reiniciar contadores, suspender y reactivar.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "access"
   ],
   "criterio": "Marcar gratis deja activo un negocio vencido, sin fecha ni aviso de renovación; desmarcar lo devuelve a sus fechas; suspender gana a gratis; cada acción exige motivo y queda en auditoría.",
-  "hecho": "",
-  "falta": "",
+  "hecho": "Servidor: GET /api/superadmin/negocios?q= (buscador por nombre, correo, teléfono o id, con estado calculado) y POST /api/superadmin/negocios/:id/{cortesia,gratis,reiniciar-contadores,suspender,reactivar}. Cada acción es un UPDATE fijo y su fila de auditoría va en el mismo batch; todas exigen motivo.",
+  "falta": "Pantalla de Negocios en /superadmin (buscador y acciones con confirmación y motivo).",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Construir la pantalla sobre la consola base (SUP-01) y recorrerla en navegador.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/superadmin.test.ts → pasa: marcar gratis deja ACTIVE un negocio vencido, con vence_en null y cuotas de cortesía, y la tienda lo ve así en GET /api/negocio; desmarcar lo devuelve a EXPIRED_READONLY con su fecha original; suspender gana a gratis y a un pase vigente (la tienda solo recibe el aviso y 403 en su cartera); reactivar lo devuelve.",
+    "Cortesía +3/+7/+15/+30 desde ahora si está vencido o sumados al vencimiento si está activo; otros valores → 400. Cada una de las cinco acciones sin motivo → 400 sin tocar el negocio ni la auditoría; con motivo → una fila de auditoría con actor, negocio y detalle. Negocio o acción inexistente → 404 sin auditoría.",
+    "Decisión (fuente B2): marcar gratis empieza un ciclo de cuotas (contadores a 0) solo la primera vez; volver a marcar no los reinicia."
+  ],
   "actualizado": "2026-11-14"
 }
