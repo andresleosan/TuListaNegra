@@ -65,3 +65,12 @@ test('sin datos no divide por cero; la ruta de la consola responde lo mismo', as
   expect(res.status).toBe(200);
   expect(await res.json()).toEqual(vacio);
 });
+
+test('un negocio que pagó y hoy es gratis no cuenta en la conversión: su base lo excluye', async () => {
+  await sembrarNegocio('g1', { subscription_expires_at: AHORA + DIA, free_forever_at: AHORA - DIA });
+  await sembrarNegocio('n1', { subscription_expires_at: AHORA + DIA });
+  await pago('pay_g1', 'bus_g1', 'PAID', 14_900, AHORA - HORA);
+  const r = await indicadores(env, AHORA);
+  expect(r.conversion).toEqual({ pagaron: 0, base: 1, porcentaje: 0 });
+  expect(r.ingresos_mes_cop).toBe(14_900); // el dinero que entró sí cuenta
+});

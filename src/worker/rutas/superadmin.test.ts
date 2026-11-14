@@ -190,3 +190,10 @@ describe('negocios: acciones de la consola (SUP-03)', () => {
     expect((await json(admin('/api/superadmin/negocios?q=100'))).negocios[0]).toMatchObject({ estado: 'EXPIRED_READONLY', gratis: false, suspendido: false });
   });
 });
+
+test('una acción con nombre de propiedad heredada (constructor, toString, __proto__) → 404, no 500', async () => {
+  await sembrarNegocio('uid_1');
+  for (const nombre of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    expect((await admin(`/api/superadmin/negocios/bus_uid_1/${nombre}`, { motivo: 'Prueba' })).status).toBe(404);
+  }
+});

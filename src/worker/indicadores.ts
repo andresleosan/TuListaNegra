@@ -26,7 +26,9 @@ export async function indicadores(env: Env, ahora = Date.now()) {
          COALESCE(SUM(CASE WHEN status = 'PAID' AND reviewed_at >= ?1 THEN amount_cop END), 0) AS ingresos_mes_cop,
          COUNT(CASE WHEN status = 'PAID' AND reviewed_at >= ?1 THEN 1 END) AS pagos_mes,
          COUNT(CASE WHEN status = 'PENDING_REVIEW' THEN 1 END) AS pagos_pendientes,
-         COUNT(DISTINCT CASE WHEN status = 'PAID' THEN business_id END) AS negocios_que_pagaron
+         -- Misma base que el denominador: un negocio que pagó y hoy es gratis no cuenta como conversión.
+         COUNT(DISTINCT CASE WHEN status = 'PAID' AND business_id NOT IN (SELECT id FROM businesses WHERE free_forever_at IS NOT NULL)
+           THEN business_id END) AS negocios_que_pagaron
        FROM subscription_payments`,
     ).bind(inicioDelMes(ahora)),
   ]);

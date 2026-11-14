@@ -1,0 +1,892 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "e86ac5b1-fc6e-45ab-ba83-db0e0386fb7a",
+  "prevId": "0c458f07-de7b-424c-8740-d2bb646afbc9",
+  "tables": {
+    "admin_audit_log": {
+      "name": "admin_audit_log",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_email": {
+          "name": "actor_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "business_id": {
+          "name": "business_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "detail_json": {
+          "name": "detail_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "audit_business_idx": {
+          "name": "audit_business_idx",
+          "columns": [
+            "business_id",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "businesses": {
+      "name": "businesses",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_firebase_uid": {
+          "name": "owner_firebase_uid",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_email": {
+          "name": "owner_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "doc_type": {
+          "name": "doc_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "doc_number": {
+          "name": "doc_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "whatsapp_phone": {
+          "name": "whatsapp_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "whatsapp_verified_at": {
+          "name": "whatsapp_verified_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_methods_info": {
+          "name": "payment_methods_info",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "subscription_plan": {
+          "name": "subscription_plan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'TRIAL_3D'"
+        },
+        "subscription_expires_at": {
+          "name": "subscription_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "grace_unlock_ends_at": {
+          "name": "grace_unlock_ends_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "free_forever_at": {
+          "name": "free_forever_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "suspended_at": {
+          "name": "suspended_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "quota_cycle_started_at": {
+          "name": "quota_cycle_started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ai_ocr_used_count": {
+          "name": "ai_ocr_used_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "ai_chat_used_count": {
+          "name": "ai_chat_used_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "wa_reminders_used_count": {
+          "name": "wa_reminders_used_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "default_alert_days": {
+          "name": "default_alert_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 30
+        },
+        "sarin_settings_json": {
+          "name": "sarin_settings_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "terms_accepted_at": {
+          "name": "terms_accepted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "businesses_owner_uid_uq": {
+          "name": "businesses_owner_uid_uq",
+          "columns": [
+            "owner_firebase_uid"
+          ],
+          "isUnique": true
+        },
+        "businesses_whatsapp_phone_uq": {
+          "name": "businesses_whatsapp_phone_uq",
+          "columns": [
+            "whatsapp_phone"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "businesses_plan_ck": {
+          "name": "businesses_plan_ck",
+          "value": "subscription_plan IN ('TRIAL_3D', 'PASS_7D', 'PASS_15D', 'PASS_30D')"
+        },
+        "businesses_contadores_ck": {
+          "name": "businesses_contadores_ck",
+          "value": "\"businesses\".\"ai_ocr_used_count\" >= 0 AND \"businesses\".\"ai_chat_used_count\" >= 0 AND \"businesses\".\"wa_reminders_used_count\" >= 0"
+        },
+        "businesses_alert_days_ck": {
+          "name": "businesses_alert_days_ck",
+          "value": "\"businesses\".\"default_alert_days\" > 0"
+        }
+      }
+    },
+    "debtors": {
+      "name": "debtors",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "business_id": {
+          "name": "business_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unique_code": {
+          "name": "unique_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "alias_reference": {
+          "name": "alias_reference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "doc_type": {
+          "name": "doc_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "doc_number": {
+          "name": "doc_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "doc_last4": {
+          "name": "doc_last4",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "whatsapp_phone": {
+          "name": "whatsapp_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "wa_consent_at": {
+          "name": "wa_consent_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "wa_opt_out_at": {
+          "name": "wa_opt_out_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "credit_limit_cop": {
+          "name": "credit_limit_cop",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "current_balance_cop": {
+          "name": "current_balance_cop",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "oldest_unpaid_date": {
+          "name": "oldest_unpaid_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "promised_payment_date": {
+          "name": "promised_payment_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "blacklisted_at": {
+          "name": "blacklisted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_reminder_sent_at": {
+          "name": "last_reminder_sent_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "debtors_code_uq": {
+          "name": "debtors_code_uq",
+          "columns": [
+            "business_id",
+            "unique_code"
+          ],
+          "isUnique": true
+        },
+        "debtors_negocio_id_uq": {
+          "name": "debtors_negocio_id_uq",
+          "columns": [
+            "business_id",
+            "id"
+          ],
+          "isUnique": true
+        },
+        "debtors_doc_uq": {
+          "name": "debtors_doc_uq",
+          "columns": [
+            "business_id",
+            "doc_type",
+            "doc_number"
+          ],
+          "isUnique": true,
+          "where": "doc_number IS NOT NULL"
+        },
+        "debtors_name_idx": {
+          "name": "debtors_name_idx",
+          "columns": [
+            "business_id",
+            "full_name"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "debtors_business_id_businesses_id_fk": {
+          "name": "debtors_business_id_businesses_id_fk",
+          "tableFrom": "debtors",
+          "tableTo": "businesses",
+          "columnsFrom": [
+            "business_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "debtors_saldo_ck": {
+          "name": "debtors_saldo_ck",
+          "value": "typeof(current_balance_cop) = 'integer' AND \"debtors\".\"current_balance_cop\" >= 0"
+        },
+        "debtors_doc_ck": {
+          "name": "debtors_doc_ck",
+          "value": "(\"debtors\".\"doc_number\" IS NULL) = (\"debtors\".\"doc_type\" IS NULL)"
+        },
+        "debtors_tope_ck": {
+          "name": "debtors_tope_ck",
+          "value": "\"debtors\".\"credit_limit_cop\" IS NULL OR \"debtors\".\"credit_limit_cop\" >= 0"
+        }
+      }
+    },
+    "ledger_transactions": {
+      "name": "ledger_transactions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "business_id": {
+          "name": "business_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "debtor_id": {
+          "name": "debtor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_cop": {
+          "name": "amount_cop",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "balance_after_cop": {
+          "name": "balance_after_cop",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evidence_r2_key": {
+          "name": "evidence_r2_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "confirmed_at": {
+          "name": "confirmed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ledger_request_uq": {
+          "name": "ledger_request_uq",
+          "columns": [
+            "business_id",
+            "request_id"
+          ],
+          "isUnique": true
+        },
+        "ledger_debtor_idx": {
+          "name": "ledger_debtor_idx",
+          "columns": [
+            "business_id",
+            "debtor_id",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ledger_transactions_business_id_businesses_id_fk": {
+          "name": "ledger_transactions_business_id_businesses_id_fk",
+          "tableFrom": "ledger_transactions",
+          "tableTo": "businesses",
+          "columnsFrom": [
+            "business_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ledger_deudor_fk": {
+          "name": "ledger_deudor_fk",
+          "tableFrom": "ledger_transactions",
+          "tableTo": "debtors",
+          "columnsFrom": [
+            "business_id",
+            "debtor_id"
+          ],
+          "columnsTo": [
+            "business_id",
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ledger_amount_ck": {
+          "name": "ledger_amount_ck",
+          "value": "typeof(amount_cop) = 'integer' AND \"ledger_transactions\".\"amount_cop\" > 0"
+        },
+        "ledger_confirmado_ck": {
+          "name": "ledger_confirmado_ck",
+          "value": "\"ledger_transactions\".\"status\" <> 'CONFIRMADO' OR (\"ledger_transactions\".\"balance_after_cop\" IS NOT NULL AND \"ledger_transactions\".\"confirmed_at\" IS NOT NULL)"
+        },
+        "ledger_type_ck": {
+          "name": "ledger_type_ck",
+          "value": "type IN ('FIADO', 'ABONO', 'AJUSTE_SUMA', 'AJUSTE_RESTA')"
+        },
+        "ledger_status_ck": {
+          "name": "ledger_status_ck",
+          "value": "status IN ('CONFIRMADO', 'PENDIENTE_VERIFICACION_WHATSAPP', 'RECHAZADO')"
+        },
+        "ledger_source_ck": {
+          "name": "ledger_source_ck",
+          "value": "source IN ('MOSTRADOR', 'SARIN_TEXT', 'SARIN_AUDIO', 'SARIN_IMAGE_OCR', 'WHATSAPP_BOT')"
+        }
+      }
+    },
+    "subscription_notices": {
+      "name": "subscription_notices",
+      "columns": {
+        "business_id": {
+          "name": "business_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "notices_uq": {
+          "name": "notices_uq",
+          "columns": [
+            "business_id",
+            "kind",
+            "expires_at"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "subscription_notices_business_id_businesses_id_fk": {
+          "name": "subscription_notices_business_id_businesses_id_fk",
+          "tableFrom": "subscription_notices",
+          "tableTo": "businesses",
+          "columnsFrom": [
+            "business_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "notices_kind_ck": {
+          "name": "notices_kind_ck",
+          "value": "kind IN ('TRES_DIAS', 'UN_DIA', 'VENCIDO')"
+        }
+      }
+    },
+    "subscription_payments": {
+      "name": "subscription_payments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "business_id": {
+          "name": "business_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_requested": {
+          "name": "plan_requested",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "days_to_add": {
+          "name": "days_to_add",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_cop": {
+          "name": "amount_cop",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "receipt_r2_key": {
+          "name": "receipt_r2_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ocr_extracted_amount": {
+          "name": "ocr_extracted_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ocr_reference_number": {
+          "name": "ocr_reference_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "grace_started_at": {
+          "name": "grace_started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PENDING_REVIEW'"
+        },
+        "reviewed_by_email": {
+          "name": "reviewed_by_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "review_note": {
+          "name": "review_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "payments_un_pendiente_uq": {
+          "name": "payments_un_pendiente_uq",
+          "columns": [
+            "business_id"
+          ],
+          "isUnique": true,
+          "where": "status = 'PENDING_REVIEW'"
+        },
+        "payments_business_idx": {
+          "name": "payments_business_idx",
+          "columns": [
+            "business_id",
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "payments_ocr_ref_idx": {
+          "name": "payments_ocr_ref_idx",
+          "columns": [
+            "ocr_reference_number"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "subscription_payments_business_id_businesses_id_fk": {
+          "name": "subscription_payments_business_id_businesses_id_fk",
+          "tableFrom": "subscription_payments",
+          "tableTo": "businesses",
+          "columnsFrom": [
+            "business_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "payments_plan_ck": {
+          "name": "payments_plan_ck",
+          "value": "plan_requested IN ('TRIAL_3D', 'PASS_7D', 'PASS_15D', 'PASS_30D')"
+        },
+        "payments_status_ck": {
+          "name": "payments_status_ck",
+          "value": "status IN ('PENDING_REVIEW', 'PAID', 'REJECTED')"
+        },
+        "payments_montos_ck": {
+          "name": "payments_montos_ck",
+          "value": "typeof(amount_cop) = 'integer' AND typeof(days_to_add) = 'integer' AND \"subscription_payments\".\"amount_cop\" > 0 AND \"subscription_payments\".\"days_to_add\" > 0"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

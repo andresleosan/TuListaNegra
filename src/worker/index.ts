@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { type AppEnv, requiereSesion } from './auth';
 import { requiereNegocio } from './guardian';
+import { registrarAvisos } from './avisos';
 import { archivos } from './rutas/archivos';
+import { cuadernos } from './rutas/cuadernos';
 import { deudores } from './rutas/deudores';
 import { negocio } from './rutas/negocio';
 import { superadmin } from './rutas/superadmin';
@@ -29,6 +31,7 @@ app.route('/api/negocio', negocio);
 app.route('/api/deudores', deudores);
 app.route('/api/suscripcion', suscripcion);
 app.route('/api/archivos', archivos);
+app.route('/api/cuadernos', cuadernos);
 app.route('/api/superadmin', superadmin);
 
 app.notFound((c) => c.json({ error: 'no_encontrado' }, 404));
@@ -36,5 +39,7 @@ app.notFound((c) => c.json({ error: 'no_encontrado' }, 404));
 export default {
   fetch: app.fetch,
   // Cron horario: solo envía avisos, nunca decide el acceso (SUS-03).
-  async scheduled() {},
+  async scheduled(controlador, env, ctx) {
+    ctx.waitUntil(registrarAvisos(env.DB, controlador.scheduledTime));
+  },
 } satisfies ExportedHandler<Env>;

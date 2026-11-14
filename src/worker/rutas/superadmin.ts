@@ -128,7 +128,9 @@ const ACCIONES = {
 };
 
 superadmin.post('/negocios/:id/:accion', async (c) => {
-  const definicion = ACCIONES[c.req.param('accion') as keyof typeof ACCIONES];
+  const nombre = c.req.param('accion');
+  // Object.hasOwn: «constructor» o «__proto__» no son acciones aunque el objeto los herede.
+  const definicion = Object.hasOwn(ACCIONES, nombre) ? ACCIONES[nombre as keyof typeof ACCIONES] : undefined;
   if (!definicion) return c.json({ error: 'no_encontrado' }, 404);
   const d: { motivo: string; dias?: number; activar?: boolean } = await cuerpo(c, definicion.datos);
   const ahora = Date.now();

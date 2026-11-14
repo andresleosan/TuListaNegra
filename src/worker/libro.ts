@@ -38,6 +38,35 @@ const SQL_MORA = `
   )
   WHERE id = ?1 AND business_id = ?2 AND EXISTS (SELECT 1 FROM ledger_transactions WHERE id = ?3)`;
 
+/**
+ * Las tres sentencias de un movimiento confirmado, para meterlas en un db.batch (aquí o junto a otras, como al importar
+ * un cuaderno). Cada una depende de la anterior por el id: si el movimiento no entra, nada más cambia.
+ */
+export function sentenciasMovimiento(db: D1Database, m: NuevoMovimiento, id: string, ahora: number): D1PreparedStatement[] {
+  const delta = signo(m.type) * m.amount_cop;
+  return [
+    // 1. El movimiento solo entra si el deudor es de este negocio, el saldo no queda negativo y el tope se respeta (o se confirmó).
+    db.prepare(
+      `INSERT INTO ledger_transactions (id, business_id, debtor_id, request_id, type, amount_cop, status, balance_after_cop,
+         description, evidence_r2_key, due_date, created_at, confirmed_at, source)
+       SELECT ?1, business_id, id, ?4, ?5, ?6, 'CONFIRMADO', current_balance_cop + ?7, ?8, ?9, ?10, ?11, ?11, ?12
+       FROM debtors
+       WHERE id = ?3 AND business_id = ?2 AND current_balance_cop + ?7 >= 0
+         AND (?13 = 1 OR ?5 <> 'FIADO' OR credit_limit_cop IS NULL OR current_balance_cop + ?7 <= credit_limit_cop)`,
+    ).bind(
+      id, m.business_id, m.debtor_id, m.request_id, m.type, m.amount_cop, delta, m.description || DESCRIPCION[m.type],
+      m.evidence_r2_key ?? null, m.due_date ?? null, ahora, m.source, m.confirmar_tope ? 1 : 0,
+    ),
+    // 2. El saldo se mueve solo si el movimiento entró. Al quedar en cero, la promesa de pago se da por cumplida.
+    db.prepare(
+      `UPDATE debtors SET current_balance_cop = current_balance_cop + ?3,
+         promised_payment_date = CASE WHEN current_balance_cop + ?3 = 0 THEN NULL ELSE promised_payment_date END
+       WHERE id = ?1 AND business_id = ?2 AND EXISTS (SELECT 1 FROM ledger_transactions WHERE id = ?4)`,
+    ).bind(m.debtor_id, m.business_id, delta, id),
+    db.prepare(SQL_MORA).bind(m.debtor_id, m.business_id, id),
+  ];
+}
+
 /** Registra un movimiento confirmado. Repetir el mismo `request_id` devuelve el movimiento original sin crear otro. */
 export async function registrarMovimiento(env: Env, m: NuevoMovimiento, ahora = Date.now()): Promise<ResultadoMovimiento> {
   const db = env.DB;
@@ -48,27 +77,7 @@ export async function registrarMovimiento(env: Env, m: NuevoMovimiento, ahora = 
 
   let insertadas: number;
   try {
-    const [insercion] = await db.batch([
-      // 1. El movimiento solo entra si el deudor es de este negocio, el saldo no queda negativo y el tope se respeta (o se confirmó).
-      db.prepare(
-        `INSERT INTO ledger_transactions (id, business_id, debtor_id, request_id, type, amount_cop, status, balance_after_cop,
-           description, evidence_r2_key, due_date, created_at, confirmed_at, source)
-         SELECT ?1, business_id, id, ?4, ?5, ?6, 'CONFIRMADO', current_balance_cop + ?7, ?8, ?9, ?10, ?11, ?11, ?12
-         FROM debtors
-         WHERE id = ?3 AND business_id = ?2 AND current_balance_cop + ?7 >= 0
-           AND (?13 = 1 OR ?5 <> 'FIADO' OR credit_limit_cop IS NULL OR current_balance_cop + ?7 <= credit_limit_cop)`,
-      ).bind(
-        id, m.business_id, m.debtor_id, m.request_id, m.type, m.amount_cop, delta, m.description || DESCRIPCION[m.type],
-        m.evidence_r2_key ?? null, m.due_date ?? null, ahora, m.source, m.confirmar_tope ? 1 : 0,
-      ),
-      // 2. El saldo se mueve solo si el movimiento entró. Al quedar en cero, la promesa de pago se da por cumplida.
-      db.prepare(
-        `UPDATE debtors SET current_balance_cop = current_balance_cop + ?3,
-           promised_payment_date = CASE WHEN current_balance_cop + ?3 = 0 THEN NULL ELSE promised_payment_date END
-         WHERE id = ?1 AND business_id = ?2 AND EXISTS (SELECT 1 FROM ledger_transactions WHERE id = ?4)`,
-      ).bind(m.debtor_id, m.business_id, delta, id),
-      db.prepare(SQL_MORA).bind(m.debtor_id, m.business_id, id),
-    ]);
+    const [insercion] = await db.batch(sentenciasMovimiento(db, m, id, ahora));
     insertadas = insercion!.meta.changes;
   } catch (e) {
     // El disparador ledger_no_replace corta un request_id repetido: se devuelve el movimiento que ya existía.

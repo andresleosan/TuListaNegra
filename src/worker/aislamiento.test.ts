@@ -22,8 +22,16 @@ async function conCaptura(ruta: string): Promise<Peticion> {
   return { ruta, init: { method: 'POST', body, headers: { 'Content-Type': serializado.headers.get('Content-Type')!, 'Content-Length': String(body.byteLength) } } };
 }
 
+async function conFoto(ruta: string): Promise<Peticion> {
+  const formulario = new FormData();
+  formulario.set('foto', new File([PNG], 'cuaderno.png', { type: 'image/png' }));
+  const serializado = new Response(formulario);
+  const body = await serializado.arrayBuffer();
+  return { ruta, init: { method: 'POST', body, headers: { 'Content-Type': serializado.headers.get('Content-Type')!, 'Content-Length': String(body.byteLength) } } };
+}
+
 /** Lo que la tienda A tiene sembrado: ids y textos que B nunca debe ver. */
-type Victima = { negocio: string; deudor: string; movimiento: string; request_id: string; pago: string; captura: string };
+type Victima = { negocio: string; deudor: string; movimiento: string; request_id: string; pago: string; captura: string; cuaderno: string };
 let v: Victima;
 
 /**
@@ -48,6 +56,12 @@ const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
   'POST /api/deudores/:id/cobros': () => [conJson(`/api/deudores/${v.deudor}/cobros`, 'POST', { tono: 'AVISO_FIRME' })],
   'GET /api/suscripcion': () => [{ ruta: `/api/suscripcion?business_id=${v.negocio}` }],
   'POST /api/suscripcion/pagos': () => [conCaptura(`/api/suscripcion/pagos?business_id=${v.negocio}`)],
+  'POST /api/cuadernos/fotos': () => [conFoto(`/api/cuadernos/fotos?business_id=${v.negocio}`)],
+  'POST /api/cuadernos/importar': () => [
+    // La foto de A como evidencia, o la captura de pago de A: B no puede usarlas ni escribir en el libro de A.
+    conJson('/api/cuadernos/importar', 'POST', { foto: v.cuaderno, request_id: 'ataque-cuaderno', filas: [{ full_name: 'Intruso', saldo_cop: 1_000 }], business_id: v.negocio }),
+    conJson('/api/cuadernos/importar', 'POST', { foto: v.captura, request_id: 'ataque-cuaderno2', filas: [{ full_name: 'Intruso', saldo_cop: 1_000 }] }),
+  ],
   'GET /api/archivos/*': () => [
     { ruta: `/api/archivos/${v.captura}` },
     { ruta: `/api/archivos/negocios/bus_uid_b/../${v.negocio}/pagos/${v.pago}.png` },
@@ -81,7 +95,8 @@ beforeEach(async () => {
   const deudor = await pedir(conJson('/api/deudores', 'POST', { full_name: 'SECRETO don Carlos', alias_reference: 'SECRETO el del taller', doc_type: 'CC', doc_number: '1032456789', whatsapp_phone: '+573001112233' }));
   const { movimiento } = await pedir(conJson(`/api/deudores/${deudor.id}/movimientos`, 'POST', { request_id: 'toque-de-a-0001', type: 'FIADO', amount_cop: 50_000, description: 'SECRETO mercado' }));
   const { pago } = await pedir(conCaptura('/api/suscripcion/pagos'));
-  v = { negocio: `bus_${A.uid}`, deudor: deudor.id, movimiento: movimiento.id, request_id: 'toque-de-a-0001', pago: pago.id, captura: `negocios/bus_${A.uid}/pagos/${pago.id}.png` };
+  const { foto: cuaderno } = await pedir(conFoto('/api/cuadernos/fotos'));
+  v = { negocio: `bus_${A.uid}`, deudor: deudor.id, movimiento: movimiento.id, request_id: 'toque-de-a-0001', pago: pago.id, captura: `negocios/bus_${A.uid}/pagos/${pago.id}.png`, cuaderno };
 });
 
 describe('cobertura', () => {

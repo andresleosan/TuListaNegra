@@ -15,6 +15,13 @@
       "when": 1794626822963,
       "tag": "0001_inmutabilidad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794635532766,
+      "tag": "0002_avisos",
+      "breakpoints": true
     }
   ]
 }

@@ -22,6 +22,10 @@ const ultimoRevisado = (db: ReturnType<typeof bd>, negocioId: string) =>
     .where(and(eq(pagos.business_id, negocioId), ne(pagos.status, 'PENDING_REVIEW')))
     .orderBy(desc(pagos.reviewed_at), desc(pagos.id)).limit(1).get();
 
+/** La nota de un rechazo le explica al tendero qué pasó; la de una aprobación es interna del superadministrador. */
+const conNotaVisible = (r: { status: string; review_note: string | null } | undefined) =>
+  r ? { status: r.status, review_note: r.status === 'REJECTED' ? r.review_note : null } : null;
+
 suscripcion.get('/', async (c) => {
   const db = bd(c.env);
   const negocioId = c.var.negocio.id;
@@ -31,7 +35,7 @@ suscripcion.get('/', async (c) => {
     pases: PASES.map((id) => ({ id, nombre: PLANES[id].nombre, dias: PLANES[id].duracion_ms / DIA, precio_cop: PLANES[id].precio_cop, cuotas: PLANES[id].cuotas })),
     cuentas: cuentasDePago(c.env.PAYMENT_ACCOUNTS_JSON),
     pago_pendiente: pendiente ?? null,
-    ultimo_revisado: (await ultimoRevisado(db, negocioId)) ?? null,
+    ultimo_revisado: conNotaVisible(await ultimoRevisado(db, negocioId)),
   });
 });
 

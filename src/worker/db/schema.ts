@@ -156,3 +156,24 @@ export const admin_audit_log = sqliteTable(
   },
   (t) => [index('audit_business_idx').on(t.business_id, t.created_at)],
 );
+
+export const TIPOS_AVISO = ['TRES_DIAS', 'UN_DIA', 'VENCIDO'] as const;
+
+/**
+ * Avisos de vencimiento que el cron horario deja listos para el dueño (SUS-03). Uno por negocio, tipo y vencimiento:
+ * el índice único hace que repetir el cron no duplique. `sent_at` lo rellena quien envíe por WhatsApp (fase 4).
+ */
+export const subscription_notices = sqliteTable(
+  'subscription_notices',
+  {
+    business_id: text().notNull().references(() => businesses.id),
+    kind: text({ enum: TIPOS_AVISO }).notNull(),
+    expires_at: integer().notNull(),
+    created_at: integer().notNull(),
+    sent_at: integer(),
+  },
+  (t) => [
+    uniqueIndex('notices_uq').on(t.business_id, t.kind, t.expires_at),
+    check('notices_kind_ck', en('kind', TIPOS_AVISO)),
+  ],
+);

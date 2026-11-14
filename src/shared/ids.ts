@@ -1,7 +1,7 @@
 // Identificadores ULID con prefijo (bus_, deb_, mov_, pay_…): ordenables por fecha de creación.
 const ALFABETO = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'; // Crockford base32
 
-export type PrefijoId = 'bus' | 'deb' | 'mov' | 'pay' | 'aud' | 'wam';
+export type PrefijoId = 'bus' | 'deb' | 'mov' | 'pay' | 'aud' | 'wam' | 'cua';
 
 export function ulid(ahora = Date.now()): string {
   let tiempo = '';

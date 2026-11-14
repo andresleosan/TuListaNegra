@@ -9,6 +9,8 @@ declare namespace Cloudflare {
     PAYMENT_ACCOUNTS_JSON?: string; // cuentas donde se pagan los pases: lista JSON que se muestra al dueño
     /** Secreto de DeepSeek. Solo se usa con AI_READY = "1". */
     DEEPSEEK_API_KEY?: string;
+    /** Workers AI (visión del migrador de cuadernos). Se añade como binding al encender AI_READY; solo se usa con AI_READY = "1". */
+    AI?: Ai;
     /** Solo pruebas y simulador local: JWKS propio en vez del de Google. check:release impide que llegue a producción. */
     TEST_JWKS_JSON?: string;
   }

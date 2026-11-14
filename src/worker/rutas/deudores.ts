@@ -116,11 +116,18 @@ deudores.patch('/:id', async (c) => {
   const cambios: Partial<Fila> = { ...campos };
   if ('doc_number' in d) cambios.doc_last4 = d.doc_number ? d.doc_number.slice(-4) : null;
   if ('doc_number' in d && !d.doc_number) cambios.doc_type = null;
-  if (!conDocumento({ ...actual, ...cambios })) {
+  const final = { ...actual, ...cambios };
+  if (!conDocumento(final)) {
     return c.json({ error: 'datos_invalidos', campos: ['doc_type'] }, 400);
+  }
+  // Un tipo sin número lo rechazaría la base (debtors_doc_ck) con un 500: se explica antes.
+  if (final.doc_type && !final.doc_number) {
+    return c.json({ error: 'datos_invalidos', campos: ['doc_number'] }, 400);
   }
   // Las marcas guardan la fecha de la primera vez; volver a marcar no la mueve.
   if (wa_consentimiento !== undefined) cambios.wa_consent_at = wa_consentimiento ? (actual.wa_consent_at ?? ahora) : null;
+  // El consentimiento es de la persona de ese número (B6): con otro número hay que pedirlo de nuevo.
+  if ('whatsapp_phone' in d && (d.whatsapp_phone ?? null) !== actual.whatsapp_phone) cambios.wa_consent_at = wa_consentimiento ? ahora : null;
   if (wa_baja) cambios.wa_opt_out_at = actual.wa_opt_out_at ?? ahora;
   if (lista_negra !== undefined) cambios.blacklisted_at = lista_negra ? (actual.blacklisted_at ?? ahora) : null;
   if (archivado !== undefined) cambios.archived_at = archivado ? (actual.archived_at ?? ahora) : null;

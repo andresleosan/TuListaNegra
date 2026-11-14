@@ -463,3 +463,9 @@ describe('POST /api/suscripcion/pagos: límite de frecuencia', () => {
     expect((await subir(undefined, { uid: 'uid_otro' })).status).toBe(201);
   });
 });
+
+test('la nota interna de un pago aprobado no llega al tendero; la de un rechazo sí', async () => {
+  await sembrarNegocio('uid_1');
+  await sembrarPago({ id: 'pay_aprobado', status: 'PAID', reviewed_at: Date.now() - HORA, review_note: 'Ref. banco 99887766' });
+  expect((await (await api('/api/suscripcion')).json<any>()).ultimo_revisado).toEqual({ status: 'PAID', review_note: null });
+});

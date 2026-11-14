@@ -199,3 +199,23 @@ describe('aislamiento y permisos', () => {
     expect((await editar(d.id, { full_name: 'Z' }, 'uid_2')).status).toBe(403);
   });
 });
+
+describe('revisión independiente del lote de dinero', () => {
+  test('cambiar el teléfono retira el consentimiento (B6: jamás a terceros), salvo que se dé otra vez en el mismo cambio', async () => {
+    await sembrarNegocio();
+    const d = await json(crear({ full_name: 'Wilmar', whatsapp_phone: '+573001234567', wa_consentimiento: true }));
+    expect(d.wa_consent_at).toBeTypeOf('number');
+    expect((await json(editar(d.id, { alias_reference: 'el mono', whatsapp_phone: '+573001234567' }))).wa_consent_at).toBe(d.wa_consent_at); // mismo número: se conserva
+    expect((await json(editar(d.id, { whatsapp_phone: '+573009998877' }))).wa_consent_at).toBeNull();
+    expect((await json(editar(d.id, { whatsapp_phone: '+573005556677', wa_consentimiento: true }))).wa_consent_at).toBeTypeOf('number');
+    expect((await json(editar(d.id, { whatsapp_phone: null }))).wa_consent_at).toBeNull();
+  });
+
+  test('tipo de documento sin número → 400 con el campo, no 500', async () => {
+    await sembrarNegocio();
+    const d = await json(crear({ full_name: 'Sin documento' }));
+    const res = await editar(d.id, { doc_type: 'CC' });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'datos_invalidos', campos: ['doc_number'] });
+  });
+});
