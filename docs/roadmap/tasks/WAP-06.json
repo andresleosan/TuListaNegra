@@ -19,7 +19,7 @@
   "hecho": "",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
+  "nextStep": "Requisito de la revisión de WAP-05: el abono pendiente llega con el saldo completo como monto sugerido (sin IA no hay lectura), así que aprobar nunca puede confirmar sin que el dueño vea y pueda corregir el monto: el botón de WhatsApp lleva a revisar el monto (o pide el monto), no confirma a ciegas. Al aprobar: comprobar el saldo de ese momento y mover el saldo en el mismo db.batch que el cambio a CONFIRMADO. Los pendientes se reconocen por source WHATSAPP_BOT, status PENDIENTE_VERIFICACION_WHATSAPP y request_id wa:<wamid>.",
   "evidencia": [],
   "actualizado": "2026-11-14"
 }
