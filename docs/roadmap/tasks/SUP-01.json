@@ -2,7 +2,7 @@
   "id": "SUP-01",
   "fase": "F2",
   "titulo": "Acceso de superadministrador y consola base.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,10 +16,13 @@
     "superadmin"
   ],
   "criterio": "Una prueba recorre todas las rutas `/api/superadmin/*`: correo no listado, no verificado o sin Google → 403.",
-  "hecho": "",
-  "falta": "",
+  "hecho": "Servidor: src/worker/superadmin.ts (correo en SUPERADMIN_EMAILS, comparación exacta, email_verified y sesión de Google) aplicado a todo /api/superadmin/* antes de enrutar; GET /api/superadmin/yo; /api/sesion incluye es_superadmin solo para pintar el enlace.",
+  "falta": "Consola base en la app (/superadmin): pantalla con navegación Pagos / Negocios / Indicadores, visible solo si es_superadmin, sobre el esqueleto de AUT-02.",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Construir la pantalla /superadmin y comprobarla en navegador con el simulador (admin@ejemplo.test con Google).",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/superadmin.test.ts → pasa. La prueba saca las rutas de app.routes (una ruta nueva de la consola entra sola en el recorrido): sin sesión → 401; correo no listado, listado sin verificar, listado sin Google, correo parecido y sin correo → 403; superadministrador → no 403. Una ruta inexistente de la consola da 403 a un no autorizado y 404 al superadministrador.",
+    "Sin SUPERADMIN_EMAILS configurado nadie entra. El correo del superadministrador no está en el repositorio (A1.5): las pruebas usan admin@ejemplo.test."
+  ],
   "actualizado": "2026-11-14"
 }

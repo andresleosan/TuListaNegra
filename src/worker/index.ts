@@ -6,6 +6,7 @@ import { deudores } from './rutas/deudores';
 import { negocio } from './rutas/negocio';
 import { superadmin } from './rutas/superadmin';
 import { suscripcion } from './rutas/suscripcion';
+import { esSuperadmin } from './superadmin';
 
 export const app = new Hono<AppEnv>();
 
@@ -22,7 +23,8 @@ app.use('/api/*', (c, next) =>
 );
 
 app.get('/api/health', (c) => c.json({ ok: true, servicio: 'tulistanegra' }));
-app.get('/api/sesion', (c) => c.json(c.var.sesion));
+// `es_superadmin` solo sirve para que la app muestre el enlace a la consola; el permiso real se comprueba en cada ruta.
+app.get('/api/sesion', (c) => c.json({ ...c.var.sesion, es_superadmin: esSuperadmin(c.var.sesion, c.env) }));
 app.route('/api/negocio', negocio);
 app.route('/api/deudores', deudores);
 app.route('/api/suscripcion', suscripcion);

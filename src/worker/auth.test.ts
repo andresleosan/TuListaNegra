@@ -25,7 +25,7 @@ describe('token válido', () => {
   test('pasa y expone la sesión', async () => {
     const res = await api('/api/sesion', { uid: 'uid_42', email: 'Tendero@Ejemplo.test', proveedor: 'google.com' });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ uid: 'uid_42', email: 'tendero@ejemplo.test', email_verified: true, proveedor: 'google.com' });
+    expect(await res.json()).toEqual({ uid: 'uid_42', email: 'tendero@ejemplo.test', email_verified: true, proveedor: 'google.com', es_superadmin: false });
   });
 });
 
