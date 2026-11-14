@@ -62,7 +62,7 @@ describe('plantillas', () => {
 
   test('cada plantilla del catálogo se puede enviar con su número de variables', async () => {
     const gw = new SimulatedGateway(env);
-    const casos: [NombrePlantilla, number][] = [['cobro_vecino_amigable', 4], ['cobro_corte_de_quincena', 4], ['cobro_aviso_firme', 4], ['aviso_abono_pendiente', 2], ['codigo_verificacion', 1]];
+    const casos: [NombrePlantilla, number][] = [['cobro_vecino_amigable', 4], ['cobro_corte_de_quincena', 4], ['cobro_aviso_firme', 4], ['aviso_abono_pendiente', 2], ['codigo_verificacion', 1], ['aviso_vencimiento', 2]];
     for (const [template, n] of casos) {
       expect(await gw.sendTemplate(cobro({ template, requestId: template, variables: Array.from({ length: n }, (_, i) => `v${i}`) }))).toMatchObject({ status: 'accepted' });
     }

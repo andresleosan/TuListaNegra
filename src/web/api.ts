@@ -1,6 +1,7 @@
 // Cliente de la API del Worker. Cada petición lleva el ID token del proveedor de sesión.
 import type { EstadoNegocio, Permisos } from '../shared/acceso';
 import type { Tono } from '../shared/cobro';
+import type { MotivoBloqueo } from '../shared/contacto';
 import { cargarProveedor } from './sesion';
 
 /** Respuesta de error de la API: `error` es el código del servidor (`sin_negocio`, `telefono_en_uso`…). */
@@ -45,6 +46,12 @@ export type Negocio = {
   bot_whatsapp_activo: boolean;
   bot_whatsapp_simulado: boolean;
 };
+
+/** Por qué quedó fuera un deudor del cobro masivo (WAP-07): las reglas de contacto de B6 y los motivos propios del bot. */
+export type MotivoFuera = MotivoBloqueo | 'SIN_SALDO' | 'SIN_TELEFONO' | 'SIN_CUOTA' | 'RECHAZADO' | 'NO_ENCONTRADO';
+
+/** Respuesta de `POST /api/cobros-bot/lote`: cuántos salieron, cuántos sin confirmar (pudo llegar) y los de fuera por motivo. */
+export type ResumenLote = { simulado: boolean; enviados: number; sin_confirmar: number; fuera: Partial<Record<MotivoFuera, number>> };
 
 /** Un negocio suspendido solo recibe el aviso y cómo contactar. */
 export type NegocioSuspendido = { estado: 'SUSPENDED_BY_ADMIN'; permisos: Permisos; contacto: string | null };

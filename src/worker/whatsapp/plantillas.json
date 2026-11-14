@@ -30,6 +30,12 @@
       "idioma": "es_CO",
       "variables": 1,
       "texto": "Su código de verificación de TuListaNegra es {{1}}. No lo comparta con nadie."
+    },
+    {
+      "nombre": "aviso_vencimiento",
+      "idioma": "es_CO",
+      "variables": 2,
+      "texto": "TuListaNegra: el pase de tu tienda {{1}} ({{2}}). Renuévalo en la app, en Suscripción, para fiar y cobrar sin cortes."
     }
   ]
 }

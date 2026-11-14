@@ -1,4 +1,5 @@
 // MOS-04: morosos por antigüedad, Cobrar con los tres tonos y bloqueos (sin consentimiento, fuera de horario) que no abren nada.
+// WAP-07: cobro masivo por el bot (elegir a todos, vista previa, confirmar y ver el resumen de quién quedó fuera y por qué).
 import { expect, type Page, type TestInfo, test } from '@playwright/test';
 import { enlaceWhatsApp, textoDeCobro, type Tono } from '../src/shared/cobro';
 import { apiComo, captura, entrar, esperarMostrador, llenarAlta, sinDesborde, SUFIJO, uidDe } from './ayudas';
@@ -30,7 +31,8 @@ test('morosos: orden por antigüedad, tres tonos, sin consentimiento y fuera de 
   const ancho = page.viewportSize()!.width;
   const errores: string[] = [];
   // Errores de consola esperados: el 404 `sin_negocio` antes de crear la tienda y los 409 de los cobros bloqueados.
-  const esperado = (url: string) => url.endsWith('/api/negocio') || url.endsWith('/cobros');
+  // También el corte de red simulado en la segunda tanda del cobro masivo.
+  const esperado = (url: string) => url.endsWith('/api/negocio') || url.endsWith('/cobros') || url.endsWith('/api/cobros-bot/lote');
   page.on('console', (m) => m.type() === 'error' && !esperado(m.location().url) && errores.push(`${m.text()} · ${m.location().url}`));
   page.on('pageerror', (e) => errores.push(String(e)));
   // No se abren ventanas de verdad: se anota qué se abriría.
@@ -177,6 +179,93 @@ test('morosos: orden por antigüedad, tres tonos, sin consentimiento y fuera de 
   if (ancho === 360) await captura(page, 'morosos-bot-360');
   await page.unroute(`**/api/cobros-bot/${hernan.id}`);
 
+  // WAP-07: cobro masivo por el bot con dos deudores más en mora (promesa vencida) y con consentimiento: 7 elegidos, que la
+  // pantalla envía en dos tandas (6 + 1). El servidor es el real: si el reloj cae fuera del horario de cobro, el resumen
+  // lo dice (todos fuera por horario) y se acepta así. La segunda tanda se corta una vez (sin red) y se reintenta.
+  await deudor('Gloria Pérez', 21_000, { wa_consentimiento: true, promised_payment_date: Date.now() - 2 * DIA });
+  await deudor('Óscar Mejía', 7_500, { wa_consentimiento: true, promised_payment_date: Date.now() - 4 * DIA });
+  await page.reload();
+  await expect(filas).toHaveCount(7);
+  await page.getByRole('button', { name: 'Cobrar a varios con el bot (simulado)' }).click();
+  await page.getByRole('button', { name: 'Elegir a todos los de la lista (7)' }).click();
+  await expect(page.getByRole('checkbox', { checked: true })).toHaveCount(7);
+  await expect(page.getByText('7 elegidos')).toBeVisible();
+  // Tono por defecto de la tienda; la vista previa es la plantilla fija con el primero de la lista (el más antiguo).
+  await expect(page.getByRole('radio', { name: 'Corte de quincena' })).toBeChecked();
+  const previa = page.getByTestId('previa-masivo');
+  await expect(previa).toHaveText(textoDeCobro('CORTE_DE_QUINCENA', { tienda: TIENDA, nombre: zoila.full_name, saldo_cop: zoila.saldo, medios_de_pago: MEDIOS }));
+  await page.getByRole('radio', { name: 'Aviso firme' }).check();
+  await expect(previa).toHaveText(textoDeCobro('AVISO_FIRME', { tienda: TIENDA, nombre: zoila.full_name, saldo_cop: zoila.saldo, medios_de_pago: MEDIOS }));
+  await page.getByRole('button', { name: 'Revisar y enviar' }).click();
+  await expect(page.getByText('Vas a enviar 7 cobros por el bot; gasta hasta 7 de tu cuota')).toBeVisible();
+  await sinDesborde(page);
+  await captura(page, `morosos-lote-${ancho}`);
+
+  type Resumen = { simulado: boolean; enviados: number; sin_confirmar: number; fuera: Record<string, number> };
+  const pedidosLote: { tono: string; request_id: string; deudores: string[] }[] = [];
+  const resumenes: Resumen[] = [];
+  let cortarSegunda = true;
+  let soltar = () => {};
+  const retenida = new Promise<void>((r) => (soltar = r));
+  await page.route('**/api/cobros-bot/lote', async (route) => {
+    const pedido = route.request().postDataJSON();
+    pedidosLote.push(pedido);
+    if (pedido.request_id.endsWith('-t2')) {
+      if (cortarSegunda) return (cortarSegunda = false), route.abort('internetdisconnected');
+      await retenida; // el reintento espera, para ver la barra de progreso
+    }
+    const real = await route.fetch();
+    resumenes.push((await real.json()) as Resumen);
+    await route.fulfill({ response: real });
+  });
+
+  // Primera tanda (6) sale; la segunda se corta: se ve lo enviado hasta ahí y el botón para seguir.
+  await page.getByRole('button', { name: 'Sí, enviar 7 cobros' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: 'No hay conexión' })).toBeVisible();
+  expect(resumenes).toHaveLength(1);
+  const fueraDe = (r: Resumen) => Object.values(r.fuera).reduce((a, b) => a + b, 0);
+  await expect(page.getByRole('status').filter({ hasText: `Hasta ahora: Enviados ${resumenes[0]!.enviados} · Fuera ${fueraDe(resumenes[0]!)}` })).toBeVisible();
+
+  // Reintento: la segunda tanda va con el MISMO request_id y se ve el progreso mientras responde.
+  await page.getByRole('button', { name: 'Seguir con el que falta' }).click();
+  await expect(page.getByText('Enviando 7 de 7…')).toBeVisible();
+  await expect(page.getByRole('progressbar', { name: 'Cobros enviados' })).toHaveAttribute('aria-valuenow', '6');
+  await sinDesborde(page);
+  await captura(page, `morosos-lote-progreso-${ancho}`);
+  soltar();
+
+  const avisoLote = page.getByRole('status').filter({ hasText: /^Enviados \d+ · Fuera \d+/ });
+  await expect(avisoLote).toBeVisible();
+  const [t1, t2, t2bis] = pedidosLote;
+  expect(pedidosLote).toHaveLength(3);
+  expect(t1).toMatchObject({ tono: 'AVISO_FIRME', request_id: expect.stringMatching(/^[A-Za-z0-9_-]{8,61}-t1$/) });
+  expect(t1!.deudores).toHaveLength(6);
+  expect(t2!.request_id).toBe(t1!.request_id.replace(/-t1$/, '-t2'));
+  expect(t2bis).toEqual(t2);
+  expect(new Set([...t1!.deudores, ...t2!.deudores]).size).toBe(7);
+
+  // El resumen suma las dos tandas.
+  expect(resumenes).toHaveLength(2);
+  const fuera: Record<string, number> = {};
+  for (const r of resumenes) for (const [m, k] of Object.entries(r.fuera)) fuera[m] = (fuera[m] ?? 0) + k;
+  const resumen = { enviados: resumenes[0]!.enviados + resumenes[1]!.enviados, sin_confirmar: resumenes[0]!.sin_confirmar + resumenes[1]!.sin_confirmar, fuera };
+  const horario = Object.keys(fuera).find((m) => ['DOMINGO', 'FESTIVO', 'FUERA_DE_HORARIO'].includes(m));
+  if (horario) {
+    info.annotations.push({ type: 'cobro masivo fuera de horario', description: `el servidor dejó fuera a 6 por ${horario}` });
+    expect(resumen).toEqual({ enviados: 0, sin_confirmar: 0, fuera: { SIN_CONSENTIMIENTO: 1, [horario]: 6 } });
+  } else {
+    // En horario: los cuatro de antes ya se cobraron hoy y solo salen los dos nuevos.
+    expect(resumen).toEqual({ enviados: 2, sin_confirmar: 0, fuera: { SIN_CONSENTIMIENTO: 1, YA_COBRADO_HOY: 4 } });
+  }
+  await expect(avisoLote).toHaveText(new RegExp(`^Enviados ${resumen.enviados} · Fuera ${7 - resumen.enviados}`));
+  await expect(avisoLote).toContainText('1 sin autorización');
+  await expect(avisoLote).toContainText(horario ? '6 ' : '4 ya cobrados hoy');
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Cobrar a varios con el bot (simulado)' })).toBeVisible();
+  await sinDesborde(page);
+  await captura(page, `morosos-lote-resumen-${ancho}`);
+  await page.unroute('**/api/cobros-bot/lote');
+
   // Plan vencido: se ve la lista, pero Cobrar lleva a Suscripción en vez de fallar.
   await page.route('**/api/negocio', async (route) => {
     if (route.request().method() !== 'GET') return route.fallback();
@@ -185,9 +274,9 @@ test('morosos: orden por antigüedad, tres tonos, sin consentimiento y fuera de 
     await route.fulfill({ response: respuesta, json: { ...negocio, estado: 'EXPIRED_READONLY', permisos: { ver: true, escribir: false, ia: false } } });
   });
   await page.reload();
-  await expect(filas).toHaveCount(5);
+  await expect(filas).toHaveCount(7);
   await expect(filas.nth(0).getByRole('link', { name: 'Suscripción' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Cobrar a / })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Cobrar a / })).toHaveCount(0); // ni uno por uno ni «Cobrar a varios»
   await page.unroute('**/api/negocio');
 
   // Sin nadie en mora: estado vacío que invita a actuar.

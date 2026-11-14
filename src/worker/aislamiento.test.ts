@@ -59,6 +59,10 @@ const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
   'POST /api/cobros-bot/:id': () => [
     conJson(`/api/cobros-bot/${v.deudor}`, 'POST', { tono: 'AVISO_FIRME', request_id: 'ataque-bot-0001', business_id: v.negocio }),
   ],
+  // El deudor de A en el lote de B: queda fuera como «no encontrado», sin envío, sin anotación y sin nombrarlo.
+  'POST /api/cobros-bot/lote': () => [
+    conJson(`/api/cobros-bot/lote?business_id=${v.negocio}`, 'POST', { tono: 'AVISO_FIRME', request_id: 'ataque-lote-0001', deudores: [v.deudor], business_id: v.negocio }),
+  ],
   // Sarin solo interpreta la frase de quien la envía: el negocio y la cuota salen de la sesión de B, nunca del cuerpo.
   'POST /api/ia/orden': () => [conJson(`/api/ia/orden?business_id=${v.negocio}`, 'POST', { frase: 'abónale veinte mil a don Carlos el del taller', business_id: v.negocio })],
   // El abono pendiente de A (llegó por WhatsApp): B no lo ve, ni lo aprueba ni lo rechaza, aunque nombre su negocio.

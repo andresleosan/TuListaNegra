@@ -355,3 +355,170 @@ describe('revisión independiente de WAP-03', () => {
     expect(JSON.parse(fila!.content_json).variables.at(-1)).toBe('Puede pagar así: Nequi 300 999 0000 Daviplata 311 000 0000.');
   });
 });
+
+describe('cobro masivo (WAP-07): POST /api/cobros-bot/lote', () => {
+  const lote = (deudores: string[], { tono = 'VECINO_AMIGABLE', request_id = 'lote-0001', uid = 'uid_1', entorno = env }: { tono?: string; request_id?: string; uid?: string; entorno?: Env } = {}) =>
+    post('/api/cobros-bot/lote', { tono, request_id, deudores }, uid, 'POST', entorno);
+
+  test('deudores mixtos: solo salen los que cumplen las reglas y el resumen cuenta cada motivo', async () => {
+    await sembrarNegocio('uid_1', { subscription_expires_at: MARTES_10 + 30 * DIA });
+    const listos = [await deudorCobrable(), await deudorCobrable({ full_name: 'doña Rosa' })];
+    const sinPermiso = await deudorCobrable({ wa_consentimiento: false });
+    const deBaja = await deudorCobrable();
+    await post(`/api/deudores/${deBaja}`, { wa_baja: true }, 'uid_1', 'PATCH');
+    const alDia = (await json(post('/api/deudores', { full_name: 'Al día', whatsapp_phone: TELEFONO, wa_consentimiento: true }))).id as string;
+    const sinTelefono = await deudorCobrable({ whatsapp_phone: null });
+    const cobradoHoy = await deudorCobrable();
+    expect((await enviar(cobradoHoy)).status).toBe(200);
+    const haceTresDias = await deudorCobrable();
+    await env.DB.prepare('UPDATE debtors SET last_reminder_sent_at = ? WHERE id = ?').bind(MARTES_10 - 3 * DIA, haceTresDias).run();
+
+    // En dos tandas, como las envía la pantalla (6 por petición).
+    const res = await lote([...listos, sinPermiso, deBaja, alDia, listos[0]!], { request_id: 'lote-0001-t1' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ simulado: true, enviados: 2, sin_confirmar: 0, fuera: { SIN_CONSENTIMIENTO: 1, BAJA: 1, SIN_SALDO: 1 } });
+    expect(await json(lote([sinTelefono, cobradoHoy, haceTresDias, 'deb_no_existe'], { request_id: 'lote-0001-t2' }))).toEqual({
+      simulado: true, enviados: 0, sin_confirmar: 0, fuera: { SIN_TELEFONO: 1, YA_COBRADO_HOY: 1, FRECUENCIA: 1, NO_ENCONTRADO: 1 },
+    });
+    // El repetido en la lista cuenta una sola vez. Salen los dos listos (y el cobro suelto de antes); nadie más.
+    const filas = await salientes();
+    expect(filas).toHaveLength(3);
+    expect(filas.filter((f) => f.request_id.includes(':lote:lote-0001')).map((f) => f.callback_data).sort()).toEqual(listos.map((id) => `cobro:${id}`).sort());
+    expect(await usados()).toBe(3);
+    for (const id of listos) expect(await ultimoCobro(id)).toBe(MARTES_10);
+    for (const id of [sinPermiso, deBaja, sinTelefono]) expect(await ultimoCobro(id)).toBeNull();
+  });
+
+  test.each<[string, number, string]>([
+    ['fuera de horario', Date.parse('2026-11-17T19:01:00-05:00'), 'FUERA_DE_HORARIO'],
+    ['domingo', Date.parse('2026-11-22T10:00:00-05:00'), 'DOMINGO'],
+    ['festivo', Date.parse('2026-11-16T10:00:00-05:00'), 'FESTIVO'],
+  ])('%s: nadie sale y todos cuentan con ese motivo', async (_caso, cuando, motivo) => {
+    await sembrarNegocio();
+    const ids = [await deudorCobrable(), await deudorCobrable()];
+    vi.setSystemTime(cuando);
+    expect(await json(lote(ids))).toEqual({ simulado: true, enviados: 0, sin_confirmar: 0, fuera: { [motivo]: 2 } });
+    expect(await salientes()).toEqual([]);
+    expect(await usados()).toBe(0);
+  });
+
+  test('la cuota se acaba a mitad del lote: los restantes quedan «sin cuota», sin envío ni anotación', async () => {
+    await sembrarNegocio('uid_1', { wa_reminders_used_count: 38 }); // PASS_7D: 40
+    const ids = [await deudorCobrable(), await deudorCobrable(), await deudorCobrable(), await deudorCobrable()];
+    expect(await json(lote(ids))).toEqual({ simulado: true, enviados: 2, sin_confirmar: 0, fuera: { SIN_CUOTA: 2 } });
+    expect(await salientes()).toHaveLength(2);
+    expect(await usados()).toBe(40);
+    expect([await ultimoCobro(ids[2]!), await ultimoCobro(ids[3]!)]).toEqual([null, null]);
+  });
+
+  test('un deudor de otra tienda en la lista queda fuera como si no existiera: sin envío, sin anotación y sin revelar nada', async () => {
+    await sembrarNegocio('uid_1');
+    await sembrarNegocio('uid_2');
+    const ajeno = await deudorCobrable({ full_name: 'SECRETO de B' }, 'uid_2');
+    const mio = await deudorCobrable();
+    const res = await lote([ajeno, mio]);
+    const texto = await res.text();
+    expect(JSON.parse(texto)).toEqual({ simulado: true, enviados: 1, sin_confirmar: 0, fuera: { NO_ENCONTRADO: 1 } });
+    for (const secreto of [ajeno, 'SECRETO', 'bus_uid_2', '3001234567']) expect(texto).not.toContain(secreto);
+    expect((await salientes()).map((f) => f.business_id)).toEqual(['bus_uid_1']);
+    expect([await usados('uid_1'), await usados('uid_2')]).toEqual([1, 0]);
+    expect((await json(api(`/api/deudores/${ajeno}`, { uid: 'uid_2' }))).last_reminder_sent_at).toBeNull();
+  });
+
+  test('reintentar el lote con el mismo request_id (también a la vez) no envía ni gasta otra vez', async () => {
+    await sembrarNegocio();
+    const ids = [await deudorCobrable(), await deudorCobrable(), await deudorCobrable({ wa_consentimiento: false })];
+    const primero = await json(lote(ids));
+    expect(primero).toEqual({ simulado: true, enviados: 2, sin_confirmar: 0, fuera: { SIN_CONSENTIMIENTO: 1 } });
+    vi.setSystemTime(MARTES_10 + 60_000);
+    expect(await json(lote(ids))).toEqual(primero);
+    await Promise.all([lote(ids), lote(ids)]);
+    expect(await salientes()).toHaveLength(2);
+    expect(await usados()).toBe(2);
+    // Un lote nuevo el mismo día ya no les escribe: un cobro al día.
+    expect(await json(lote(ids, { request_id: 'lote-0002' }))).toEqual({ simulado: true, enviados: 0, sin_confirmar: 0, fuera: { YA_COBRADO_HOY: 2, SIN_CONSENTIMIENTO: 1 } });
+    expect(await salientes()).toHaveLength(2);
+  });
+
+  test('rechazo de WhatsApp y resultado ambiguo se cuentan aparte; el rechazado devuelve la cuota', async () => {
+    await sembrarNegocio();
+    const [a, b] = [await deudorCobrable(), await deudorCobrable()];
+    const original = SimulatedGateway.prototype.sendTemplate;
+    vi.spyOn(SimulatedGateway.prototype, 'sendTemplate').mockImplementation(function (this: SimulatedGateway, input) {
+      return input.callbackData === `cobro:${a}` ? original.call(this, { ...input, template: 'cobro_amenaza' as NombrePlantilla }) : Promise.resolve({ status: 'unknown' });
+    });
+    expect(await json(lote([a, b]))).toEqual({ simulado: true, enviados: 0, sin_confirmar: 1, fuera: { RECHAZADO: 1 } });
+    expect(await usados()).toBe(1); // solo el ambiguo: pudo salir
+    expect([await ultimoCobro(a), await ultimoCobro(b)]).toEqual([null, MARTES_10]);
+  });
+
+  test('en producción con el interruptor apagado → 409 bot_apagado: ni cuota, ni anotación, ni fila', async () => {
+    await sembrarNegocio();
+    const id = await deudorCobrable();
+    const res = await lote([id], { entorno: { ...env, TEST_WHATSAPP_SIMULADO: undefined } });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'bot_apagado' });
+    await nadaPaso(id);
+  });
+
+  test('lista vacía, más de 6, tono o request_id que no valen → 400 sin escribir nada', async () => {
+    await sembrarNegocio();
+    const id = await deudorCobrable();
+    expect((await lote([])).status).toBe(400);
+    const siete = await lote([id, ...Array.from({ length: 6 }, (_, i) => `deb_${i}`)]);
+    expect([siete.status, await siete.json()]).toEqual([400, { error: 'datos_invalidos', campos: ['deudores'] }]);
+    expect((await lote([id], { tono: 'AMENAZA' })).status).toBe(400);
+    expect((await lote([id], { request_id: 'corto' })).status).toBe(400);
+    await nadaPaso(id);
+  });
+
+  test('una tanda de 6 (el máximo) sale entera', async () => {
+    await sembrarNegocio();
+    const ids = [];
+    for (let i = 0; i < 6; i++) ids.push(await deudorCobrable());
+    expect(await json(lote(ids))).toEqual({ simulado: true, enviados: 6, sin_confirmar: 0, fuera: {} });
+    expect(await salientes()).toHaveLength(6);
+    expect(await usados()).toBe(6);
+  });
+
+  test('un lote grande va en tandas de 6 con ids derivados: reintentarlo entero, tanda por tanda, no envía nada nuevo', async () => {
+    await sembrarNegocio();
+    const ids = [];
+    for (let i = 0; i < 8; i++) ids.push(await deudorCobrable());
+    const tandas = [ids.slice(0, 6), ids.slice(6)];
+    const enviarTodo = async () => {
+      const resumenes = [];
+      for (const [i, tanda] of tandas.entries()) resumenes.push(await json(lote(tanda, { request_id: `lote-0001-t${i + 1}` })));
+      return resumenes;
+    };
+    const primero = await enviarTodo();
+    expect(primero).toEqual([
+      { simulado: true, enviados: 6, sin_confirmar: 0, fuera: {} },
+      { simulado: true, enviados: 2, sin_confirmar: 0, fuera: {} },
+    ]);
+    vi.setSystemTime(MARTES_10 + 60_000);
+    expect(await enviarTodo()).toEqual(primero);
+    expect(await salientes()).toHaveLength(8);
+    expect(await usados()).toBe(8);
+  });
+
+  test('un deudor archivado no se cobra: fuera como «no encontrado» en el lote y 404 en el cobro suelto', async () => {
+    await sembrarNegocio();
+    const archivado = await deudorCobrable();
+    const activo = await deudorCobrable();
+    await post(`/api/deudores/${archivado}`, { archivado: true }, 'uid_1', 'PATCH');
+    const suelto = await enviar(archivado);
+    expect([suelto.status, await suelto.json()]).toEqual([404, { error: 'no_encontrado' }]);
+    expect(await json(lote([archivado, activo]))).toEqual({ simulado: true, enviados: 1, sin_confirmar: 0, fuera: { NO_ENCONTRADO: 1 } });
+    expect((await salientes()).map((f) => f.callback_data)).toEqual([`cobro:${activo}`]);
+    expect(await usados()).toBe(1);
+    expect((await env.DB.prepare('SELECT last_reminder_sent_at AS t FROM debtors WHERE id = ?').bind(archivado).first<{ t: number | null }>())!.t).toBeNull();
+  });
+
+  test('vencida → 403, sin enviar nada', async () => {
+    await sembrarNegocio('uid_1', EN_ESTADO.EXPIRED_READONLY());
+    const res = await lote(['deb_cualquiera']);
+    expect(res.status).toBe(403);
+    expect(await salientes()).toEqual([]);
+  });
+});

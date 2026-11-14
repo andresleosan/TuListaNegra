@@ -26,7 +26,7 @@ export interface SendBase {
   /** Vuelve intacto en los eventos de estado, para conciliar. Sin datos personales. */
   callbackData?: string;
 }
-export type NombrePlantilla = `cobro_${Lowercase<Tono>}` | 'aviso_abono_pendiente' | 'codigo_verificacion';
+export type NombrePlantilla = `cobro_${Lowercase<Tono>}` | 'aviso_abono_pendiente' | 'codigo_verificacion' | 'aviso_vencimiento';
 export interface SendTemplateInput extends SendBase {
   template: NombrePlantilla;
   language: 'es_CO';

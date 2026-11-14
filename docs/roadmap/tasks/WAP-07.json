@@ -2,7 +2,7 @@
   "id": "WAP-07",
   "fase": "F4",
   "titulo": "Cobro masivo desde Morosos y alertas programadas.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,15 @@
     "morosos"
   ],
   "criterio": "Envía solo a quienes cumplen las reglas e informa cuántos quedaron fuera y por qué.",
-  "hecho": "",
+  "hecho": "Cobro masivo: POST /api/cobros-bot/lote (hasta 6 deudores por petición, para caber en el plan gratuito de Workers) aplica a cada uno la misma lógica del cobro individual (cobrarUno: reglas de contacto, cuota, anotación atómica, idempotencia, ambigüedad; archivados fuera) y responde enviados, sin confirmar y fuera por motivo. Morosos permite elegir a varios o a todos, el tono, ver la vista previa y confirmar; envía en tandas de 6 una tras otra con barra de progreso, suma los resúmenes y reintenta una tanda fallida con los mismos ids. Alertas programadas (decisión: los avisos de vencimiento de SUS-03): el cron horario los envía al WhatsApp verificado del dueño de 7:00 a 19:00 (hora de Bogotá), reservando cada aviso antes de enviarlo (nunca dos veces), 20 por ejecución, sin reintentos infinitos.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: src/worker/rutas/cobros-bot.test.ts y src/worker/avisos.test.ts (sin red): lote mixto → solo salen los que cumplen y el resumen cuenta cada motivo; cuota que se acaba a mitad; deudor de otra tienda o archivado → NO_ENCONTRADO sin revelar nada; lote de 7 → 400; reintento por tandas → nada nuevo; producción con el interruptor apagado → bot_apagado; cron: dos ejecuciones solapadas con un gateway que no deduplica → un solo envío; rechazo marcado y no reintentado; fallo de D1 en un aviso no corta los demás; más de 20 → 20; dueño no verificado o aviso viejo → nada.",
+    "2026-11-14: e2e/morosos.spec.ts: 7 elegidos → dos tandas (6 + 1); se corta la red en la segunda y el reintento repite los mismos ids; el resumen final suma las dos. Corrió fuera de horario: el resumen real fue «Enviados 0 · Fuera 7 (6 fuera del horario, 1 sin autorización)»; la rama en horario la cubren las pruebas del Worker. Capturas docs/roadmap/evidencia/morosos-lote-360.png, morosos-lote-progreso-360.png, morosos-lote-resumen-360.png.",
+    "2026-11-14: revisión independiente sin hallazgos graves (cuota exacta, ninguna regla saltada, refactor sin cambio de comportamiento); arreglados con prueba: tamaño del lote seguro en el plan gratuito (6 por petición, tandas en la pantalla), request_id del lote que se reutilizaba, reserva del aviso antes de enviarlo, cron acotado y aislado, deudores archivados. El único registro del Worker (fallo de un aviso) solo lleva el id del negocio, el tipo de aviso y el tipo de error (B5).",
+    "2026-11-14: verificado: pnpm test (1026 pruebas), pnpm typecheck, pnpm build, pnpm check:release y e2e completo en base nueva (26 pasan, 2 saltadas por diseño). No comprobado contra Meta real."
+  ],
   "actualizado": "2026-11-14"
 }

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { type AppEnv, requiereSesion } from './auth';
 import { requiereNegocio } from './guardian';
-import { registrarAvisos } from './avisos';
+import { enviarAvisos, registrarAvisos } from './avisos';
 import { abonos } from './rutas/abonos';
 import { archivos } from './rutas/archivos';
 import { cobrosBot } from './rutas/cobros-bot';
@@ -46,8 +46,9 @@ app.notFound((c) => c.json({ error: 'no_encontrado' }, 404));
 
 export default {
   fetch: app.fetch,
-  // Cron horario: solo envía avisos, nunca decide el acceso (SUS-03).
+  // Cron horario: registra los avisos y luego los envía al WhatsApp verificado del dueño; nunca decide el acceso (SUS-03, WAP-07).
   async scheduled(controlador, env, ctx) {
-    ctx.waitUntil(registrarAvisos(env.DB, controlador.scheduledTime));
+    const ahora = controlador.scheduledTime;
+    ctx.waitUntil(registrarAvisos(env.DB, ahora).then(() => enviarAvisos(env, ahora)));
   },
 } satisfies ExportedHandler<Env>;
