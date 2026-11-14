@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { type EstadoNegocio, estadoEfectivo, PERMISOS } from '../../shared/acceso';
+import { TONOS, type Tono } from '../../shared/cobro';
 import { nuevoId } from '../../shared/ids';
 import { normalizarTelefonoCO } from '../../shared/telefono';
 import type { AppEnv, Sesion } from '../auth';
@@ -10,8 +11,20 @@ import { businesses } from '../db/schema';
 import type { Negocio } from '../guardian';
 import { ipDe, limitar } from '../limite';
 import { cuotasDe, PLANES } from '../planes';
+import { enLista } from '../superadmin';
+import { cuerpo } from '../validar';
 
 export const negocio = new Hono<AppEnv>();
+
+/** Tono de cobro por defecto de la tienda (vive en `sarin_settings_json`). */
+function tonoDe(n: Negocio): Tono {
+  try {
+    const tono = JSON.parse(n.sarin_settings_json ?? '{}').tono_cobro;
+    return TONOS.includes(tono) ? tono : 'VECINO_AMIGABLE';
+  } catch {
+    return 'VECINO_AMIGABLE';
+  }
+}
 
 /** Lo que la app recibe de su negocio. Un suspendido solo recibe el aviso y cómo contactar (B2). */
 function cuerpoNegocio(n: Negocio, estado: EstadoNegocio, env: Env) {
@@ -32,12 +45,37 @@ function cuerpoNegocio(n: Negocio, estado: EstadoNegocio, env: Env) {
     usados: { ocr: n.ai_ocr_used_count, ia: n.ai_chat_used_count, cobros: n.wa_reminders_used_count },
     default_alert_days: n.default_alert_days,
     payment_methods_info: n.payment_methods_info,
+    tono_cobro: tonoDe(n),
     whatsapp_phone: n.whatsapp_phone,
   };
 }
 
 // Estado propio del negocio.
 negocio.get('/', (c) => c.json(cuerpoNegocio(c.var.negocio, c.var.estado, c.env)));
+
+// Ajustes de la tienda (AJU-01): medios de pago, días de alerta y tono de cobro por defecto. Nada más se cambia por aquí.
+const Ajustes = z
+  .object({
+    payment_methods_info: z.string().trim().max(300).transform((v) => v || null).nullable(),
+    default_alert_days: z.number().int().min(1).max(365),
+    tono_cobro: z.enum(TONOS),
+  })
+  .partial()
+  .refine((d) => Object.keys(d).length > 0, { message: 'Nada que cambiar' });
+
+negocio.patch('/', async (c) => {
+  const d = await cuerpo(c, Ajustes);
+  const { tono_cobro, ...columnas } = d;
+  const [guardado] = await bd(c.env).update(businesses)
+    .set({
+      ...columnas,
+      // El tono se guarda dentro del JSON de ajustes sin pisar lo demás que haya ahí.
+      ...(tono_cobro && { sarin_settings_json: sql`json_set(COALESCE(${businesses.sarin_settings_json}, '{}'), '$.tono_cobro', ${tono_cobro})` }),
+    })
+    .where(eq(businesses.id, c.var.negocio.id)) // el negocio de la sesión, nunca uno que nombre el navegador
+    .returning();
+  return c.json(cuerpoNegocio(guardado!, c.var.estado, c.env));
+});
 
 // Solo esto llega del navegador. Plan, fechas, cuotas, dueño e ids los fija el servidor: lo demás se descarta.
 const Alta = z.object({
@@ -51,12 +89,10 @@ const Alta = z.object({
   acepta_terminos: z.literal(true),
 });
 
-const lista = (correos: string | undefined) => (correos ?? '').split(',').map((correo) => correo.trim().toLowerCase()).filter(Boolean);
-
 /** Puerta de registro (A3): con `SIGNUP_READY` apagado solo entran superadministradores y pilotos con el correo verificado. */
 const registroAbierto = (env: Env, sesion: Sesion) =>
   env.SIGNUP_READY === '1' ||
-  (sesion.email_verified && [...lista(env.SUPERADMIN_EMAILS), ...lista(env.PILOT_EMAILS)].includes(sesion.email ?? ''));
+  (sesion.email_verified && (enLista(env.SUPERADMIN_EMAILS, sesion.email) || enLista(env.PILOT_EMAILS, sesion.email)));
 
 // Alta del negocio con prueba de 72 h. Una por cuenta y por teléfono (B2).
 negocio.post('/', limitar('LIMITE_ALTAS', ipDe), async (c) => {

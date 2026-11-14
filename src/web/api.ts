@@ -1,5 +1,6 @@
 // Cliente de la API del Worker. Cada petición lleva el ID token del proveedor de sesión.
 import type { EstadoNegocio, Permisos } from '../shared/acceso';
+import type { Tono } from '../shared/cobro';
 import { cargarProveedor } from './sesion';
 
 /** Respuesta de error de la API: `error` es el código del servidor (`sin_negocio`, `telefono_en_uso`…). */
@@ -11,6 +12,8 @@ export class ErrorApi extends Error {
     readonly estado?: EstadoNegocio,
     /** Campos rechazados (`datos_invalidos`). */
     readonly campos?: string[],
+    /** El cuerpo completo del error, por si trae más datos (`saldo`, `tope`, `motivo`, `mensaje`…). */
+    readonly datos: Record<string, unknown> = {},
   ) {
     super(`${status} ${error}`);
   }
@@ -29,28 +32,49 @@ export type Negocio = {
   desbloqueo_hasta: number | null;
   /** Cuotas del plan; `deudores: null` = sin límite. */
   limites: { deudores: number | null; ocr: number; ia: number; cobros: number };
+  /** Lo gastado en el ciclo actual. */
+  usados: { ocr: number; ia: number; cobros: number };
+  /** Ajustes de la tienda (AJU-01). */
+  default_alert_days: number;
+  payment_methods_info: string | null;
+  tono_cobro: Tono;
   whatsapp_phone: string | null;
 };
 
 /** Un negocio suspendido solo recibe el aviso y cómo contactar. */
 export type NegocioSuspendido = { estado: 'SUSPENDED_BY_ADMIN'; permisos: Permisos; contacto: string | null };
 
-/** Pide `/api<ruta>` con la sesión actual. Devuelve el JSON o lanza `ErrorApi` (status 0 = sin conexión). */
-export async function api<T>(ruta: string, { metodo = 'GET', cuerpo }: { metodo?: string; cuerpo?: unknown } = {}): Promise<T> {
+async function pedir(ruta: string, metodo: string, cuerpo?: unknown): Promise<Response> {
   const proveedor = await cargarProveedor();
   if (!proveedor?.usuario()) throw new ErrorApi(401, 'sin_sesion');
-  let respuesta: Response;
+  const formulario = cuerpo instanceof FormData; // subida de archivos: el navegador pone el Content-Type con su separador
   try {
-    respuesta = await fetch(`/api${ruta}`, {
+    return await fetch(`/api${ruta}`, {
       method: metodo,
-      headers: { Authorization: `Bearer ${await proveedor.token()}`, ...(cuerpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
-      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
+      headers: { Authorization: `Bearer ${await proveedor.token()}`, ...(cuerpo === undefined || formulario ? {} : { 'Content-Type': 'application/json' }) },
+      body: cuerpo === undefined ? undefined : formulario ? cuerpo : JSON.stringify(cuerpo),
     });
   } catch {
     throw new ErrorApi(0, 'sin_conexion');
   }
-  const datos: unknown = await respuesta.json().catch(() => null);
-  if (respuesta.ok) return datos as T;
-  const fallo = (datos ?? {}) as { error?: string; estado?: EstadoNegocio; campos?: string[] };
-  throw new ErrorApi(respuesta.status, fallo.error ?? 'error_desconocido', fallo.estado, fallo.campos);
+}
+
+async function fallo(respuesta: Response): Promise<never> {
+  const datos = ((await respuesta.json().catch(() => null)) ?? {}) as { error?: string; estado?: EstadoNegocio; campos?: string[] };
+  throw new ErrorApi(respuesta.status, datos.error ?? 'error_desconocido', datos.estado, datos.campos, datos);
+}
+
+/**
+ * Pide `/api<ruta>` con la sesión actual. Devuelve el JSON o lanza `ErrorApi` (status 0 = sin conexión).
+ * `cuerpo` puede ser un objeto (se envía como JSON) o un `FormData` (subida de archivos).
+ */
+export async function api<T>(ruta: string, { metodo = 'GET', cuerpo }: { metodo?: string; cuerpo?: unknown } = {}): Promise<T> {
+  const respuesta = await pedir(ruta, metodo, cuerpo);
+  return respuesta.ok ? ((await respuesta.json()) as T) : fallo(respuesta);
+}
+
+/** Un archivo privado (p. ej. una captura de pago): se pide con la sesión y se muestra con `URL.createObjectURL`. */
+export async function apiArchivo(ruta: string): Promise<Blob> {
+  const respuesta = await pedir(ruta, 'GET');
+  return respuesta.ok ? respuesta.blob() : fallo(respuesta);
 }

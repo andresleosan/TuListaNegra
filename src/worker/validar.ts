@@ -6,7 +6,8 @@ import { z } from 'zod';
 export async function cuerpo<T extends z.ZodType>(c: Context, esquema: T): Promise<z.infer<T>> {
   const resultado = esquema.safeParse(await c.req.json().catch(() => null));
   if (resultado.success) return resultado.data;
-  const campos = z.flattenError(resultado.error).fieldErrors;
+  // Los nombres de los campos rechazados; el texto de cada error lo pone la app.
+  const campos = [...new Set(resultado.error.issues.map((i) => String(i.path[0] ?? '')))];
   throw new HTTPException(400, { res: c.json({ error: 'datos_invalidos', campos }, 400) });
 }
 

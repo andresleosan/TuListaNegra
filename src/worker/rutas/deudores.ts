@@ -2,6 +2,8 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { enlaceWhatsApp, textoDeCobro, TONOS } from '../../shared/cobro';
+import { puedeContactar } from '../../shared/contacto';
 import { type DeudorDetalle, type DeudorResumen, estadoDeudor, TIPOS_DOCUMENTO } from '../../shared/deudor';
 import { MONTO_MAXIMO_COP } from '../../shared/dinero';
 import { nuevoId } from '../../shared/ids';
@@ -115,7 +117,7 @@ deudores.patch('/:id', async (c) => {
   if ('doc_number' in d) cambios.doc_last4 = d.doc_number ? d.doc_number.slice(-4) : null;
   if ('doc_number' in d && !d.doc_number) cambios.doc_type = null;
   if (!conDocumento({ ...actual, ...cambios })) {
-    return c.json({ error: 'datos_invalidos', campos: { doc_type: [SIN_TIPO.message] } }, 400);
+    return c.json({ error: 'datos_invalidos', campos: ['doc_type'] }, 400);
   }
   // Las marcas guardan la fecha de la primera vez; volver a marcar no la mueve.
   if (wa_consentimiento !== undefined) cambios.wa_consent_at = wa_consentimiento ? (actual.wa_consent_at ?? ahora) : null;
@@ -130,4 +132,26 @@ deudores.patch('/:id', async (c) => {
     if (esUnico(e, 'doc_number')) return c.json({ error: 'documento_duplicado' }, 409);
     throw e;
   }
+});
+
+// Cobrar por el WhatsApp del propio tendero (fase 1, MOS-04): el servidor aplica las reglas de contacto (B6),
+// anota el cobro y devuelve el enlace wa.me con la plantilla fija ya escrita.
+deudores.post('/:id/cobros', async (c) => {
+  const { tono } = await cuerpo(c, z.object({ tono: z.enum(TONOS) }));
+  const negocio = c.var.negocio;
+  const suyo = and(eq(debtors.id, c.req.param('id')), eq(debtors.business_id, negocio.id));
+  const deudor = await bd(c.env).select().from(debtors).where(suyo).get();
+  if (!deudor) return c.json({ error: 'no_encontrado' }, 404);
+  if (deudor.current_balance_cop === 0) return c.json({ error: 'sin_saldo' }, 409);
+  if (!deudor.whatsapp_phone) return c.json({ error: 'sin_telefono' }, 409);
+  const ahora = Date.now();
+  const contacto = puedeContactar(deudor, ahora);
+  if (!contacto.permitido) return c.json({ error: 'contacto_bloqueado', motivo: contacto.motivo, mensaje: contacto.mensaje }, 409);
+  // Solo anota si nadie cobró entre la lectura y ahora: dos toques a la vez no generan dos cobros.
+  const { meta } = await c.env.DB.prepare(
+    'UPDATE debtors SET last_reminder_sent_at = ?1 WHERE id = ?2 AND business_id = ?3 AND last_reminder_sent_at IS ?4',
+  ).bind(ahora, deudor.id, negocio.id, deudor.last_reminder_sent_at).run();
+  if (meta.changes !== 1) return c.json({ error: 'contacto_bloqueado', motivo: 'YA_COBRADO_HOY', mensaje: 'Ya le cobraste hoy a este deudor. Solo se permite un cobro al día.' }, 409);
+  const texto = textoDeCobro(tono, { tienda: negocio.name, nombre: deudor.full_name, saldo_cop: deudor.current_balance_cop, medios_de_pago: negocio.payment_methods_info });
+  return c.json({ texto, url: enlaceWhatsApp(deudor.whatsapp_phone, texto), last_reminder_sent_at: ahora });
 });

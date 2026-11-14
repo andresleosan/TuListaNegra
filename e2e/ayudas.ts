@@ -41,3 +41,20 @@ export async function captura(pagina: Page, nombre: string) {
   await pagina.evaluate(() => document.fonts.ready);
   await pagina.screenshot({ path: `${EVIDENCIA}/${nombre}.png`, fullPage: true });
 }
+
+/** El uid de la cuenta simulada que crea `tiendaNueva(pagina, clave, …)`. */
+export const uidDe = (clave: string) => `e2e_${SUFIJO}_${clave}`;
+
+/** ID token del simulador para llamar a la API directamente (sembrar datos sin pasar por la pantalla). */
+export async function tokenComo(pagina: Page, uid: string, correo = 'piloto@ejemplo.test', proveedor: 'google.com' | 'password' = 'google.com') {
+  const respuesta = await pagina.request.post('/__dev/token', { data: { uid, email: correo, email_verified: true, proveedor } });
+  expect(respuesta.ok()).toBe(true);
+  return ((await respuesta.json()) as { token: string }).token;
+}
+
+/** Llama a `/api<ruta>` como la cuenta `uid` y devuelve el JSON. Falla si la API no responde 2xx. */
+export async function apiComo<T = any>(pagina: Page, uid: string, ruta: string, { metodo = 'GET', cuerpo }: { metodo?: string; cuerpo?: unknown } = {}): Promise<T> {
+  const respuesta = await pagina.request.fetch(`/api${ruta}`, { method: metodo, headers: { Authorization: `Bearer ${await tokenComo(pagina, uid)}` }, data: cuerpo });
+  expect(respuesta.ok(), `${metodo} /api${ruta} → ${respuesta.status()} ${await respuesta.text()}`).toBe(true);
+  return (await respuesta.json()) as T;
+}

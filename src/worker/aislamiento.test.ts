@@ -32,6 +32,7 @@ let v: Victima;
  */
 const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
   'GET /api/negocio': () => [{ ruta: `/api/negocio?business_id=${v.negocio}` }],
+  'PATCH /api/negocio': () => [conJson(`/api/negocio?business_id=${v.negocio}`, 'PATCH', { payment_methods_info: 'Nequi del intruso', default_alert_days: 1, tono_cobro: 'AVISO_FIRME', id: v.negocio, business_id: v.negocio })],
   'GET /api/deudores': () => [{ ruta: `/api/deudores?archivados=1&business_id=${v.negocio}` }],
   'POST /api/deudores': () => [conJson('/api/deudores', 'POST', { full_name: 'Intruso', business_id: v.negocio, id: v.deudor })],
   'GET /api/deudores/:id': () => [{ ruta: `/api/deudores/${v.deudor}` }],
@@ -44,6 +45,7 @@ const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
     conJson(`/api/deudores/${v.deudor}/movimientos`, 'POST', { request_id: 'ataque-0002', type: 'FIADO', amount_cop: 1_000, business_id: v.negocio }),
     conJson(`/api/deudores/${v.deudor}/movimientos`, 'POST', { request_id: v.request_id, type: 'FIADO', amount_cop: 5_000 }), // el request_id de A
   ],
+  'POST /api/deudores/:id/cobros': () => [conJson(`/api/deudores/${v.deudor}/cobros`, 'POST', { tono: 'AVISO_FIRME' })],
   'GET /api/suscripcion': () => [{ ruta: `/api/suscripcion?business_id=${v.negocio}` }],
   'POST /api/suscripcion/pagos': () => [conCaptura(`/api/suscripcion/pagos?business_id=${v.negocio}`)],
   'GET /api/archivos/*': () => [

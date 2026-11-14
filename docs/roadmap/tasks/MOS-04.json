@@ -17,10 +17,12 @@
     "ui-app"
   ],
   "criterio": "Lista ordenada por antigüedad; los tres tonos generan el texto correcto; fuera de horario o sin consentimiento no abre el enlace y explica por qué.",
-  "hecho": "",
+  "hecho": "Servidor (parte de esta tarea ya construida): plantillas fijas de los tres tonos en src/shared/cobro.ts y POST /api/deudores/:id/cobros, que aplica las reglas de contacto en el servidor, anota el cobro y devuelve el enlace wa.me con el texto.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Pantalla de Morosos y botón Cobrar (depende de la ficha, MOS-03).",
+  "evidencia": [
+    "2026-11-14: src/shared/cobro.test.ts (texto exacto de cada tono; ninguno amenaza ni menciona listas o reportes) y src/worker/rutas/cobros.test.ts con reloj controlado: sin consentimiento, domingo, festivo, 19:01, sábado 15:01 y baja → 409 con motivo y mensaje, sin enlace; un cobro al día, uno cada 7 días, y tres toques a la vez → un solo cobro."
+  ],
   "actualizado": "2026-11-14"
 }

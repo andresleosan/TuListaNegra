@@ -121,3 +121,9 @@
     border-left: var(--borde-fino);
   }
 }
+
+.app__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3, 12px);
+}

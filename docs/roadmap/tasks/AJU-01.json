@@ -2,7 +2,7 @@
   "id": "AJU-01",
   "fase": "F1",
   "titulo": "Ajustes de la tienda.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,12 @@
     "ui-app"
   ],
   "criterio": "Los cambios se guardan y aparecen en la tirilla y en los cobros.",
-  "hecho": "",
-  "falta": "",
+  "hecho": "Servidor: PATCH /api/negocio guarda medios de pago de la tienda, días de alerta (1–365) y tono de cobro por defecto (dentro de sarin_settings_json, sin pisar el resto); GET /api/negocio los devuelve. Los cobros usan los medios de pago y el estado de mora usa los días de alerta.",
+  "falta": "Pantalla de Ajustes en la app y comprobar en navegador que los cambios aparecen en la tirilla y en los cobros.",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Construir src/web/pantallas/Ajustes.tsx y su recorrido e2e.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/cobros.test.ts → pasa: los ajustes se guardan y aparecen en el texto del cobro («Puede pagar así: …») y en el estado EN_MORA al bajar los días de alerta; cambiar una cosa no pisa las otras; valores inválidos → 400 sin cambiar nada; plan, fechas y nombre no se cambian por aquí; vencida → 403. La ruta nueva tiene su ataque en aislamiento.test.ts."
+  ],
   "actualizado": "2026-11-14"
 }
