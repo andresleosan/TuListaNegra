@@ -201,6 +201,135 @@
   gap: var(--esp-4);
 }
 
+/* Sarin (IAS-02): la orden se escribe o se dicta arriba del libro; la propuesta es una boleta por confirmar. */
+.mostrador__sarin {
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.mostrador__sarin-form {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.mostrador__sarin-form input {
+  font-size: var(--texto-l);
+}
+
+/* Elegir entre varios: cada opción es un renglón del libro con código, quién es y saldo. */
+.mostrador__sarin-elegir {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.mostrador__sarin-pregunta {
+  font-weight: 800;
+}
+
+.mostrador__sarin-elegir ul {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Móvil: código y saldo arriba, quién es debajo (como el renglón del libro). */
+.mostrador__sarin-elegir li .boton {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'codigo debe'
+    'quien quien';
+  align-items: center;
+  gap: var(--esp-1) var(--esp-3);
+  width: 100%;
+  padding-block: var(--esp-3);
+  text-align: left;
+}
+
+.mostrador__sarin-elegir code {
+  grid-area: codigo;
+  font-size: var(--texto-s);
+}
+
+.mostrador__sarin-quien {
+  grid-area: quien;
+  display: grid;
+  overflow-wrap: anywhere;
+}
+
+.mostrador__sarin-quien span {
+  font-size: var(--texto-s);
+  font-weight: 400;
+}
+
+.mostrador__sarin-debe {
+  grid-area: debe;
+  font-size: var(--texto-s);
+  font-weight: 400;
+  text-align: right;
+}
+
+.mostrador__propuesta {
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4) var(--esp-3);
+  background: var(--crema);
+  border: var(--borde-fino);
+  border-left: var(--esp-2) solid var(--tinta);
+  border-radius: var(--radio);
+}
+
+.mostrador__propuesta-que {
+  font-size: var(--texto-l);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mostrador__propuesta-que span {
+  font-weight: 400;
+}
+
+.mostrador__propuesta-que .monto {
+  font-weight: 800;
+}
+
+.mostrador__propuesta-que code {
+  font-size: var(--texto-m);
+  white-space: nowrap;
+}
+
+/* Las cuentas como en el recibo: monoespaciada, montos a la derecha y una raya antes del total. */
+.mostrador__propuesta-cuentas {
+  display: grid;
+  gap: var(--esp-1);
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.mostrador__propuesta-cuentas div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.mostrador__propuesta-total {
+  margin-top: var(--esp-1);
+  padding-top: var(--esp-2);
+  border-top: 1.5px dashed var(--tinta);
+  font-weight: 800;
+}
+
+.mostrador__propuesta-total .monto {
+  font-weight: 800;
+}
+
 @media (min-width: 48rem) {
   .mostrador__buscador {
     grid-template-columns: 1fr auto;
@@ -248,4 +377,24 @@
   .mostrador__nuevo {
     max-width: 28rem;
   }
+
+  .mostrador__sarin-form {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+
+  .mostrador__propuesta-cuentas,
+  .mostrador__sarin-elegir ul {
+    max-width: 32rem;
+  }
+
+  .mostrador__sarin-elegir li .boton {
+    grid-template-columns: 6rem minmax(0, 1fr) auto;
+    grid-template-areas: 'codigo quien debe';
+  }
+}
+
+.mostrador__propuesta-entendi {
+  margin: 0;
+  font-size: 0.875rem;
 }

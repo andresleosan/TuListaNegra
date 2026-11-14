@@ -11,7 +11,7 @@
 // desarrollo y pruebas; check:release prohíbe cualquier TEST_* en producción). En producción responde `bot_apagado`
 // sin gastar cuota ni anotar nada: un envío simulado no puede bloquear el cobro real del tendero.
 // El trabajo corre bajo waitUntil: si el cliente se desconecta a medias, la cuota, la anotación y el envío terminan igual.
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { comoPagar, TONOS } from '../../shared/cobro';
@@ -67,7 +67,8 @@ cobrosBot.post('/:id', async (c) => {
   const contacto = puedeContactar(deudor, ahora);
   if (!contacto.permitido) return c.json({ error: 'contacto_bloqueado', motivo: contacto.motivo, mensaje: contacto.mensaje }, 409);
 
-  const gateway = gatewayPara(c.env); // encendido sin gateway real, lanza aquí: antes de gastar o anotar nada
+  // Encendido sin gateway real, lanza aquí: antes de gastar o anotar nada. El envío queda con el negocio desde que se guarda.
+  const gateway = gatewayPara(c.env, Date.now, negocio.id);
   // La misma anotación atómica que el cobro por enlace: dos toques a la vez no envían dos cobros. Además exige que
   // consentimiento, baja y teléfono sigan como se leyeron: un cambio de número o una baja en ese instante no se salta (B6).
   const anotar = () =>
@@ -103,9 +104,6 @@ cobrosBot.post('/:id', async (c) => {
     } catch (e) {
       if (e instanceof SinEnvio) return c.json(e.cuerpo, e.estado);
       throw e;
-    } finally {
-      // La interfaz del gateway no lleva negocio (contrato, a): el envío se le asigna aquí, fuera de la cuota.
-      await db.update(wa).set({ business_id: negocio.id }).where(and(eq(wa.request_id, requestId), isNull(wa.business_id)));
     }
   })();
   try {

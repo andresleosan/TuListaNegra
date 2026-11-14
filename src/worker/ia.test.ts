@@ -116,6 +116,12 @@ describe('envío mínimo de datos', () => {
     ['٣٠٠١٢٣٤٥٦٧', '[número]'], // dígitos arábigo-índicos
     ['3 0 0 1 2 3 4 5 6 7', '[número]'],
     ['debe 20.000 y abonó 5.000', 'debe 20.000 y abonó 5.000'], // dos montos separados por palabras no se juntan
+    // Separadores Unicode que no son el guion ASCII (revisión de IAS-02): rayas, guion que no se parte, guion bajo, punto medio.
+    ['cel 300–123–4567', 'cel [número]'],
+    ['cel 300—123—4567', 'cel [número]'],
+    ['cel 300\u2011123\u20114567', 'cel [número]'],
+    ['cel 300_123_4567', 'cel [número]'],
+    ['cc 1·032·456·789', 'cc [número]'],
   ])('anonimizar(%j) → %j', (frase, esperado) => {
     expect(anonimizar(frase)).toBe(esperado);
   });

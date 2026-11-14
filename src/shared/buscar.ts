@@ -27,3 +27,16 @@ export function buscar(deudores: DeudorResumen[], consulta: string): DeudorResum
     return palabras.every((p) => texto.includes(p));
   });
 }
+
+// «don Carlos» suele estar anotado como «Carlos». Pero «don» y «doña» también caben dentro de apellidos (Londoño,
+// Maldonado): se busca con y sin el trato y se queda el resultado más amplio, para no elegir solo a uno por accidente.
+const TRATOS = new Set(['don', 'dona', 'doña', 'senor', 'señor', 'senora', 'señora', 'seno', 'seño', 'sr', 'sra']);
+
+/** Los deudores a los que puede referirse lo que entendió Sarin («don Carlos el del taller»). */
+export function buscarCandidatos(deudores: DeudorResumen[], buscado: string): DeudorResumen[] {
+  const todos = buscar(deudores, buscado);
+  const sinTrato = buscado.split(/\s+/).filter((p) => !TRATOS.has(p.toLowerCase())).join(' ');
+  if (!sinTrato || sinTrato === buscado) return todos;
+  const amplia = buscar(deudores, sinTrato);
+  return amplia.length > todos.length ? amplia : todos;
+}

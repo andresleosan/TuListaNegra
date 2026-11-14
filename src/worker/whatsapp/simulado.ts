@@ -47,8 +47,11 @@ export const PREFIJO_DEV = 'tln-dev-whatsapp-';
 const soloDesarrollo = (valor: string | undefined) => (valor?.startsWith(PREFIJO_DEV) ? valor : undefined);
 
 export class SimulatedGateway implements SarinGateway {
-  /** `ahora` es el reloj inyectable (d.5): las pruebas mueven el tiempo sin esperar. */
-  constructor(private readonly env: Env, private readonly ahora: () => number = Date.now) {}
+  /**
+   * `ahora` es el reloj inyectable (d.5): las pruebas mueven el tiempo sin esperar. `negocio` es la tienda que envía
+   * (null para el enrutador): su envío queda con ella desde que se guarda, así una respuesta inmediata la encuentra.
+   */
+  constructor(private readonly env: Env, private readonly ahora: () => number = Date.now, private readonly negocio: string | null = null) {}
 
   async sendTemplate(input: SendTemplateInput): Promise<SendResult> {
     const p = PLANTILLAS.get(input.template);
@@ -101,7 +104,7 @@ export class SimulatedGateway implements SarinGateway {
     const ahora = this.ahora();
     if (!rechazo && !E164.test(input.to)) rechazo = 'OTHER';
     const [nueva] = await db.insert(wa).values({
-      ...envio, id: nuevoId('wam', ahora), direction: 'SALIENTE', request_id: input.requestId, phone: input.to,
+      ...envio, id: nuevoId('wam', ahora), direction: 'SALIENTE', request_id: input.requestId, phone: input.to, business_id: this.negocio,
       wa_message_id: rechazo ? null : `wamid.SIM.${ulid(ahora)}`, status: rechazo ? 'rejected' : 'accepted', error_code: rechazo,
       callback_data: input.callbackData ?? null, occurred_at: ahora, created_at: ahora,
     }).onConflictDoNothing({ target: wa.request_id }).returning();

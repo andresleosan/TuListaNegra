@@ -7,6 +7,8 @@ import { SimulatedGateway } from '../whatsapp/simulado';
 
 const CLIENTE = '+573001112233'; // ficticio
 const filas = async () => (await env.DB.prepare('SELECT * FROM whatsapp_messages ORDER BY created_at, id').all<Record<string, unknown>>()).results;
+// Desde WAP-04 un entrante de un número desconocido recibe una respuesta neutra (un saliente): aquí solo cuentan los entrantes.
+const entrantes = async () => (await filas()).filter((f) => f.direction === 'ENTRANTE');
 const bytesDe = (cuerpo: unknown) => new TextEncoder().encode(JSON.stringify(cuerpo));
 const unTexto = (extra: Partial<Parameters<typeof entrante.texto>[0]> = {}) => cuerpoMeta({ mensajes: [entrante.texto({ de: CLIENTE, texto: 'Hola, ya pagué', ...extra })] });
 
@@ -134,7 +136,7 @@ describe('cuerpo firmado pero inválido (400, sin escribir)', () => {
     expect((await inyectar(cuerpoMeta({ mensajes: mensajes(101) }))).status).toBe(400);
     expect(await filas()).toEqual([]);
     expect((await inyectar(cuerpoMeta({ mensajes: mensajes(100) }))).status).toBe(200);
-    expect(await filas()).toHaveLength(100);
+    expect(await entrantes()).toHaveLength(100);
   });
 });
 
@@ -174,7 +176,7 @@ describe('entrantes', () => {
   test('un entrante con fecha de más de 5 minutos en el futuro se descarta; a 4 minutos entra', async () => {
     expect((await inyectar(unTexto({ id: 'wamid.FUTURO', en: Date.now() + 6 * 60_000 }))).status).toBe(200);
     expect((await inyectar(unTexto({ id: 'wamid.CASI', en: Date.now() + 4 * 60_000 }))).status).toBe(200);
-    expect((await filas()).map((f) => f.wa_message_id)).toEqual(['wamid.CASI']);
+    expect((await entrantes()).map((f) => f.wa_message_id)).toEqual(['wamid.CASI']);
   });
 });
 
@@ -182,22 +184,22 @@ describe('idempotencia: un evento repetido no se procesa dos veces', () => {
   test('el mismo wa_message_id dos veces → una sola fila, y la segunda respuesta también es 200', async () => {
     const cuerpo = unTexto({ id: 'wamid.REPETIDO' });
     expect((await inyectar(cuerpo)).status).toBe(200);
-    const [primera] = await filas();
+    const [primera] = await entrantes();
     expect((await inyectar(unTexto({ id: 'wamid.REPETIDO', texto: 'otro texto' }))).status).toBe(200);
-    expect(await filas()).toEqual([primera]); // ni duplicada ni sobrescrita
+    expect(await entrantes()).toEqual([primera]); // ni duplicada ni sobrescrita
   });
 
   test('dos entregas a la vez → una sola fila', async () => {
     const cuerpo = unTexto({ id: 'wamid.SIMULTANEO' });
     const respuestas = await Promise.all([inyectar(cuerpo), inyectar(cuerpo), inyectar(cuerpo)]);
     expect(respuestas.map((r) => r.status)).toEqual([200, 200, 200]);
-    expect(await filas()).toHaveLength(1);
+    expect(await entrantes()).toHaveLength(1);
   });
 
   test('repetido dentro del mismo lote → una sola fila', async () => {
     const m = entrante.texto({ de: CLIENTE, id: 'wamid.DOBLE', texto: 'x' });
     expect((await inyectar(cuerpoMeta({ mensajes: [m, m] }))).status).toBe(200);
-    expect(await filas()).toHaveLength(1);
+    expect(await entrantes()).toHaveLength(1);
   });
 });
 
@@ -300,7 +302,7 @@ describe('revisión independiente de WAP-01', () => {
     const raro = { ...entrante.texto({ de: CLIENTE, texto: 'y' }), id: 'wamid.RARO', from: '57300abc' };
     const res = await inyectar(cuerpoMeta({ mensajes: [lista as never, raro, bueno], estados: [{ id: 'wamid.X' }] }));
     expect(res.status).toBe(200);
-    expect((await filas()).map((f) => f.wa_message_id)).toEqual([bueno.id]);
+    expect((await entrantes()).map((f) => f.wa_message_id)).toEqual([bueno.id]);
   });
 });
 

@@ -182,6 +182,13 @@ export const DIRECCIONES_WA = ['ENTRANTE', 'SALIENTE'] as const;
 export const TIPOS_WA = ['template', 'text', 'buttons', 'image', 'button'] as const;
 /** Resultado del envío (`accepted`, `rejected`, `unknown`) y, después, los estados que avisa Meta. */
 export const ESTADOS_WA = ['accepted', 'rejected', 'unknown', 'sent', 'delivered', 'read', 'failed'] as const;
+/**
+ * Enrutamiento de un entrante (WAP-04, producto.md B4). Vacío mientras no se enruta, y siempre en los salientes.
+ * `ROUTED`: tiene negocio. `AWAITING_TENANT_SELECTION`: se preguntó con botones a qué comercio va. `UNROUTED`: desconocido.
+ */
+export const ESTADOS_ENRUTAMIENTO = ['ROUTED', 'AWAITING_TENANT_SELECTION', 'UNROUTED'] as const;
+/** Por qué paso de B4 se asignó el negocio: respuesta a un mensaje nuestro, orden del dueño verificado, único negocio en 72 h o elegido con botón. */
+export const REGLAS_ENRUTAMIENTO = ['RESPUESTA', 'ORDEN_DUENO', 'UNICO_72H', 'ELECCION'] as const;
 
 /**
  * Bandeja de WhatsApp (WAP-01, docs/spec/contrato-sarin.md): entrantes y salientes, del simulador o de Meta.
@@ -209,6 +216,10 @@ export const whatsapp_messages = sqliteTable(
     occurred_at: integer().notNull(), // envío o fecha del entrante según Meta
     created_at: integer().notNull(),
     status_updated_at: integer(),
+    // WAP-04. Columnas añadidas con ALTER TABLE: sin CHECK (exigiría reconstruir la tabla); los valores los fija el enrutador.
+    debtor_id: text().references(() => debtors.id), // vacío si no se sabe qué deudor es
+    routing_state: text({ enum: ESTADOS_ENRUTAMIENTO }),
+    routing_rule: text({ enum: REGLAS_ENRUTAMIENTO }), // solo con ROUTED
   },
   (t) => [
     uniqueIndex('wa_message_id_uq').on(t.wa_message_id),

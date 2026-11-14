@@ -57,6 +57,8 @@ const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
   'POST /api/cobros-bot/:id': () => [
     conJson(`/api/cobros-bot/${v.deudor}`, 'POST', { tono: 'AVISO_FIRME', request_id: 'ataque-bot-0001', business_id: v.negocio }),
   ],
+  // Sarin solo interpreta la frase de quien la envía: el negocio y la cuota salen de la sesión de B, nunca del cuerpo.
+  'POST /api/ia/orden': () => [conJson(`/api/ia/orden?business_id=${v.negocio}`, 'POST', { frase: 'abónale veinte mil a don Carlos el del taller', business_id: v.negocio })],
   'GET /api/suscripcion': () => [{ ruta: `/api/suscripcion?business_id=${v.negocio}` }],
   'POST /api/suscripcion/pagos': () => [conCaptura(`/api/suscripcion/pagos?business_id=${v.negocio}`)],
   'POST /api/cuadernos/fotos': () => [conFoto(`/api/cuadernos/fotos?business_id=${v.negocio}`)],

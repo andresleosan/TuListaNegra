@@ -1,7 +1,7 @@
 // WAP-01: el simulador (contrato-sarin.md, d) permite el recorrido completo sin Meta y sin salir a la red.
 import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { HORA } from '../test/datos';
+import { HORA, sembrarNegocio } from '../test/datos';
 import { cuerpoMeta, entornoWa, entrante, estado, inyectar } from '../test/whatsapp';
 import { gatewayPara } from './index';
 import { SimulatedGateway, VENTANA_MS } from './simulado';
@@ -159,6 +159,9 @@ test('recorrido completo sin Meta: plantilla → estados → respuesta firmada �
   const envio = await gw.sendTemplate(cobro({ requestId: 'cobro-deb_1-001', buttonPayloads: ['tln.v1:pague:deb_1'], callbackData: 'cobro-deb_1-001' }));
   if (envio.status !== 'accepted') throw new Error('el cobro no se aceptó');
   const wamid = envio.waMessageId;
+  // Como hace la ruta del cobro por bot: el envío se asigna a su negocio, así la respuesta se enruta a él (WAP-04).
+  await sembrarNegocio();
+  await env.DB.prepare('UPDATE whatsapp_messages SET business_id = ?1 WHERE wa_message_id = ?2').bind('bus_uid_1', wamid).run();
 
   // 2. Meta avisa que salió y que llegó.
   expect((await inyectar(cuerpoMeta({ estados: [estado(wamid, 'sent', { callbackData: 'cobro-deb_1-001' })] }), entorno)).status).toBe(200);
@@ -194,4 +197,5 @@ test('recorrido completo sin Meta: plantilla → estados → respuesta firmada �
     'SALIENTE template read',
   ]);
   expect(bandeja.filter((f) => f.direction === 'ENTRANTE').every((f) => f.reply_to_wa_message_id === wamid)).toBe(true);
+  expect(bandeja.filter((f) => f.direction === 'ENTRANTE').every((f) => f.business_id === 'bus_uid_1' && f.routing_rule === 'RESPUESTA')).toBe(true);
 });

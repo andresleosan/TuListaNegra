@@ -6,6 +6,7 @@ import { archivos } from './rutas/archivos';
 import { cobrosBot } from './rutas/cobros-bot';
 import { cuadernos } from './rutas/cuadernos';
 import { deudores } from './rutas/deudores';
+import { ia } from './rutas/ia';
 import { negocio } from './rutas/negocio';
 import { superadmin } from './rutas/superadmin';
 import { suscripcion } from './rutas/suscripcion';
@@ -35,6 +36,7 @@ app.route('/api/suscripcion', suscripcion);
 app.route('/api/archivos', archivos);
 app.route('/api/cuadernos', cuadernos);
 app.route('/api/cobros-bot', cobrosBot);
+app.route('/api/ia', ia);
 app.route('/api/superadmin', superadmin);
 app.route('/api/whatsapp', whatsapp);
 

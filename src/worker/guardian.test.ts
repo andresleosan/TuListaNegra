@@ -62,7 +62,7 @@ describe('el guardián en la API', () => {
     const estados = await Promise.all([
       api('/api/ruta-de-lectura'),
       api('/api/ruta-de-escritura', {}, { method: 'POST' }),
-      api('/api/ia/orden', {}, { method: 'POST' }),
+      api('/api/ia/ruta-inexistente', {}, { method: 'POST' }),
       api('/api/suscripcion/ruta-inexistente', {}, { method: 'POST' }),
     ]);
     expect(estados.map((r) => r.status)).toEqual([ver, escribir, ia, suscripcion]);

@@ -2,7 +2,7 @@
   "id": "IAS-02",
   "fase": "F3",
   "titulo": "Orden por voz o texto → propuesta → confirmación.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,15 @@
     "mostrador"
   ],
   "criterio": "Con respuestas grabadas del modelo, la frase de ejemplo produce la propuesta correcta; nada se escribe sin confirmar; deudor ambiguo → pide elegir.",
-  "hecho": "",
+  "hecho": "POST /api/ia/orden interpreta la frase con DeepSeek (cuota «ia», límite por negocio; con la IA apagada responde ia_apagada sin tocar nada) y no escribe en el libro. En el mostrador, debajo del buscador, «Dile a Sarin»: busca al deudor en la copia local (con y sin «don/doña»), muestra la propuesta con «Entendí: «…»», saldo antes y después; varios → pide elegir; ninguno → buscar a mano; «no entendí» sin propuesta. Confirmar usa el mismo envío del mostrador y el movimiento queda con origen SARIN_TEXT. Para hablar: el micrófono del teclado.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: src/worker/rutas/ia.test.ts → con la respuesta grabada de DeepSeek, «abónale veinte mil a don Carlos el del taller» → ABONAR 20000 «don Carlos el del taller», y deudores y movimientos no cambian; la petición a DeepSeek no lleva cédula ni celular (también escritos con rayas o puntos medios); IA apagada, proveedor caído, sin cuota, frase inválida, vencida y límite → lo que corresponde. e2e/sarin.spec.ts: propuesta correcta, elegir entre dos «Carlos», ninguno, «no entendí»; el saldo no cambia antes de confirmar y cambia una vez al confirmar. Capturas docs/roadmap/evidencia/sarin-propuesta-360.png, sarin-propuesta-1280.png, sarin-elegir-360.png.",
+    "2026-11-14: revisión independiente sin caminos de escritura sin toque; arreglados con prueba: «don»/«doña» dentro de un apellido (Londoño, Maldonado) ya no elige solo a un deudor ambiguo (buscarCandidatos en src/shared/buscar.ts); anonimizar tapa separadores Unicode; con la IA apagada y sin cuota se dice «Sarin aún no está encendida» sin escribir en el negocio; la propuesta muestra lo que entendió. Decisión al integrar (fuente B4: el buscador es lo primero): la caja de Sarin va debajo del buscador.",
+    "No comprobado: DeepSeek real (AI_READY apagado; cola del dueño). Voz con Workers AI no construida: se usa el dictado del teclado (decisión: lo más simple).",
+    "2026-11-14: lote verificado: pnpm test (806 pruebas, 34 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo en base local nueva (todas las pantallas, 360 y 1280 px) → 24 pasan, 2 saltadas por diseño."
+  ],
   "actualizado": "2026-11-14"
 }

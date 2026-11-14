@@ -2,7 +2,7 @@
 // ver el pago en revisión y el rechazo de un segundo pago pendiente.
 import { expect, type Page, test } from '@playwright/test';
 import { formatoCOP } from '../src/shared/dinero';
-import { apiComo, captura, entrar, llenarAlta, sinDesborde, SUFIJO, uidDe } from './ayudas';
+import { apiComo, captura, entrar, esperarMostrador, llenarAlta, sinDesborde, SUFIJO, uidDe } from './ayudas';
 
 /** Una tienda por proyecto, compartida con ajustes.spec.ts: la crea el primero que llega. Prefijo 315 (móvil) o 316 (escritorio). */
 async function abrirTienda(pagina: Page, movil: boolean) {
@@ -11,7 +11,10 @@ async function abrirTienda(pagina: Page, movil: boolean) {
   const alta = pagina.getByRole('heading', { name: 'Crea tu tienda' });
   const mostrador = pagina.getByRole('heading', { name: 'Mostrador', level: 1 });
   await expect(alta.or(mostrador)).toBeVisible();
-  if (await alta.isVisible()) await llenarAlta(pagina, 'Tienda La Esquina de Rubi', `${movil ? 315 : 316}${SUFIJO}`);
+  if (await alta.isVisible()) {
+    await llenarAlta(pagina, 'Tienda La Esquina de Rubi', `${movil ? 315 : 316}${SUFIJO}`);
+    await esperarMostrador(pagina); // espera el minuto si otros recorridos agotaron el límite de altas
+  }
   await expect(mostrador).toBeVisible();
   return clave;
 }
@@ -46,8 +49,9 @@ test('pases, cuentas, rechazos de la captura, pago en revisión y segundo pago r
   const ancho = page.viewportSize()!.width;
   const movil = info.project.name === 'movil-360';
   const errores: string[] = [];
-  // Los rechazos de la subida (400 y 409) son esperados: el navegador los anota en la consola.
-  page.on('console', (m) => m.type() === 'error' && !m.location().url.includes('/api/suscripcion/pagos') && errores.push(`${m.text()} · ${m.location().url}`));
+  // Esperados: los rechazos de la subida (400 y 409) y el 404 `sin_negocio` de /api/negocio si esta spec crea la tienda.
+  const esperado = (url: string) => url.includes('/api/suscripcion/pagos') || url.endsWith('/api/negocio');
+  page.on('console', (m) => m.type() === 'error' && !esperado(m.location().url) && errores.push(`${m.text()} · ${m.location().url}`));
   page.on('pageerror', (e) => errores.push(String(e)));
 
   const clave = await abrirTienda(page, movil);

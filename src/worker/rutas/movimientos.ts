@@ -17,6 +17,8 @@ const Nuevo = z.object({
   description: z.string().trim().max(140).optional(),
   due_date: z.number().int().positive().nullish(),
   confirmar_tope: z.boolean().optional(),
+  /** Quién lo propuso: el tendero en el mostrador, o Sarin por texto (y el tendero lo confirmó). Los demás orígenes no entran por aquí. */
+  origen: z.enum(['MOSTRADOR', 'SARIN_TEXT']).optional(),
 });
 
 export const movimientos = new Hono<AppEnv>();
@@ -34,7 +36,8 @@ movimientos.post('/', async (c) => {
   const d = await cuerpo(c, Nuevo);
   const negocio = c.var.negocio;
   const debtor_id = c.req.param('id')!;
-  const r = await registrarMovimiento(c.env, { ...d, business_id: negocio.id, debtor_id, source: 'MOSTRADOR' });
+  const { origen, ...datos } = d;
+  const r = await registrarMovimiento(c.env, { ...datos, business_id: negocio.id, debtor_id, source: origen ?? 'MOSTRADOR' });
   if (!r.ok) return c.json(r.error === 'no_encontrado' ? { error: r.error } : { ...r, ok: undefined }, r.error === 'no_encontrado' ? 404 : 409);
   // Un request_id repetido que apuntaba a otro deudor no es un reintento: es un error del cliente.
   if (r.movimiento.debtor_id !== debtor_id) return c.json({ error: 'request_id_usado' }, 409);

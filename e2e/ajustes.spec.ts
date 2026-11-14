@@ -1,6 +1,6 @@
 // AJU-01: cambiar medios de pago, días de alerta y tono; recargar y verlos; que lleguen a los cobros; tienda vencida.
 import { expect, type Page, test } from '@playwright/test';
-import { apiComo, captura, entrar, llenarAlta, sinDesborde, SUFIJO, tokenComo, uidDe } from './ayudas';
+import { apiComo, captura, entrar, esperarMostrador, llenarAlta, sinDesborde, SUFIJO, tokenComo, uidDe } from './ayudas';
 
 /** Una tienda por proyecto, compartida con suscripcion.spec.ts: la crea el primero que llega. Prefijo 315 (móvil) o 316 (escritorio). */
 async function abrirTienda(pagina: Page, movil: boolean) {
@@ -9,7 +9,10 @@ async function abrirTienda(pagina: Page, movil: boolean) {
   const alta = pagina.getByRole('heading', { name: 'Crea tu tienda' });
   const mostrador = pagina.getByRole('heading', { name: 'Mostrador', level: 1 });
   await expect(alta.or(mostrador)).toBeVisible();
-  if (await alta.isVisible()) await llenarAlta(pagina, 'Tienda La Esquina de Rubi', `${movil ? 315 : 316}${SUFIJO}`);
+  if (await alta.isVisible()) {
+    await llenarAlta(pagina, 'Tienda La Esquina de Rubi', `${movil ? 315 : 316}${SUFIJO}`);
+    await esperarMostrador(pagina); // espera el minuto si otros recorridos agotaron el límite de altas
+  }
   await expect(mostrador).toBeVisible();
   return clave;
 }

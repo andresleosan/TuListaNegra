@@ -2,7 +2,7 @@
   "id": "WAP-04",
   "fase": "F4",
   "titulo": "Enrutamiento de respuestas entre negocios.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "whatsapp"
   ],
   "criterio": "Pruebas de los seis pasos de B4.",
-  "hecho": "",
+  "hecho": "src/worker/whatsapp/enrutar.ts enruta cada entrante nuevo (y los que un fallo dejó sin enrutar del mismo teléfono) siguiendo B4 en orden: respuesta a un saliente nuestro a ese teléfono (deudor por callback_data o teléfono único), orden del dueño con teléfono verificado, único negocio que le escribió en las 72 h anteriores (con límite superior), pregunta con botones solo con los negocios candidatos (idempotente por teléfono y día) y elección válida solo para el tramo de su pregunta, y texto neutro (una vez cada 24 h) al desconocido. Columnas nuevas en whatsapp_messages: debtor_id, routing_state, routing_rule (migración aditiva 0004). Corre bajo waitUntil, mensaje a mensaje.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "WAP-05 (comprobante, promesa y baja) procesa los entrantes ROUTED; WAP-06 los ORDEN_DUENO; WAP-02 debe interceptar el código de verificación.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run --project worker → 648 pruebas pasan con entrantes firmados por el webhook real, cobros por la ruta real y reloj controlado: cada paso de B4 y sus bordes (72 h exactas sí, +1 ms no; mensaje anterior al cobro no; cita a un mensaje ajeno no cuenta; dueño sin verificar no es orden; un cobro failed no cuenta; botón inventado o desde otro teléfono no asigna); la tienda B nunca recibe un mensaje dirigido a A; repetido o simultáneo → una sola decisión y una sola respuesta. Sin red (fetch vigilado).",
+    "2026-11-14: revisión independiente sin fugas forzables por el remitente; sus 4 defectos y 2 menores, arreglados con prueba que falló antes: dos ambiguos simultáneos ya generan una sola pregunta (antes ninguna y quedaban atascados); un fallo a medias ya no deja el mensaje sin enrutar para siempre; una elección en una pregunta vieja no se lleva mensajes que su pregunta no cubría; el paso 4 exige que el cobro sea anterior al mensaje; una sola respuesta neutra; el cobro sale ya con su negocio. Observaciones de diseño en MEJORAS.",
+    "No comprobado contra Meta real (context.id y botones en el formato directo de Meta, supuestos e.2 del contrato).",
+    "2026-11-14: lote verificado: pnpm test (806 pruebas, 34 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo en base local nueva (todas las pantallas, 360 y 1280 px) → 24 pasan, 2 saltadas por diseño."
+  ],
   "actualizado": "2026-11-14"
 }

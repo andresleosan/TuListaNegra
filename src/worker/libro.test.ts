@@ -225,3 +225,13 @@ describe('validación, aislamiento y permisos', () => {
     expect(await descuadrados()).toEqual([expect.objectContaining({ id: d.id, saldo_guardado: 4_000, saldo_calculado: 5_000 })]);
   });
 });
+
+test('el movimiento confirmado desde una propuesta de Sarin queda con origen SARIN_TEXT; nada más se acepta como origen', async () => {
+  await sembrarNegocio();
+  const { id } = await json(api('/api/deudores', {}, { method: 'POST', body: JSON.stringify({ full_name: 'don Carlos' }) }));
+  const res = await fiar(id, 20_000, { origen: 'SARIN_TEXT' });
+  expect(res.status).toBe(201);
+  expect((await json(res)).movimiento.source).toBe('SARIN_TEXT');
+  expect((await json(fiar(id, 1_000))).movimiento.source).toBe('MOSTRADOR');
+  for (const origen of ['WHATSAPP_BOT', 'SARIN_IMAGE_OCR', 'cualquiera']) expect((await fiar(id, 1_000, { origen })).status).toBe(400);
+});

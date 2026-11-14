@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buscar } from './buscar';
+import { buscar, buscarCandidatos } from './buscar';
 import type { DeudorResumen } from './deudor';
 
 const NOMBRES = ['Carlos', 'María José', 'Yuleidy', 'Andrés', 'Rubiela', 'Jhon Fredy', 'Luz Dary', 'Ómar', 'Nelson', 'Sandra'];
@@ -75,5 +75,19 @@ describe('buscar', () => {
       buscar(nueva, consulta);
       expect(performance.now() - inicio, consulta).toBeLessThan(50);
     }
+  });
+});
+
+describe('buscarCandidatos (Sarin)', () => {
+  const de = (id: string, nombre: string) => deudor(0, { id, full_name: nombre, alias_reference: null, unique_code: id });
+  it('el trato («don», «doña») no elige solo por estar dentro de un apellido: Londoño, Maldonado', () => {
+    const libro = [de('a', 'Carlos Londoño'), de('b', 'Carlos Pérez'), de('c', 'Rosa Maldonado'), de('d', 'Rosa Gómez')];
+    expect(buscarCandidatos(libro, 'don Carlos').map((d) => d.id).sort()).toEqual(['a', 'b']);
+    expect(buscarCandidatos(libro, 'doña Rosa').map((d) => d.id).sort()).toEqual(['c', 'd']);
+  });
+  it('sin el trato encuentra a quien está anotado sin él; con nombre completo sigue siendo uno', () => {
+    const libro = [de('a', 'Carlos el del taller'), de('b', 'Wilmar Quiceno')];
+    expect(buscarCandidatos(libro, 'don Carlos el del taller').map((d) => d.id)).toEqual(['a']);
+    expect(buscarCandidatos(libro, 'señora Lucía')).toEqual([]);
   });
 });

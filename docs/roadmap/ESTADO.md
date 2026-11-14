@@ -2,6 +2,8 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · IAS-02 · El tendero le escribe (o dicta con el teclado) a Sarin «abónale veinte mil a don Carlos» y ve la propuesta con el saldo antes y después; nada se anota hasta que confirma. Apagado hasta encender la IA. · 28 → 29 de 39
+- 2026-11-14 · WAP-04 · Cada mensaje de WhatsApp que llega se asigna a la tienda que corresponde (respuesta a su cobro, su dueño, la única que le escribió o la que el cliente elige con un botón); ninguna tienda ve mensajes de otra. Sin cambio visible aún. · 27 → 28 de 39
 - 2026-11-14 · MOS-05 · TuListaNegra se puede instalar en el teléfono y, tras abrirla una vez, abre sin internet y busca en la copia guardada (sin fiar ni abonar hasta que vuelva la red). · 26 → 27 de 39
 - 2026-11-14 · WAP-03 · El tendero puede cobrar con el bot de WhatsApp usando las plantillas de los tres tonos, con las mismas reglas de horario y permiso y su cuota; por ahora solo contra el simulador (el envío real espera la decisión del dueño). · 25 → 26 de 39
 - 2026-11-14 · IAS-04 · El tendero pasa su cuaderno a la app: sube la foto, corrige la tabla mirándola y confirma; los deudores entran con su saldo y la foto como evidencia. La lectura automática espera a que se encienda la IA. · 24 → 25 de 39

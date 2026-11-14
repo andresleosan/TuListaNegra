@@ -1,6 +1,6 @@
-// Mostrador (MOS-01, MOS-02): buscar en la copia local, anotar deudores, fiar y abonar en un toque.
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { buscar } from '../../shared/buscar';
+// Mostrador (MOS-01, MOS-02, IAS-02): buscar en la copia local, anotar deudores, fiar y abonar en un toque, o pedírselo a Sarin.
+import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { buscar, buscarCandidatos } from '../../shared/buscar';
 import { type DeudorResumen, estadoDeudor } from '../../shared/deudor';
 import { formatoCOP, MONTO_MAXIMO_COP } from '../../shared/dinero';
 import { api, ErrorApi, type Negocio } from '../api';
@@ -79,6 +79,8 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
   const sinConexion = estado === 'sin_conexion';
   const permitido = negocio.permisos.escribir;
   const puedeEscribir = permitido && !sinConexion;
+  // Sarin necesita red y el permiso de IA de la tienda (B2); sin él, ni se ofrece.
+  const conSarin = puedeEscribir && negocio.permisos.ia;
   const ahora = Date.now();
   const enPrueba = negocio.estado === 'TRIAL';
 
@@ -130,6 +132,7 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
       <>
         <div className="mostrador__buscador">
           <Campo
+            id="mostrador-buscar"
             etiqueta="Buscar en tu libro"
             ayuda="Nombre, apodo, código (TLN-0042 o 0042) o últimos 4 del documento."
             type="search"
@@ -147,6 +150,23 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
             </Boton>
           )}
         </div>
+        {/* Debajo del buscador: encontrar a alguien es lo primero del mostrador (B4); Sarin es el atajo. */}
+        {conSarin && (
+          <Sarin
+            deudores={deudores}
+            alAnotar={(d, h) => {
+              setConsulta(d.unique_code); // queda a la vista con lo que se anotó
+              setCreado(null);
+              setAbierto(null);
+              setHecho(h);
+            }}
+            alBuscar={(texto) => {
+              setConsulta(texto);
+              setCreado(null);
+              document.getElementById('mostrador-buscar')?.focus();
+            }}
+          />
+        )}
         {creado && (
           <Aviso tono="bien" titulo={`Anotaste a ${creado.full_name}`}>
             <p>
@@ -305,42 +325,39 @@ function Fila({ deudor: d, estado, puedeEscribir, abierto, hecho, alAbrir, alCer
 }
 
 type Respuesta = { movimiento: { id: string; amount_cop: number }; deudor: { current_balance_cop: number } };
+type Tope = { saldo: number; tope: number };
 
-/** Fiar o abonar a un deudor: montos rápidos, monto a mano y nota. Si el fiado pasa el tope, alerta roja y confirmar. */
-function Panel({ deudor: d, tipo, alCerrar, alTerminar }: { deudor: DeudorResumen; tipo: Tipo; alCerrar: () => void; alTerminar: (h: Hecho) => void }) {
-  const fiar = tipo === 'FIADO';
-  const [monto, setMonto] = useState(0);
-  const [nota, setNota] = useState('');
+/**
+ * Anotar un fiado o un abono: el mismo POST, su `request_id`, la alerta de tope y los errores traducidos, tanto para el
+ * panel de cada renglón como para la propuesta de Sarin.
+ */
+function useAnotar(d: DeudorResumen, tipo: Tipo, alTerminar: (h: Hecho) => void, origen?: 'SARIN_TEXT') {
   const [error, setError] = useState<string | null>(null);
   const [fallo, setFallo] = useState<ErrorApi | null>(null);
   // El servidor tiene la última palabra: si su saldo ya pasa el tope aunque la copia no lo diga, se alerta igual.
-  const [topeDelServidor, setTopeDelServidor] = useState<{ saldo: number; tope: number } | null>(null);
+  const [topeDelServidor, setTopeDelServidor] = useState<Tope | null>(null);
   const [enviando, setEnviando] = useState(false);
   // Uno por intento de anotar: si la red falla y se vuelve a tocar, el servidor no lo anota dos veces.
   const [solicitud] = useState(() => crypto.randomUUID());
-
   const saldo = d.current_balance_cop;
-  const tope =
-    topeDelServidor ?? (fiar && d.credit_limit_cop !== null && monto > 0 && saldo + monto > d.credit_limit_cop ? { saldo, tope: d.credit_limit_cop } : null);
-  const verbo = fiar ? 'Fiar' : 'Abonar';
 
-  const cambiar = (valor: number) => {
-    setMonto(valor);
+  /** ¿Con este monto el fiado pasa el tope? */
+  const topeCon = (monto: number): Tope | null =>
+    topeDelServidor ?? (tipo === 'FIADO' && d.credit_limit_cop !== null && monto > 0 && saldo + monto > d.credit_limit_cop ? { saldo, tope: d.credit_limit_cop } : null);
+
+  const limpiar = () => {
     setError(null);
     setTopeDelServidor(null);
   };
 
-  async function enviar(e: FormEvent) {
-    e.preventDefault();
-    if (monto <= 0) return setError(fiar ? 'Escribe cuánto le vas a fiar o toca un monto rápido.' : 'Escribe cuánto abona o toca un monto rápido.');
-    if (monto > MONTO_MAXIMO_COP) return setError(`El monto máximo es ${formatoCOP(MONTO_MAXIMO_COP)}. Revisa los ceros.`);
-    if (!fiar && monto > saldo) return setError(`Debe ${formatoCOP(saldo)}: no puede abonar más que eso. Toca «Todo» para saldar la cuenta.`);
+  async function anotar(monto: number, nota = '') {
+    const tope = topeCon(monto);
     setFallo(null);
     setEnviando(true);
     try {
       const r = await api<Respuesta>(`/deudores/${d.id}/movimientos`, {
         metodo: 'POST',
-        cuerpo: { request_id: solicitud, type: tipo, amount_cop: monto, description: nota.trim() || undefined, confirmar_tope: tope ? true : undefined },
+        cuerpo: { request_id: solicitud, type: tipo, amount_cop: monto, description: nota.trim() || undefined, confirmar_tope: tope ? true : undefined, origen },
       });
       await refrescarCartera().catch(() => {});
       alTerminar({ id: d.id, tipo, monto: r.movimiento.amount_cop, saldo: r.deudor.current_balance_cop, movimiento: r.movimiento.id });
@@ -353,6 +370,43 @@ function Panel({ deudor: d, tipo, alCerrar, alTerminar }: { deudor: DeudorResume
       setFallo(f);
       if (f.status === 0) void refrescarCartera(); // enciende el aviso de «sin conexión» si la red se fue
     }
+  }
+
+  return { error, setError, fallo, enviando, topeCon, limpiar, anotar };
+}
+
+function AvisoTope({ tope, monto }: { tope: Tope; monto: number }) {
+  return (
+    <Aviso tono="error" titulo="Pasa su tope de crédito">
+      <p>
+        Con este fiado quedaría debiendo <Monto valor={tope.saldo + monto} /> y su tope es <Monto valor={tope.tope} />. Si de todas formas le fías, toca el botón rojo.
+      </p>
+    </Aviso>
+  );
+}
+
+/** Fiar o abonar a un deudor: montos rápidos, monto a mano y nota. Si el fiado pasa el tope, alerta roja y confirmar. */
+function Panel({ deudor: d, tipo, alCerrar, alTerminar }: { deudor: DeudorResumen; tipo: Tipo; alCerrar: () => void; alTerminar: (h: Hecho) => void }) {
+  const fiar = tipo === 'FIADO';
+  const [monto, setMonto] = useState(0);
+  const [nota, setNota] = useState('');
+  const { error, setError, fallo, enviando, topeCon, limpiar, anotar } = useAnotar(d, tipo, alTerminar);
+
+  const saldo = d.current_balance_cop;
+  const tope = topeCon(monto);
+  const verbo = fiar ? 'Fiar' : 'Abonar';
+
+  const cambiar = (valor: number) => {
+    setMonto(valor);
+    limpiar();
+  };
+
+  function enviar(e: FormEvent) {
+    e.preventDefault();
+    if (monto <= 0) return setError(fiar ? 'Escribe cuánto le vas a fiar o toca un monto rápido.' : 'Escribe cuánto abona o toca un monto rápido.');
+    if (monto > MONTO_MAXIMO_COP) return setError(`El monto máximo es ${formatoCOP(MONTO_MAXIMO_COP)}. Revisa los ceros.`);
+    if (!fiar && monto > saldo) return setError(`Debe ${formatoCOP(saldo)}: no puede abonar más que eso. Toca «Todo» para saldar la cuenta.`);
+    void anotar(monto, nota);
   }
 
   return (
@@ -390,13 +444,7 @@ function Panel({ deudor: d, tipo, alCerrar, alTerminar }: { deudor: DeudorResume
         error={error}
       />
       <Campo etiqueta="Nota (opcional)" ayuda="Qué se llevó, para acordarse después." maxLength={140} value={nota} onChange={(e) => setNota(e.target.value)} />
-      {tope && (
-        <Aviso tono="error" titulo="Pasa su tope de crédito">
-          <p>
-            Con este fiado quedaría debiendo <Monto valor={tope.saldo + monto} /> y su tope es <Monto valor={tope.tope} />. Si de todas formas le fías, toca el botón rojo.
-          </p>
-        </Aviso>
-      )}
+      {tope && <AvisoTope tope={tope} monto={monto} />}
       {fallo && <Fallo fallo={fallo} />}
       <div className="mostrador__botones">
         <Boton type="submit" variante={tope ? 'peligro' : 'primaria'} disabled={enviando}>
@@ -407,6 +455,242 @@ function Panel({ deudor: d, tipo, alCerrar, alTerminar }: { deudor: DeudorResume
         </Boton>
       </div>
     </form>
+  );
+}
+
+/** Lo que devuelve `POST /api/ia/orden`: una propuesta del modelo, nunca un movimiento. */
+type Orden = { accion: 'FIAR' | 'ABONAR' | 'DESCONOCIDA'; monto: number | null; deudor_buscado: string | null };
+
+const MAXIMO_OPCIONES = 8;
+
+function textoDeSarin(f: ErrorApi): { titulo: string; texto: string; suscripcion?: boolean } {
+  if (f.error === 'ia_apagada') return { titulo: 'Sarin aún no está encendida', texto: 'Pronto podrás dictarle. Mientras tanto, anota con los botones Fiar y Abonar de cada deudor.' };
+  if (f.error === 'sin_cuota') return { titulo: 'Se acabaron las órdenes a Sarin', texto: String(f.datos.mensaje ?? 'Ya usaste las interacciones de Sarin de tu plan.'), suscripcion: true };
+  if (f.status === 503) return { titulo: 'Sarin no responde ahora', texto: 'Intenta de nuevo en un momento, o anota con los botones de cada deudor. No se te descontó nada.' };
+  if (f.status === 429) return { titulo: 'Vas muy rápido', texto: 'Espera un minuto y díselo de nuevo.' };
+  if (f.status === 0) return { titulo: 'No hay conexión', texto: 'Revisa tu internet y vuelve a enviar. Lo que escribiste sigue aquí.' };
+  if (f.status === 403) return { titulo: 'Tu plan no incluye a Sarin ahora', texto: 'Para dictarle órdenes necesitas un pase vigente.', suscripcion: true };
+  if (f.status === 401) return { titulo: 'Tu sesión venció', texto: 'Sal y vuelve a entrar.' };
+  return { titulo: 'Sarin no pudo leer tu orden', texto: 'Es un problema nuestro, no tuyo. Intenta de nuevo en un momento.' };
+}
+
+/**
+ * Sarin dentro de la app (IAS-02, B4): el tendero escribe o dicta con el micrófono de su teclado, Sarin propone y él
+ * confirma. Nada se anota sin ese toque (A1.3); la confirmación es el mismo envío que el panel de fiar y abonar.
+ */
+function Sarin({ deudores, alAnotar, alBuscar }: { deudores: DeudorResumen[]; alAnotar: (d: DeudorResumen, h: Hecho) => void; alBuscar: (texto: string) => void }) {
+  const [frase, setFrase] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [fallo, setFallo] = useState<ErrorApi | null>(null);
+  // `n` cambia con cada respuesta: una propuesta nueva lleva su propio request_id.
+  const [orden, setOrden] = useState<{ n: number; orden: Orden } | null>(null);
+  const [elegido, setElegido] = useState<DeudorResumen | null>(null);
+
+  const cerrar = () => {
+    setOrden(null);
+    setElegido(null);
+  };
+  const buscarAMano = (texto: string) => {
+    cerrar();
+    alBuscar(texto);
+  };
+
+  async function enviar(e: FormEvent) {
+    e.preventDefault();
+    if (!frase.trim()) return setError('Escribe o dicta qué quieres anotar, por ejemplo «fíale cinco mil a Wilmar».');
+    setError(null);
+    setFallo(null);
+    cerrar();
+    setEnviando(true);
+    try {
+      const o = await api<Orden>('/ia/orden', { metodo: 'POST', cuerpo: { frase: frase.trim() } });
+      setOrden((x) => ({ n: (x?.n ?? 0) + 1, orden: o }));
+    } catch (err) {
+      const f = comoError(err);
+      if (f.error === 'datos_invalidos') setError('Escribe la orden en una frase corta: máximo 300 letras.');
+      else setFallo(f);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  let respuesta: ReactNode = null;
+  if (fallo) {
+    const { titulo, texto, suscripcion } = textoDeSarin(fallo);
+    respuesta = (
+      <Aviso tono={fallo.error === 'ia_apagada' ? 'atencion' : 'error'} titulo={titulo}>
+        <p>{texto}</p>
+        {suscripcion && (
+          <p>
+            <Enlace a="/suscripcion">Ver pases en Suscripción</Enlace>
+          </p>
+        )}
+      </Aviso>
+    );
+  } else if (orden) {
+    const { accion, monto, deudor_buscado: buscado } = orden.orden;
+    const tipo: Tipo = accion === 'FIAR' ? 'FIADO' : 'ABONO';
+    const lista = accion === 'DESCONOCIDA' || monto === null || !buscado ? null : elegido ? [elegido] : buscarCandidatos(deudores, buscado);
+    if (!lista) {
+      respuesta = (
+        <Aviso titulo="No te entendí">
+          <p>Dile qué hacer, cuánto y a quién. Por ejemplo: «fíale cinco mil a Wilmar» o «abónale veinte mil a don Carlos».</p>
+        </Aviso>
+      );
+    } else if (lista.length === 0) {
+      respuesta = (
+        <Aviso titulo={`No encontré a «${buscado}» en tu libro`}>
+          <p>Puede que lo tengas anotado con otro nombre o apodo. Búscalo a mano y anótale desde su renglón.</p>
+          <Boton variante="secundaria" onClick={() => buscarAMano(buscado!)}>
+            Buscar a mano
+          </Boton>
+        </Aviso>
+      );
+    } else if (lista.length > 1) {
+      respuesta = (
+        <div className="mostrador__sarin-elegir">
+          <p className="mostrador__sarin-pregunta">
+            Hay {lista.length} con «{buscado}». ¿{tipo === 'FIADO' ? 'A cuál le fías' : 'Cuál abona'} <Monto valor={monto!} />?
+          </p>
+          <ul aria-label="¿A cuál?">
+            {lista.slice(0, MAXIMO_OPCIONES).map((d) => (
+              <li key={d.id}>
+                <Boton variante="secundaria" onClick={() => setElegido(d)}>
+                  <code>{d.unique_code}</code>
+                  <span className="mostrador__sarin-quien">
+                    {d.full_name}
+                    {d.alias_reference && <span>{d.alias_reference}</span>}
+                  </span>
+                  <span className="mostrador__sarin-debe">
+                    debe <Monto valor={d.current_balance_cop} />
+                  </span>
+                </Boton>
+              </li>
+            ))}
+          </ul>
+          {lista.length > MAXIMO_OPCIONES && <p className="mostrador__nota">Ves los primeros {MAXIMO_OPCIONES}. Si no está, búscalo a mano.</p>}
+          <div className="mostrador__botones">
+            <Boton variante="secundaria" onClick={() => buscarAMano(buscado!)}>
+              Buscar a mano
+            </Boton>
+            <Boton variante="secundaria" onClick={cerrar}>
+              Cancelar
+            </Boton>
+          </div>
+        </div>
+      );
+    } else {
+      const d = lista[0]!;
+      respuesta = (
+        <Propuesta
+          key={`${orden.n}-${d.id}`}
+          deudor={d}
+          tipo={tipo}
+          monto={monto!}
+          entendido={buscado!}
+          alCancelar={cerrar}
+          alTerminar={(h) => {
+            cerrar();
+            setFrase('');
+            alAnotar(d, h);
+          }}
+        />
+      );
+    }
+  }
+
+  return (
+    <section className="mostrador__sarin" aria-label="Sarin">
+      <form className="mostrador__sarin-form" onSubmit={enviar} noValidate>
+        <Campo
+          etiqueta="Dile a Sarin"
+          ayuda="Por ejemplo: «abónale veinte mil a don Carlos el del taller». Para hablar, toca el micrófono de tu teclado."
+          autoComplete="off"
+          enterKeyHint="send"
+          maxLength={300}
+          value={frase}
+          onChange={(e) => {
+            setFrase(e.target.value);
+            if (error) setError(null);
+          }}
+          error={error}
+        />
+        <Boton type="submit" disabled={enviando}>
+          {enviando ? 'Sarin está leyendo…' : 'Enviar a Sarin'}
+        </Boton>
+      </form>
+      {respuesta}
+      <p className="mostrador__nota">Sarin te muestra lo que entendió. Nada se anota hasta que tú lo confirmes.</p>
+    </section>
+  );
+}
+
+/** La propuesta de Sarin para un deudor: qué se anotaría y cómo queda el saldo. Confirmar es el mismo envío del panel. */
+function Propuesta({ deudor: d, tipo, monto, entendido, alCancelar, alTerminar }: { deudor: DeudorResumen; tipo: Tipo; monto: number; entendido: string; alCancelar: () => void; alTerminar: (h: Hecho) => void }) {
+  const { error, fallo, enviando, topeCon, anotar } = useAnotar(d, tipo, alTerminar, 'SARIN_TEXT');
+  const fiar = tipo === 'FIADO';
+  const saldo = d.current_balance_cop;
+  const tope = topeCon(monto);
+  const pasaSaldo = !fiar && monto > saldo;
+
+  return (
+    <div className="mostrador__propuesta" role="group" aria-label="Propuesta de Sarin">
+      {/* Lo que entendió Sarin, para comparar con el deudor propuesto antes de confirmar por reflejo. */}
+      <p className="mostrador__propuesta-entendi">Entendí: «{entendido}»</p>
+      <p className="mostrador__propuesta-que">
+        {fiar ? 'Fiar' : 'Abonar'} <Monto valor={monto} /> a {d.full_name}
+        {d.alias_reference && <span>, {d.alias_reference}</span>} <code>({d.unique_code})</code>
+      </p>
+      <dl className="mostrador__propuesta-cuentas">
+        <div>
+          <dt>Debe hoy</dt>
+          <dd>
+            <Monto valor={saldo} />
+          </dd>
+        </div>
+        {!pasaSaldo && (
+          <>
+            <div>
+              <dt>{fiar ? 'Le fías' : 'Abona'}</dt>
+              <dd>
+                {fiar ? '+' : '−'} <Monto valor={monto} />
+              </dd>
+            </div>
+            <div className="mostrador__propuesta-total">
+              <dt>Quedaría debiendo</dt>
+              <dd>
+                <Monto valor={fiar ? saldo + monto : saldo - monto} />
+              </dd>
+            </div>
+          </>
+        )}
+      </dl>
+      {pasaSaldo && (
+        <Aviso tono="error" titulo="Abona más de lo que debe">
+          <p>
+            Debe <Monto valor={saldo} /> y Sarin entendió <Monto valor={monto} />. Revisa el monto y díselo de nuevo, o abónale desde su renglón.
+          </p>
+        </Aviso>
+      )}
+      {tope && <AvisoTope tope={tope} monto={monto} />}
+      {error && (
+        <Aviso tono="error" titulo="No se anotó">
+          <p>{error}</p>
+        </Aviso>
+      )}
+      {fallo && <Fallo fallo={fallo} />}
+      <div className="mostrador__botones">
+        {!pasaSaldo && (
+          <Boton variante={tope ? 'peligro' : 'primaria'} disabled={enviando} onClick={() => void anotar(monto)}>
+            {enviando ? 'Anotando…' : tope ? 'Confirmar de todas formas' : 'Confirmar'}
+          </Boton>
+        )}
+        <Boton variante="secundaria" onClick={alCancelar}>
+          Cancelar
+        </Boton>
+      </div>
+    </div>
   );
 }
 

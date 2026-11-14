@@ -136,7 +136,9 @@ describe('con todo en regla', () => {
     // El texto que resuelve la plantilla es el mismo que el tendero ve en «Así le llega» (y el del cobro por enlace).
     expect(contenido.texto).toBe(textoDeCobro(tono, { tienda: 'La Esquina de Rubi', nombre: 'don Carlos', saldo_cop: 84_900, medios_de_pago: 'Nequi 300 999 0000' }));
     // `callback_data` vuelve en los estados de Meta: sin teléfono, nombre ni saldo.
-    for (const dato of ['3001234567', 'Carlos', '84']) expect(fila!.callback_data).not.toContain(dato);
+    // Su forma exacta (prefijo y el id interno del deudor) ya excluye cualquier dato personal; buscar «84» fallaba al azar
+    // cuando el ULID aleatorio contenía esos dígitos.
+    expect(fila!.callback_data).toMatch(/^cobro:deb_[0-9A-HJKMNP-TV-Z]{26}$/);
 
     expect(await usados()).toBe(1);
     expect(await usados('uid_2')).toBe(0);
@@ -329,6 +331,20 @@ describe('revisión independiente de WAP-03', () => {
     const res = await enviar(id);
     expect(res.status).toBe(502);
     expect(await res.json()).toMatchObject({ error: 'envio_rechazado' });
+  });
+
+  test('el envío ya lleva el negocio en cuanto sale (revisión de WAP-04: una respuesta inmediata encuentra la tienda)', async () => {
+    await sembrarNegocio();
+    const id = await deudorCobrable();
+    const original = SimulatedGateway.prototype.sendTemplate;
+    let negocioAlSalir: unknown = 'sin envío';
+    vi.spyOn(SimulatedGateway.prototype, 'sendTemplate').mockImplementation(async function (this: SimulatedGateway, input) {
+      const r = await original.call(this, input);
+      negocioAlSalir = (await salientes())[0]?.business_id; // lo que vería un entrante que llegara en este instante
+      return r;
+    });
+    expect((await enviar(id)).status).toBe(200);
+    expect(negocioAlSalir).toBe('bus_uid_1');
   });
 
   test('la cuarta variable va en una sola línea aunque el tendero escriba sus medios de pago en varias', async () => {
