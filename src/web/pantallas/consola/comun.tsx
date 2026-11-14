@@ -1,4 +1,4 @@
-// Piezas que comparten las tres secciones de la consola.
+// Piezas que comparten las secciones de la consola.
 import { type FormEvent, type ReactNode, useState } from 'react';
 import type { EstadoNegocio } from '../../../shared/acceso';
 import { ErrorApi } from '../../api';
@@ -21,6 +21,21 @@ const FECHA = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day
 
 /** Milisegundos UTC → «14 de nov de 2026, 18:05» en hora de Bogotá. */
 export const fecha = (ms: number) => FECHA.format(ms);
+
+/** 12345 → «12.345». */
+export const cifra = (n: number) => String(n).replace(/\B(?=(\d{3})+$)/g, '.');
+
+/** Renglón de libro: nombre a la izquierda, cifra en monoespaciada a la derecha. Va dentro de un `<dl>`. */
+export function Renglon({ nombre, valor, total }: { nombre: string; valor: number; total?: boolean }) {
+  return (
+    <div className={total ? 'consola__renglon consola__renglon--total' : 'consola__renglon'}>
+      <dt>{nombre}</dt>
+      <dd>
+        <code>{cifra(valor)}</code>
+      </dd>
+    </div>
+  );
+}
 
 const ESTADOS: Record<EstadoNegocio, string> = {
   TRIAL: 'En prueba',

@@ -11,6 +11,7 @@ import { DIA } from '../planes';
 import { aprobarPago, rechazarPago, type ResultadoRevision } from '../revision';
 import { requiereSuperadmin } from '../superadmin';
 import { cuerpo } from '../validar';
+import { enviarPrueba, estadoPuente } from '../whatsapp/puente';
 
 export const superadmin = new Hono<AppEnv>();
 
@@ -149,3 +150,14 @@ superadmin.post('/negocios/:id/:accion', async (c) => {
 // --- Indicadores (SUP-04) ---
 
 superadmin.get('/indicadores', async (c) => c.json(await indicadores(c.env)));
+
+// --- Puente de WhatsApp (WAP-08): salud, último evento firmado y prueba al teléfono verificado propio ---
+
+superadmin.get('/puente', async (c) => c.json(await estadoPuente(c.env, Date.now())));
+
+// Sin cuerpo que leer: el destino sale de la sesión, nunca de lo que envíe el navegador.
+superadmin.post('/puente/prueba', async (c) => {
+  const r = await enviarPrueba(c.env, c.var.sesion.uid, Date.now());
+  if (!('error' in r)) return c.json(r);
+  return c.json(r, r.error === 'espera_prueba' || r.error === 'tope_diario' ? 429 : 409);
+});

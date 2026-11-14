@@ -39,7 +39,12 @@ async function leerConTope(peticion: Request, tope: number): Promise<ArrayBuffer
 
 // Reto de alta (solo variante A, pero no estorba): 200 con `hub.challenge` tal cual, o 403.
 whatsapp.get('/webhook', (c) => {
-  const reto = gatewayPara(c.env).verifyChallenge(new URL(c.req.url));
+  let reto: string | null = null;
+  try {
+    reto = gatewayPara(c.env).verifyChallenge(new URL(c.req.url));
+  } catch {
+    // Sin configuración (o con secretos de desarrollo) el gateway falla cerrado: el reto se niega igual que un token malo.
+  }
   return reto === null ? c.text('', 403) : c.text(reto, 200);
 });
 

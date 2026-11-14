@@ -31,8 +31,8 @@ describe('elección del gateway', () => {
     expect(gatewayPara({ ...env, WHATSAPP_SEND_READY: 'true' })).toBeInstanceOf(SimulatedGateway);
   });
 
-  test('encendido, sin gateway real todavía, falla cerrado en vez de enviar', () => {
-    expect(() => gatewayPara({ ...env, WHATSAPP_SEND_READY: '1' })).toThrow('gateway_real_sin_implementar');
+  test('encendido sin la configuración de Meta, falla cerrado en vez de enviar', () => {
+    expect(() => gatewayPara({ ...env, WHATSAPP_SEND_READY: '1' })).toThrow('whatsapp_sin_configurar');
   });
 });
 

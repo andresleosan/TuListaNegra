@@ -7,12 +7,14 @@ import { Hoja, Marca } from '../Hoja';
 import { Indicadores } from './Indicadores';
 import { Negocios } from './Negocios';
 import { Pagos } from './Pagos';
+import { Puente } from './Puente';
 import './Consola.css';
 
 const SECCIONES = [
   { ruta: '/superadmin/pagos', nombre: 'Pagos' },
   { ruta: '/superadmin/negocios', nombre: 'Negocios' },
   { ruta: '/superadmin/indicadores', nombre: 'Indicadores' },
+  { ruta: '/superadmin/puente', nombre: 'Puente' },
 ];
 
 type Acceso = { tipo: 'cargando' } | { tipo: 'sin_acceso' } | { tipo: 'error'; error: ErrorApi } | { tipo: 'listo'; email: string };
@@ -93,7 +95,7 @@ export default function Consola({ alSalir }: { alSalir: () => void }) {
         ))}
       </nav>
       <main className="consola__cuerpo">
-        {ruta === '/superadmin/negocios' ? <Negocios /> : ruta === '/superadmin/indicadores' ? <Indicadores /> : <Pagos />}
+        {ruta === '/superadmin/negocios' ? <Negocios /> : ruta === '/superadmin/indicadores' ? <Indicadores /> : ruta === '/superadmin/puente' ? <Puente /> : <Pagos />}
       </main>
     </div>
   );

@@ -2,6 +2,7 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · WAP-08 · El superadministrador ve en Consola → Puente si WhatsApp funciona, el último mensaje firmado y los envíos del día, y puede mandarse una prueba a su propio WhatsApp. Además quedó listo (apagado) el conector real con Meta para el número propio. · 34 → 35 de 39
 - 2026-11-14 · WAP-07 · Desde Morosos el tendero cobra a varios a la vez con el bot: solo salen los que cumplen las reglas y ve cuántos quedaron fuera y por qué. El dueño recibe en su WhatsApp los avisos de vencimiento de su plan. Por ahora con el simulador. · 33 → 34 de 39
 - 2026-11-14 · WAP-06 · El tendero ve en la app los comprobantes que le llegan por WhatsApp, con la foto, corrige el monto y aprueba o rechaza; también puede hacerlo por WhatsApp, siempre confirmando el monto que escribió. Al aprobar, el deudor recibe su recibo. · 32 → 33 de 39
 - 2026-11-14 · WAP-02 · En Ajustes el tendero genera un código y lo envía por WhatsApp desde el número de su tienda; al verificarlo, sus mensajes cuentan como órdenes. Funciona con el simulador hasta que exista el número de TuListaNegra. · 31 → 32 de 39

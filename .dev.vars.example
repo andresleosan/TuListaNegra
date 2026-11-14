@@ -26,3 +26,11 @@ SOPORTE_CONTACTO=<whatsapp-o-correo-de-soporte>
 WHATSAPP_APP_SECRET=<tln-dev-whatsapp-secreto-inventado>
 # Token del reto GET de alta del webhook (el mismo que se escribe en el panel de Meta).
 WHATSAPP_VERIFY_TOKEN=<token-de-verificacion-inventado>
+# Solo con WHATSAPP_SEND_READY en "1" (variante A, número propio contra la Cloud API de Meta). Con el interruptor
+# apagado no se leen. Si se enciende con cualquiera de estas cuatro variables vacía o con el prefijo «tln-dev-whatsapp-»,
+# el gateway real falla cerrado: no envía nada y el webhook no acepta nada. Los valores reales van SOLO como secretos de
+# Cloudflare (`wrangler secret put`), nunca aquí ni en `vars` de wrangler.jsonc.
+# Token del número (System User de Meta). Ficticio:
+WHATSAPP_ACCESS_TOKEN=<tln-dev-whatsapp-token-del-numero-inventado>
+# Id del número en Meta (solo dígitos; no es el teléfono). Ficticio:
+WHATSAPP_PHONE_NUMBER_ID=<100000000000001>

@@ -2,7 +2,7 @@
   "id": "WAP-08",
   "fase": "F4",
   "titulo": "Panel del puente en la consola.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "superadmin"
   ],
   "criterio": "Muestra la salud del webhook y el último evento; el envío de prueba solo va al superadministrador.",
-  "hecho": "",
+  "hecho": "Consola → pestaña «Puente»: GET /api/superadmin/puente con la salud del webhook (sin_configurar / atencion / sin_eventos / ok, explicada en texto), configuración solo como Puesto/Falta, último evento firmado, último envío y cuentas de 24 h, sin secretos, teléfonos, textos ni ids. POST /api/superadmin/puente/prueba envía una plantilla de prueba SOLO al teléfono verificado de la tienda del propio superadministrador (por su uid de sesión; el cuerpo se ignora), una por minuto y 10 al día.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: src/worker/whatsapp/puente.test.ts y el recorrido de superadmin.test.ts: la respuesta del estado no contiene secretos, teléfonos, textos, nombres ni bus_; reglas de salud por casos (también envíos sin confirmar como fallo); la prueba va solo al teléfono verificado del superadministrador, un número en el cuerpo se ignora, sin teléfono verificado → 409, un tendero → 403, una por minuto y tope de 10 al día; sin red. e2e/consola.spec.ts: pestaña Puente con salud y último evento (entrante firmado real) y envío de prueba al simulador tras verificar el teléfono del administrador con el flujo real de WAP-02. Capturas docs/roadmap/evidencia/consola-puente-360.png, consola-puente-1280.png.",
+    "2026-11-14: revisión independiente (junto con el gateway real de Meta) sin hallazgos graves; arreglados con prueba: envíos sin confirmar cuentan para la salud, tope diario de pruebas; en el gateway: eventos de otro número de la misma cuenta de Meta descartados, valores de configuración recortados, file_size como texto, reto GET falla cerrado con 403.",
+    "2026-11-14: verificado: pnpm test (1097 pruebas), pnpm typecheck, pnpm build, pnpm check:release y e2e completo en base nueva (26 pasan, 2 saltadas por diseño). No comprobado contra Meta real."
+  ],
   "actualizado": "2026-11-14"
 }

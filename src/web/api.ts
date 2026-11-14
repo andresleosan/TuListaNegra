@@ -115,3 +115,23 @@ export type AbonoRevisado = {
   deudor: { current_balance_cop: number; oldest_unpaid_date: number | null; promised_payment_date: number | null };
   envio: EnvioDeudor;
 };
+
+/** Estado de un mensaje en `whatsapp_messages`: resultado del envío y, después, lo que avisa Meta. */
+export type EstadoWa = 'accepted' | 'rejected' | 'unknown' | 'sent' | 'delivered' | 'read' | 'failed';
+
+/** `GET /api/superadmin/puente` (WAP-08). Sin secretos (solo si están puestos), sin teléfonos ni textos. */
+export type EstadoPuente = {
+  salud: 'sin_configurar' | 'atencion' | 'sin_eventos' | 'ok';
+  /** `envio_real`: WHATSAPP_SEND_READY encendido. Secreto y token: puestos y válidos para el gateway actual. */
+  configuracion: { envio_real: boolean; secreto_app: boolean; token_verificacion: boolean };
+  /** Último evento que el webhook aceptó con firma válida: un mensaje entrante o un estado de un envío nuestro. */
+  ultimo_evento: { en: number; tipo: 'mensaje' | 'estado' } | null;
+  ultimo_saliente: { en: number; estado: EstadoWa } | null;
+  ultimas_24h: { entrantes: number; sin_enrutar: number; en_eleccion: number; salientes: Record<EstadoWa, number> };
+};
+
+/**
+ * `POST /api/superadmin/puente/prueba`. Errores: 409 `bot_apagado`, `sin_telefono_verificado` o `puente_sin_configurar`;
+ * 429 `espera_prueba` (con `reintentar_en`).
+ */
+export type PruebaPuente = { resultado: 'enviada' | 'rechazada' | 'sin_confirmar'; simulado: boolean; en: number; codigo?: string };

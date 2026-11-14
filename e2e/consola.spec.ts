@@ -1,7 +1,7 @@
 // SUP-01..04: consola del superadministrador contra el simulador local de identidad.
 import { crc32, deflateSync } from 'node:zlib';
 import { expect, type Page, test } from '@playwright/test';
-import { captura, entrar, sinDesborde, SUFIJO, tiendaNueva, tokenComo, uidDe } from './ayudas';
+import { captura, entrar, sinDesborde, SUFIJO, tiendaNueva, tokenComo, uidDe, whatsappEntrante } from './ayudas';
 
 /** PNG válido en escala de grises con renglones negros, para que la captura se vea como un comprobante. */
 function pngDePrueba(ancho = 120, alto = 200): Buffer {
@@ -35,8 +35,23 @@ async function subirPago(pagina: Page, uid: string) {
   expect(respuesta.status(), await respuesta.text()).toBe(201);
 }
 
-// Errores de consola esperados: el 404 `sin_negocio` (el administrador no tiene tienda) y el 403 de la consola a un tendero.
-const ESPERADOS = ['/api/negocio', '/api/superadmin/yo'];
+// Errores de consola esperados: el 404 `sin_negocio` (el administrador no tiene tienda), el 403 de la consola a un tendero
+// y el 409 de la prueba del puente mientras el administrador no tiene WhatsApp verificado.
+const ESPERADOS = ['/api/negocio', '/api/superadmin/yo', '/api/superadmin/puente/prueba'];
+
+/** Llama a la API como el superadministrador (sesión de Google con su correo). */
+async function comoAdmin<T = any>(pagina: Page, uid: string, ruta: string, metodo = 'GET', cuerpo?: unknown): Promise<T> {
+  const pedir = async () => pagina.request.fetch(`/api${ruta}`, { method: metodo, headers: { Authorization: `Bearer ${await tokenComo(pagina, uid, 'admin@ejemplo.test')}` }, data: cuerpo });
+  let respuesta = await pedir();
+  // El alta tiene límite real de 5 por minuto; al correr todos los recorridos juntos se alcanza: se espera el minuto, una vez.
+  if (respuesta.status() === 429 && ruta === '/negocio' && metodo === 'POST') {
+    test.info().setTimeout(test.info().timeout + 75_000);
+    await pagina.waitForTimeout(61_000);
+    respuesta = await pedir();
+  }
+  expect(respuesta.ok(), `${metodo} /api${ruta} → ${respuesta.status()} ${await respuesta.text()}`).toBe(true);
+  return (await respuesta.json()) as T;
+}
 
 test('consola: bandeja de pagos, negocios e indicadores; un tendero no entra', async ({ page }) => {
   const ancho = page.viewportSize()!.width;
@@ -163,6 +178,43 @@ test('consola: bandeja de pagos, negocios e indicadores; un tendero no entra', a
   await sinDesborde(page);
   await captura(page, `consola-pagos-alertas-${ancho}`);
   await page.unroute('**/api/superadmin/pagos');
+
+  // Puente de WhatsApp (WAP-08). Sin tienda verificada, la prueba no sale y se explica cómo verificar.
+  await nav.getByRole('link', { name: 'Puente' }).click();
+  await expect(page.getByRole('heading', { name: 'Puente de WhatsApp', level: 1 })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Puente' })).toHaveAttribute('aria-current', 'page');
+  const prueba = page.getByRole('region', { name: 'Envío de prueba' });
+  await prueba.getByRole('button', { name: 'Enviar prueba a mi WhatsApp' }).click();
+  await expect(prueba.getByText('No tienes un WhatsApp verificado')).toBeVisible();
+  await expect(prueba).toContainText('genera el código y envíalo por WhatsApp desde ese número');
+  await sinDesborde(page);
+
+  // El administrador crea su tienda y verifica su número con el flujo real de WAP-02: el código llega FIRMADO al webhook.
+  const uidAdmin = `e2e_${SUFIJO}_admin${ancho}`;
+  const telAdmin = `+57${ancho === 360 ? 340 : 341}${SUFIJO}`;
+  await comoAdmin(page, uidAdmin, '/negocio', 'POST', { name: `Tienda Admin ${ancho}`, whatsapp_phone: telAdmin, acepta_terminos: true });
+  const { codigo } = await comoAdmin<{ codigo: string }>(page, uidAdmin, '/negocio/whatsapp/codigo', 'POST', {});
+  await whatsappEntrante(page, telAdmin, codigo);
+  await expect.poll(async () => (await comoAdmin(page, uidAdmin, '/negocio')).whatsapp_verificado_en).not.toBeNull();
+
+  // Salud y último evento firmado (el código que acaba de llegar).
+  await page.getByRole('button', { name: 'Actualizar' }).click();
+  const salud = page.getByRole('region', { name: 'Salud del webhook' });
+  // La salud mira todo el tráfico de 24 h, también el de otros recorridos que comparten esta base (p. ej. tirillas con la
+  // ventana cerrada, que salen rechazadas): aquí solo se exige un estado con eventos; las reglas las prueba puente.test.ts.
+  await expect(salud.locator('.sello')).toHaveText(/^(Funciona|Revisar)$/);
+  await expect(salud).toContainText('Apagado · simulador');
+  const evento = page.getByRole('region', { name: 'Último evento firmado' });
+  await expect(evento.locator('.consola__fecha')).toHaveText(/\d{4}, \d{2}:\d{2}$/);
+  await expect(evento).toContainText('Un mensaje que llegó por WhatsApp.');
+  await expect(page.getByRole('region', { name: 'Últimas 24 horas' }).getByRole('definition').first()).toHaveText(/^[1-9]\d*$/);
+
+  // Ahora sí: la prueba sale (al simulador) y queda como último envío.
+  await prueba.getByRole('button', { name: 'Enviar prueba a mi WhatsApp' }).click();
+  await expect(prueba.getByText('Prueba enviada al simulador')).toBeVisible();
+  await expect(evento).toContainText('Aceptados');
+  await sinDesborde(page);
+  await captura(page, `consola-puente-${ancho}`);
 
   // Ni tokens ni datos de negocios en el almacenamiento persistente del navegador.
   expect(await page.evaluate(() => localStorage.length)).toBe(0);

@@ -15,6 +15,10 @@ declare namespace Cloudflare {
     WHATSAPP_APP_SECRET?: string;
     /** Token que Meta repite en el reto GET de alta del webhook. Sin él, el reto responde 403. */
     WHATSAPP_VERIFY_TOKEN?: string;
+    /** Secreto: token del número en la Cloud API de Meta (variante A). Solo se usa con WHATSAPP_SEND_READY = "1"; nunca en `vars`. */
+    WHATSAPP_ACCESS_TOKEN?: string;
+    /** Id del número de WhatsApp en Meta (solo dígitos; no es el teléfono). Solo se usa con WHATSAPP_SEND_READY = "1". */
+    WHATSAPP_PHONE_NUMBER_ID?: string;
     /** Solo desarrollo y pruebas: habilita el cobro por bot contra el simulador con el interruptor apagado. check:release lo prohíbe en producción. */
     TEST_WHATSAPP_SIMULADO?: string;
     /** Solo pruebas y simulador local: JWKS propio en vez del de Google. check:release impide que llegue a producción. */

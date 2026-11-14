@@ -315,3 +315,16 @@ test('B5: el webhook tiene límite de frecuencia por IP; al pasarlo responde 429
   expect(pedidos).toEqual(['198.51.100.7']);
   expect(await filas()).toEqual([]);
 });
+
+test('encendido sin configuración real: el reto GET falla cerrado con 403 (no 500) y no devuelve el challenge', async () => {
+  const encendido = entornoWa({ WHATSAPP_SEND_READY: '1' });
+  const res = await app.request(`/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=${TOKEN_DEV}&hub.challenge=777`, {}, encendido);
+  expect(res.status).toBe(403);
+  expect(await res.text()).not.toContain('777');
+  // El único registro permitido: qué variables faltan (nombres, nunca valores). Se comprueba y se limpia para el afterEach.
+  const error = registros[3]!;
+  expect(error).toHaveBeenCalledTimes(1);
+  expect(String(error.mock.calls[0]![0])).toBe('whatsapp_sin_configurar');
+  for (const valor of [SECRETO_DEV, TOKEN_DEV]) expect(JSON.stringify(error.mock.calls[0])).not.toContain(valor); // nunca los valores
+  error.mockClear();
+});

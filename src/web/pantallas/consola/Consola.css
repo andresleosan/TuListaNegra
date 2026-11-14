@@ -39,10 +39,10 @@
   overflow-wrap: anywhere;
 }
 
-/* Pestañas de la consola: tres casillas de lado a lado, la actual en tinta. */
+/* Pestañas de la consola: cuatro casillas de lado a lado, la actual en tinta. */
 .consola__nav {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, auto);
   background: var(--blanco);
   border-bottom: var(--borde-grueso);
 }
@@ -322,9 +322,56 @@
   font-weight: 800;
 }
 
+/* --- Puente de WhatsApp --- */
+.consola__puente {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.consola__fecha {
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-l);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.consola__columnas {
+  display: grid;
+  gap: var(--esp-2) var(--esp-8);
+}
+
+.consola__subtitulo {
+  padding-top: var(--esp-2);
+  font-size: var(--texto-m);
+  font-weight: 800;
+}
+
+/* Salud: texto en el sello además del color (pares de los sellos de deudor). */
+.consola__sello--ok {
+  color: var(--verde);
+}
+
+.consola__sello--atencion {
+  background: var(--ambar);
+}
+
+.consola__sello--sin_configurar {
+  color: var(--rojo);
+}
+
 @media (min-width: 48rem) {
+  .consola__puente,
+  .consola__columnas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .consola__bloque--prueba,
+  .consola__bloque--cuentas {
+    grid-column: 1 / -1;
+  }
+
   .consola__nav {
-    grid-template-columns: repeat(3, max-content);
+    grid-template-columns: repeat(4, max-content);
     padding: 0 var(--margen);
   }
 
@@ -408,5 +455,13 @@
 
   .consola__cortesia {
     display: flex;
+  }
+
+  .consola__puente {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .consola__bloque--prueba {
+    grid-column: auto;
   }
 }

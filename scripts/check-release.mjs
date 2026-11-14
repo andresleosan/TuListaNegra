@@ -33,7 +33,7 @@ for (const ruta of ['wrangler.jsonc', 'dist/tulistanegra/wrangler.json']) {
   // WAP-01 (contrato-sarin.md, d.10): el secreto de desarrollo de WhatsApp (src/worker/test/whatsapp.ts y .dev.vars) empieza
   // por este prefijo y no puede llegar a producción. Los secretos reales van en Cloudflare, nunca en la configuración versionada.
   if (contenido.includes('tln-dev-whatsapp')) fallos.push(`${ruta} contiene el secreto de desarrollo de WhatsApp.`);
-  const secretosWa = contenido.match(/"WHATSAPP_(APP_SECRET|VERIFY_TOKEN)"/g);
+  const secretosWa = contenido.match(/"WHATSAPP_(APP_SECRET|VERIFY_TOKEN|ACCESS_TOKEN)"/g);
   if (secretosWa) fallos.push(`${ruta} declara secretos de WhatsApp en la configuración: ${[...new Set(secretosWa)].join(', ')}; van como secretos de Cloudflare.`);
 }
 

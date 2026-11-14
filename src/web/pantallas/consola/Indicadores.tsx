@@ -6,7 +6,7 @@ import { Aviso } from '../../ui/Aviso';
 import { Boton } from '../../ui/Boton';
 import { Monto } from '../../ui/Monto';
 import { Tarjeta } from '../../ui/Tarjeta';
-import { mensajeDeError } from './comun';
+import { cifra, mensajeDeError, Renglon } from './comun';
 
 /** `GET /api/superadmin/indicadores`. */
 type Datos = {
@@ -19,19 +19,6 @@ type Datos = {
 };
 
 type Carga = { tipo: 'cargando' } | { tipo: 'error'; mensaje: string } | { tipo: 'lista'; datos: Datos };
-
-const cifra = (n: number) => String(n).replace(/\B(?=(\d{3})+$)/g, '.');
-
-function Renglon({ nombre, valor, total }: { nombre: string; valor: number; total?: boolean }) {
-  return (
-    <div className={total ? 'consola__renglon consola__renglon--total' : 'consola__renglon'}>
-      <dt>{nombre}</dt>
-      <dd>
-        <code>{cifra(valor)}</code>
-      </dd>
-    </div>
-  );
-}
 
 export function Indicadores() {
   const [carga, setCarga] = useState<Carga>({ tipo: 'cargando' });

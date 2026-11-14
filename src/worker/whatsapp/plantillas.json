@@ -36,6 +36,12 @@
       "idioma": "es_CO",
       "variables": 2,
       "texto": "TuListaNegra: el pase de tu tienda {{1}} ({{2}}). Renuévalo en la app, en Suscripción, para fiar y cobrar sin cortes."
+    },
+    {
+      "nombre": "prueba_puente",
+      "idioma": "es_CO",
+      "variables": 1,
+      "texto": "Prueba del puente de TuListaNegra ({{1}}, hora de Bogotá). Si te llegó, el envío por WhatsApp funciona. No hace falta responder."
     }
   ]
 }
