@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { nuevoId } from '../../shared/ids';
 import type { AppEnv } from '../auth';
+import { anotarLecturaDePago } from '../captura-pago';
 import { bd } from '../db';
 import { businesses, subscription_payments as pagos } from '../db/schema';
 import { limitar } from '../limite';
@@ -81,6 +82,13 @@ suscripcion.post('/pagos', limitar('LIMITE_SUBIDAS', (c) => c.var.negocio.id), a
     // El índice único es quien decide que ya había un pendiente; así dos subidas simultáneas no pasan las dos.
     if (esUnico(e, 'subscription_payments.business_id')) return c.json({ error: 'pago_pendiente_existe' }, 409);
     throw e;
+  }
+  // Lectura de la captura (IAS-03): corre después de responder, así un fallo o una demora de la IA no frena el pago.
+  const lectura = anotarLecturaDePago(c.env, { id, business_id: negocioId }, bytes, tipo);
+  try {
+    c.executionCtx.waitUntil(lectura);
+  } catch {
+    await lectura; // sin contexto de ejecución (pruebas con app.request): se espera aquí; nunca lanza
   }
   return c.json({ pago: { id, plan: plan.data, amount_cop, days_to_add, status: 'PENDING_REVIEW', created_at: ahora }, desbloqueo_hasta }, 201);
 });

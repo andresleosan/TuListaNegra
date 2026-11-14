@@ -31,27 +31,39 @@ function base64(bytes: Uint8Array): string {
 }
 
 /**
+ * Pregunta al modelo de visión por una imagen y devuelve su respuesta tal cual. Sin IA encendida lanza IaApagada sin llamar a
+ * nadie; si el modelo falla (o se agota `signal`), IaNoDisponible. Lo comparten el migrador de cuadernos y la captura de pago.
+ */
+export async function preguntarVision(env: Env, instrucciones: string, bytes: Uint8Array, tipo: TipoImagen, max_tokens: number, signal?: AbortSignal): Promise<unknown> {
+  if (env.AI_READY !== '1' || !env.AI) throw new IaApagada();
+  try {
+    return await env.AI.run(MODELO_VISION as keyof AiModels, {
+      messages: [
+        { role: 'system', content: instrucciones },
+        { role: 'user', content: [{ type: 'image_url', image_url: { url: `data:${tipo.contentType};base64,${base64(bytes)}` } }] },
+      ],
+      temperature: 0,
+      max_tokens,
+    } as never, signal && { signal });
+  } catch {
+    throw new IaNoDisponible();
+  }
+}
+
+/** El JSON de la respuesta: el modelo a veces lo envuelve en texto, y se toma el objeto. Lanza si no hay JSON. */
+export function jsonDeVision(respuesta: unknown): unknown {
+  const texto = (respuesta as { response?: unknown }).response;
+  return typeof texto === 'string' ? JSON.parse(texto.slice(texto.indexOf('{'), texto.lastIndexOf('}') + 1)) : texto;
+}
+
+/**
  * Propone filas a partir de la foto. Lo que devuelve el modelo se valida fila a fila: una fila que no cuadra (sin nombre,
  * saldo negativo, decimal o absurdo) se descarta, nunca se corrige a ojo. El tendero ve y corrige la tabla antes de importar.
  */
 export async function leerCuaderno(env: Env, bytes: Uint8Array, tipo: TipoImagen): Promise<FilaCuaderno[]> {
-  if (env.AI_READY !== '1' || !env.AI) throw new IaApagada();
-  let respuesta: unknown;
+  const respuesta = await preguntarVision(env, INSTRUCCIONES, bytes, tipo, 2000);
   try {
-    respuesta = await env.AI.run(MODELO_VISION as keyof AiModels, {
-      messages: [
-        { role: 'system', content: INSTRUCCIONES },
-        { role: 'user', content: [{ type: 'image_url', image_url: { url: `data:${tipo.contentType};base64,${base64(bytes)}` } }] },
-      ],
-      temperature: 0,
-      max_tokens: 2000,
-    } as never);
-  } catch {
-    throw new IaNoDisponible();
-  }
-  try {
-    const texto = (respuesta as { response?: unknown }).response;
-    const { filas } = Lectura.parse(typeof texto === 'string' ? JSON.parse(texto.slice(texto.indexOf('{'), texto.lastIndexOf('}') + 1)) : texto);
+    const { filas } = Lectura.parse(jsonDeVision(respuesta));
     return filas.flatMap((f) => {
       const fila = FilaCuaderno.safeParse({ full_name: f.nombre, alias_reference: f.apodo || null, saldo_cop: f.saldo });
       return fila.success ? [fila.data] : [];
