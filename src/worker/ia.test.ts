@@ -107,6 +107,15 @@ describe('envío mínimo de datos', () => {
     ['cc 1032456789', 'cc [número]'],
     ['nit 900.123.456-7', 'nit [número]'],
     ['+57 300-123-4567', '+[número]'],
+    ['cc 1,032,456,789', 'cc [número]'],
+    ['cel (300) 123-4567', 'cel ([número]'],
+    ['+57 (300) 123 4567', '+[número]'],
+    ['300  123   4567', '[número]'],
+    ['300/123/4567', '[número]'],
+    ['３００１２３４５６７', '[número]'], // dígitos de ancho completo
+    ['٣٠٠١٢٣٤٥٦٧', '[número]'], // dígitos arábigo-índicos
+    ['3 0 0 1 2 3 4 5 6 7', '[número]'],
+    ['debe 20.000 y abonó 5.000', 'debe 20.000 y abonó 5.000'], // dos montos separados por palabras no se juntan
   ])('anonimizar(%j) → %j', (frase, esperado) => {
     expect(anonimizar(frase)).toBe(esperado);
   });

@@ -47,4 +47,7 @@ function simuladorDeIdentidad(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [simuladorDeIdentidad(), react(), cloudflare()] });
+// E2E_ESTADO: carpeta propia para D1 y R2 locales, para que varios recorridos de navegador corran a la vez sin pisarse.
+const estado = process.env.E2E_ESTADO;
+
+export default defineConfig({ plugins: [simuladorDeIdentidad(), react(), cloudflare(estado ? { persistState: { path: estado } } : {})] });

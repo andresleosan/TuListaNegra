@@ -10,6 +10,10 @@ process.env.E2E_SUFIJO ??= String(Date.now() % 10_000_000).padStart(7, '0');
 const n = Number(process.env.E2E_SUFIJO);
 const ipFicticia = `198.18.${Math.floor(n / 250) % 250}.${n % 250}`;
 
+// Para correr varios recorridos a la vez: E2E_PUERTO (por defecto 5199) y E2E_ESTADO (carpeta propia de D1 y R2 locales).
+const puerto = process.env.E2E_PUERTO ?? '5199';
+const estado = process.env.E2E_ESTADO;
+
 // Recorrido en navegador contra el servidor de desarrollo y el simulador local de identidad.
 // Usa el Chrome del sistema: no descarga navegadores.
 export default defineConfig({
@@ -17,7 +21,7 @@ export default defineConfig({
   workers: 1, // un recorrido a la vez: la prueba del teléfono repetido depende del alta anterior
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5199',
+    baseURL: `http://localhost:${puerto}`,
     channel: 'chrome',
     locale: 'es-CO',
     timezoneId: 'America/Bogota',
@@ -29,9 +33,9 @@ export default defineConfig({
   ],
   webServer: {
     // Migraciones en la D1 local (con CI=1 no pregunta) y servidor de desarrollo, que prepara la identidad local.
-    command: 'pnpm exec wrangler d1 migrations apply tulistanegra --local && pnpm dev --port 5199 --strictPort',
+    command: `pnpm exec wrangler d1 migrations apply tulistanegra --local ${estado ? `--persist-to ${estado}` : ''} && pnpm dev --port ${puerto} --strictPort`,
     env: { CI: '1' },
-    url: 'http://localhost:5199/api/health',
+    url: `http://localhost:${puerto}/api/health`,
     reuseExistingServer: false,
     timeout: 120_000,
   },

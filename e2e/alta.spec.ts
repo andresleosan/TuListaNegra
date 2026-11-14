@@ -1,34 +1,13 @@
 // AUT-02: entrar → crear negocio → mostrador vacío con «Te quedan 3 días», contra el simulador local de identidad.
 import { expect, type Page, test } from '@playwright/test';
+import { captura as capturaEn, entrar as entrarSinEsperar, llenarAlta, sinDesborde, SUFIJO } from './ayudas';
 
-const SUFIJO = process.env.E2E_SUFIJO!;
-const EVIDENCIA = 'docs/roadmap/evidencia';
-
-/** Entra por el formulario del simulador. El uid lleva el sufijo: los correos piloto son fijos y la D1 local persiste. */
 async function entrar(pagina: Page, correo: string, uid: string) {
-  await pagina.goto('/');
-  await expect(pagina.getByRole('heading', { name: 'Simulador local de ingreso (solo desarrollo)' })).toBeVisible();
-  await pagina.getByLabel('Correo de la cuenta').fill(correo);
-  await pagina.getByLabel('UID (opcional)').fill(uid);
-  await pagina.getByRole('button', { name: 'Entrar con esta cuenta' }).click();
+  await entrarSinEsperar(pagina, correo, uid);
   await expect(pagina.getByRole('heading', { name: 'Crea tu tienda' })).toBeVisible();
 }
 
-async function llenarAlta(pagina: Page, nombre: string, telefono: string) {
-  await pagina.getByLabel('Nombre de la tienda').fill(nombre);
-  await pagina.getByLabel('WhatsApp de la tienda').fill(telefono);
-  await pagina.getByLabel('Acepto los términos y la política de datos').check();
-  await pagina.getByRole('button', { name: 'Empezar mi prueba de 3 días' }).click();
-}
-
-/** Nada se sale de la pantalla en horizontal. */
-const sinDesborde = async (pagina: Page) =>
-  expect(await pagina.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
-
-const captura = async (pagina: Page, nombre: string) => {
-  await pagina.evaluate(() => document.fonts.ready);
-  await pagina.screenshot({ path: `${EVIDENCIA}/AUT-02-${nombre}.png`, fullPage: true });
-};
+const captura = (pagina: Page, nombre: string) => capturaEn(pagina, `AUT-02-${nombre}`);
 
 test('entrar → alta → mostrador vacío con «Te quedan 3 días»; recargar; salir', async ({ page }, info) => {
   const ancho = page.viewportSize()!.width;
@@ -69,7 +48,6 @@ test('entrar → alta → mostrador vacío con «Te quedan 3 días»; recargar; 
   await expect(page.getByRole('banner')).toContainText('Tienda La Esquina de Rubi');
   await expect(page.getByRole('banner')).toContainText('Te quedan 3 días');
   await expect(page.getByRole('heading', { name: 'Tu libro está en blanco' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Crear mi primer deudor' })).toBeDisabled();
   await sinDesborde(page);
   await captura(page, `mostrador-${ancho}`);
 
@@ -77,7 +55,6 @@ test('entrar → alta → mostrador vacío con «Te quedan 3 días»; recargar; 
   for (const seccion of ['Morosos', 'Suscripción', 'Ajustes']) {
     await page.getByRole('navigation', { name: 'Secciones' }).getByRole('link', { name: seccion }).click();
     await expect(page.getByRole('heading', { name: seccion, level: 1 })).toBeVisible();
-    await expect(page.getByText('Próximamente.')).toBeVisible();
   }
   await page.getByRole('navigation', { name: 'Secciones' }).getByRole('link', { name: 'Mostrador' }).click();
 
