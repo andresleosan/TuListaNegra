@@ -8,9 +8,9 @@ test('GET /api/health responde ok', async () => {
   expect(await res.json()).toEqual({ ok: true, servicio: 'tulistanegra' });
 });
 
-test('una ruta de API desconocida devuelve 404 en JSON', async () => {
+test('una ruta de API desconocida no revela nada sin sesión', async () => {
   const res = await app.request('/api/no-existe', {}, env);
-  expect(res.status).toBe(404);
+  expect(res.status).toBe(401);
 });
 
 test('los interruptores arrancan apagados', () => {

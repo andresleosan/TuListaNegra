@@ -2,7 +2,7 @@
   "id": "COB-01",
   "fase": "F1",
   "titulo": "Reglas de contacto (módulo puro).",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "contact-rules"
   ],
   "criterio": "Prueba por tabla: domingo, festivo, 19:01, segundo cobro en la semana, sin consentimiento y con baja → bloqueado con su motivo.",
-  "hecho": "",
+  "hecho": "Módulo puro src/shared/contacto.ts: puedeContactar(deudor, ahora, opciones) aplica consentimiento, baja, domingo, festivo, horario, un cobro al día y frecuencia (7 días por defecto), con motivo y mensaje para el tendero. Festivos 2026–2030 en src/shared/festivos-co.json con su fuente.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run --project unit src/shared/contacto.test.ts → 43 pruebas pasan: domingo, festivo, 19:01, segundo cobro en la semana, sin consentimiento y con baja bloquean con su motivo; bordes 6:59/7:00/19:00, sábado 7:30 y 15:01, lunes UTC que aún es domingo en Bogotá, año sin datos (falla cerrado).",
+    "Festivos generados por script (Pascua por Meeus/Jones/Butcher + Ley 51 de 1983) y contrastados para 2026 y 2027 con calendarios publicados. 2028–2030 no se contrastaron con fuente externa.",
+    "Decisión (más prudente y reversible): se incluye el festivo de la Ley 2578 de 2026 (9 de julio trasladado a lunes), que el subagente encontró al contrastar; hay dudas jurídicas sobre el traslado → fila en COLA-DUENO.md. Para revertir: quitar esas cinco fechas y ajustar el recuento de la prueba.",
+    "Decisión: la frecuencia cuenta tiempo transcurrido (7 × 24 h exactas), la lectura más estricta. Hecho por subagente; el orquestador leyó el módulo y endureció el caso diasEntreCobros no numérico."
+  ],
   "actualizado": "2026-11-14"
 }

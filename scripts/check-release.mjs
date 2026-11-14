@@ -20,15 +20,14 @@ if (versionados.some((f) => /(^|\/)\.dev\.vars$|(^|\/)\.env(\.|$)/.test(f) && !f
 }
 
 // B5: la configuración de pruebas no puede aparecer en producción.
-// Claves prohibidas en `vars` del Worker (fuente y compilado). Se amplía con cada tarea que añada configuración de prueba.
-const SOLO_PRUEBAS = [];
+// Ninguna variable TEST_* (p. ej. TEST_JWKS_JSON, que cambia las llaves de sesión) en la config del Worker.
 for (const ruta of ['wrangler.jsonc', 'dist/tulistanegra/wrangler.json']) {
   if (!existe(ruta)) {
     if (ruta.startsWith('dist/')) fallos.push(`Falta ${ruta}: ejecuta \`pnpm build\` antes.`);
     continue;
   }
-  const texto = leer(ruta);
-  for (const clave of SOLO_PRUEBAS) if (texto.includes(clave)) fallos.push(`${ruta} contiene ${clave} (solo pruebas).`);
+  const prohibidas = leer(ruta).match(/"TEST_[A-Z0-9_]*"/g);
+  if (prohibidas) fallos.push(`${ruta} contiene configuración de pruebas: ${[...new Set(prohibidas)].join(', ')}.`);
 }
 
 if (fallos.length) {

@@ -2,7 +2,7 @@
   "id": "AUT-01",
   "fase": "F1",
   "titulo": "Verificación del token de Firebase en el Worker y contexto de sesión.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "auth"
   ],
   "criterio": "Con llaves locales: un token válido pasa; vencido, de otro proyecto o con firma inválida se rechaza.",
-  "hecho": "",
+  "hecho": "src/worker/auth.ts verifica el ID token de Firebase con jose (RS256, iss, aud, exp y sub obligatorios) contra el JWKS de Google y deja la sesión en c.var.sesion. Toda ruta /api/* exige sesión salvo las de RUTAS_PUBLICAS (solo /api/health). GET /api/sesion devuelve uid, correo, verificado y proveedor.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run --project worker → auth.test.ts pasa: token válido 200; sin cabecera, vencido, sin exp, otro proyecto (aud e iss), sin sub, sub vacío, otra llave RSA, firma alterada, cuerpo alterado, alg none, HS256 con la llave pública y basura → 401; sin FIREBASE_PROJECT_ID → 503 (falla cerrado).",
+    "Llaves RSA locales generadas en cada ejecución por vitest.config.ts e inyectadas como TEST_JWKS_JSON (B5). check:release falla si cualquier variable TEST_* aparece en wrangler.jsonc o en dist/tulistanegra/wrangler.json: probado añadiendo TEST_JWKS_JSON → exit 1, y revertido.",
+    "No comprobado contra Firebase real: falta el proyecto (cola del dueño). La verificación contra el JWKS de Google usa el mismo código con createRemoteJWKSet; se probará en AUT-02/BAS-05 cuando exista FIREBASE_PROJECT_ID.",
+    "Decisión (fuente A1.7): no existe ningún modo sin autenticación; en pruebas solo cambia el origen de las llaves públicas."
+  ],
   "actualizado": "2026-11-14"
 }
