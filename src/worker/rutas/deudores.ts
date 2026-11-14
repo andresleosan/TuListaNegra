@@ -10,6 +10,7 @@ import { bd } from '../db';
 import { debtors } from '../db/schema';
 import { cuotasDe } from '../planes';
 import { cuerpo, esUnico } from '../validar';
+import { movimientos } from './movimientos';
 
 type Fila = typeof debtors.$inferSelect;
 
@@ -54,6 +55,8 @@ const detalle = (f: Fila, diasDeAlerta: number): DeudorDetalle & { estado: strin
 });
 
 export const deudores = new Hono<AppEnv>();
+
+deudores.route('/:id/movimientos', movimientos);
 
 // Lista para la copia local de búsqueda: sin documento completo ni teléfono. `?archivados=1` incluye los archivados.
 deudores.get('/', async (c) => {

@@ -2,6 +2,7 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · LIB-01 · La API ya fía, abona y ajusta con el saldo exacto aunque lleguen muchos toques a la vez, sin duplicar si se reintenta, y sabe desde cuándo debe cada deudor. Falta la pantalla (MOS-02). · 8 → 9 de 39
 - 2026-11-14 · DEU-01 · La API ya permite crear deudores con solo el nombre, darles su código TLN, editarlos, archivarlos y marcarlos en lista negra, con el límite de 15 en la prueba. Falta la pantalla (MOS-01). · 7 → 8 de 39
 - 2026-11-14 · AUT-03 · La API ya sabe en qué estado está cada tienda (prueba, activa, desbloqueo, vencida, suspendida, gratis) y qué puede hacer en cada uno. Sin pantalla aún. · 6 → 7 de 39
 - 2026-11-14 · BAS-02 · Ya existe el aspecto de la app (papel, tinta, sellos de caucho, montos y tirilla de recibo) con contraste comprobado. Visible en la página de muestra de desarrollo. · 5 → 6 de 39

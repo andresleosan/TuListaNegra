@@ -2,7 +2,7 @@
   "id": "LIB-01",
   "fase": "F1",
   "titulo": "Libro: fiar, abonar y ajustar; saldo y fecha de mora.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "ledger"
   ],
   "criterio": "20 movimientos simultáneos dejan el saldo exacto; repetir `request_id` no duplica; abono mayor al saldo, rechazado; `pnpm verificar:saldos` confirma que saldo = suma de movimientos confirmados.",
-  "hecho": "",
+  "hecho": "src/worker/libro.ts registra cada movimiento y el saldo en un solo db.batch con la aritmética en SQL; POST y GET /api/deudores/:id/movimientos (fiar, abonar, ajustar; historial con saldo corrido). Idempotencia por request_id, tope de crédito con confirmación, fecha de mora con abonos aplicados a los fiados más antiguos, promesa cumplida al saldar. scripts/verificar-saldos.(mjs|sql) y pnpm verificar:saldos.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/libro.test.ts → 24 pruebas pasan: 20 movimientos simultáneos (10 fiados y 10 abonos) dejan el saldo exacto y 20 saldos resultantes distintos; 5 abonos simultáneos de 4.000 sobre 10.000 → 2 entran, saldo 2.000, nunca negativo; repetir request_id → 200 con el mismo movimiento (también 10 envíos a la vez → uno solo); abono o ajuste mayor al saldo → 409 supera_saldo sin escribir.",
+    "pnpm verificar:saldos sobre la D1 local → OK; con un saldo descuadrado a propósito → exit 1 y tabla del deudor; revertido. La misma consulta (scripts/verificar-saldos.sql) corre dentro de las pruebas tras cada escenario.",
+    "Mora: 10.000 + 5.000 fiados; abono de 9.999 no mueve la fecha, $1 más la pasa al segundo fiado, saldar la deja vacía. Tope: fiar sobre el tope → 409 supera_tope hasta enviar confirmar_tope.",
+    "Decisión (fuente B3): la fecha de mora es la de creación del fiado sin cubrir más antiguo; los ajustes de suma cuentan como deuda y los de resta como pago. Un request_id repetido contra otro deudor responde 409 request_id_usado. Límite conocido: el historial devuelve hasta 500 movimientos sin paginar (anotado en el código)."
+  ],
   "actualizado": "2026-11-14"
 }
