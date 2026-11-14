@@ -21,6 +21,9 @@ export default defineConfig({
               bindings: {
                 TEST_MIGRATIONS: await readD1Migrations('./migrations'),
                 FIREBASE_PROJECT_ID: 'tln-pruebas',
+                // Vacías a propósito: sin esto las pruebas heredarían las listas de un .dev.vars local.
+                SUPERADMIN_EMAILS: '',
+                PILOT_EMAILS: '',
                 TEST_JWKS_JSON: JSON.stringify(jwks),
                 TEST_PRIVATE_JWK: JSON.stringify(await exportJWK(llaves.privateKey)),
               },

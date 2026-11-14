@@ -52,7 +52,17 @@ Separadores dentro de tarjetas y tirillas: línea discontinua de 1,5 px en tinta
 - **`Sello`**: borde doble de 4 px, mayúsculas, 800, rotación de −2°. Siempre con texto. `AL_DIA` verde sobre blanco; `PROMESA_PAGO` tinta sobre ámbar; `EN_MORA` rojo sobre blanco; `LISTA_NEGRA` blanco sobre rojo (relleno, para distinguirse de mora); `CON_SALDO` tinta sobre blanco. El sello trae su propio fondo: se puede poner sobre papel o crema.
 - **`Monto`**: `formatoCOP` (`$ 49.900`, negativos `−$ 5.000`), monoespaciada tabular, sin salto de línea; hereda el tamaño. Tono `verde` para abonos; tono `rojo` solo sobre tarjeta blanca.
 - **`Tirilla`**: recibo de 320 px de ancho máximo, fondo blanco, todo en monoespaciada: tienda, código del deudor, líneas concepto/monto, total y fecha, separados por líneas discontinuas. Lleva fondo y borde propios para que su captura sea el recibo completo.
+- **`Campo`**: etiqueta visible encima (700), ayuda opcional en 13 px, entrada blanca con borde grueso, alto mínimo de 44 px y texto de 16 px (con menos, iOS amplía la página). Con error: borde rojo y, debajo, el mensaje en rojo sobre **fondo blanco propio** con borde rojo (así se puede usar sobre papel o crema), enlazado con `aria-describedby` y anunciado con `role="alert"`.
+- **`Casilla`**: cuadro de 24 px con borde grueso dentro de una fila de 44 px que se pulsa entera; marcada, cuadro en tinta con visto bueno blanco. Admite enlaces en el texto y el mismo mensaje de error que `Campo`.
+- **`Aviso`**: nota al margen. Fondo blanco, borde fino y franja izquierda de 8 px en ámbar (`atencion`), rojo (`error`, se anuncia) o verde (`bien`). Título en 800 y texto siempre en tinta: el color nunca va solo.
+- **`Progreso`**: «Paso X de N · nombre» y una fila de tramos de 8 px con borde fino; los pasos hechos van en tinta y el actual, medio lleno. Lleva `role="progressbar"`.
 - **Foco**: contorno de 3 px en tinta separado 2 px, en todo elemento enfocable.
+
+## Esqueleto de la app (`src/web/pantallas/`)
+
+- **`Hoja`**: pantallas de una columna de 28 rem como máximo (ingreso, alta, avisos, textos legales). Arriba, la marca: «TuLista» en tinta y «Negra» en bloque de tinta con texto blanco.
+- **`Esqueleto`**: cabecera blanca con el nombre de la tienda (800) y «Salir»; debajo, el aviso de estado como franja de lado a lado en mayúsculas de 13 px: ámbar con texto en tinta (prueba, vence pronto, pago en revisión), rojo con texto blanco (vencido) o crema. Navegación de cuatro secciones: fija abajo en móvil (56 px de alto), bajo la cabecera desde 768 px; la sección actual va en tinta con texto blanco. El contenido se centra a 60 rem.
+- **Estado vacío del mostrador**: renglones de libro en blanco (cabecera en monoespaciada, líneas discontinuas), una frase que invita y un solo botón.
 
 ## Prohibido
 

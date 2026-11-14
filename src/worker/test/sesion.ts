@@ -21,12 +21,12 @@ export async function tokenDe({ uid = 'uid_1', email = 'tendero@ejemplo.test', e
     .sign(llave);
 }
 
-/** Petición a la API con la sesión indicada (o sin sesión si `claims` es null). */
-export async function api(ruta: string, claims: Claims | null = {}, init: RequestInit = {}) {
+/** Petición a la API con la sesión indicada (o sin sesión si `claims` es null). `entorno` sustituye al de pruebas. */
+export async function api(ruta: string, claims: Claims | null = {}, init: RequestInit = {}, entorno: Env = env) {
   const headers = new Headers(init.headers);
   if (claims) headers.set('Authorization', `Bearer ${await tokenDe(claims)}`);
   if (typeof init.body === 'string' && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   // IP distinta en cada petición para no tropezar con los límites de frecuencia; la prueba que los ejercita fija la suya.
   if (!headers.has('CF-Connecting-IP')) headers.set('CF-Connecting-IP', `203.0.113.${ipSiguiente++ % 250}`);
-  return app.request(ruta, { ...init, headers }, env);
+  return app.request(ruta, { ...init, headers }, entorno);
 }

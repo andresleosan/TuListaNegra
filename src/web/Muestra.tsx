@@ -1,8 +1,12 @@
 // Página de muestra del sistema de diseño (solo desarrollo, ruta `/__muestra`).
 // Todos los datos son ficticios.
 import { colores, contraste, pares } from './styles/pares';
+import { Aviso } from './ui/Aviso';
 import { Boton } from './ui/Boton';
+import { Campo } from './ui/Campo';
+import { Casilla } from './ui/Casilla';
 import { Monto } from './ui/Monto';
+import { Progreso } from './ui/Progreso';
 import { Sello, type EstadoSello } from './ui/Sello';
 import { Tarjeta } from './ui/Tarjeta';
 import { Tirilla } from './ui/Tirilla';
@@ -157,6 +161,33 @@ export default function Muestra() {
             Fiado hoy: <Monto valor={137500} /> · Abonado hoy: <Monto valor={62000} tono="verde" />
           </p>
         </Tarjeta>
+      </section>
+
+      <section>
+        <h2>Formularios</h2>
+        <Progreso paso={2} total={3} nombre="Los datos de tu tienda" />
+        <Campo etiqueta="Nombre de la tienda" ayuda="Como la conoce el barrio." defaultValue="Tienda La Esquina de Rubi" />
+        <Campo
+          etiqueta="WhatsApp de la tienda"
+          type="tel"
+          defaultValue="601 234"
+          error="Debe ser un celular de Colombia: 10 dígitos que empiezan por 3. Ejemplo: 300 123 4567."
+        />
+        <Casilla defaultChecked>Acepto los términos y la política de datos</Casilla>
+        <Casilla error="Marca la casilla para aceptar y poder empezar.">Casilla sin marcar, con error</Casilla>
+      </section>
+
+      <section>
+        <h2>Avisos</h2>
+        <Aviso titulo="Texto pendiente de publicación">
+          <p>Aviso de atención: franja ámbar y texto en tinta.</p>
+        </Aviso>
+        <Aviso tono="error" titulo="No pudimos crear tu tienda">
+          <p>Aviso de error: franja roja. Dice qué pasó y cómo seguir.</p>
+        </Aviso>
+        <Aviso tono="bien" titulo="Abono guardado">
+          <p>Aviso de confirmación: franja verde.</p>
+        </Aviso>
       </section>
 
       <section>

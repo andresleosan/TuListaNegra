@@ -2,7 +2,7 @@
   "id": "IAS-01",
   "fase": "F3",
   "titulo": "Cliente de IA con cuota y envío mínimo de datos.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "ai"
   ],
   "criterio": "20 llamadas simultáneas no pasan la cuota; una prueba inspecciona la petición saliente y falla si lleva documento, teléfono o saldo; sin cuota, mensaje claro y ninguna llamada.",
-  "hecho": "",
+  "hecho": "src/worker/cuotas.ts: consumirCuota en una sola sentencia condicional (incluye el reinicio de 30 días de la cuenta gratis), devolverCuota y conCuota. src/worker/ia.ts: interpretarFrase envía a DeepSeek solo las instrucciones fijas y la frase con los números largos enmascarados, y valida la respuesta con zod. Límite de frecuencia LIMITE_IA declarado.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/ia.test.ts → 29 pruebas pasan: 20 llamadas simultáneas con cuota de 10 → pasan exactamente 10 y solo 10 peticiones llegan al modelo simulado; sin cuota → {error: sin_cuota, mensaje} y ninguna llamada; si el modelo falla la unidad se devuelve.",
+    "Petición saliente inspeccionada: una frase con cédula, celular y saldo dictados sale con [número] en su lugar; el cuerpo no contiene ninguna secuencia de 7 o más dígitos y solo lleva model, messages (system + user), temperature, max_tokens y response_format.",
+    "Respuestas del modelo inválidas (acción inventada, monto negativo, decimal, absurdo o texto, campos de menos) → «no entendí». Con AI_READY=0, o sin clave, no se llama a nadie (IaApagada).",
+    "No comprobado: ninguna llamada real a DeepSeek (AI_READY apagado; cola del dueño). El formato de la petición sigue la API de chat de DeepSeek según mi conocimiento, sin contrastar con una llamada real. Límite conocido: un monto de un millón o más hay que dictarlo en palabras, porque los números de 7+ dígitos se enmascaran."
+  ],
   "actualizado": "2026-11-14"
 }

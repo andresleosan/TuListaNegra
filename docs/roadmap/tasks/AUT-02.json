@@ -2,7 +2,7 @@
   "id": "AUT-02",
   "fase": "F1",
   "titulo": "Ingreso y alta del negocio con prueba de 72 h y aceptación de términos.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -21,10 +21,16 @@
     "ui-app"
   ],
   "criterio": "Recorrido en navegador: entrar → crear negocio → mostrador vacío con «te quedan 3 días». Segunda alta con la misma cuenta o teléfono, rechazada. Con `SIGNUP_READY=0` solo entran correos piloto.",
-  "hecho": "",
-  "falta": "",
-  "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "hecho": "POST /api/negocio (alta con prueba de 72 h exactas, términos, teléfono E.164 único, puerta SIGNUP_READY con correos piloto, límite por IP). SPA: proveedor de sesión (Firebase en producción, simulador local solo en desarrollo), cliente de API, enrutador propio, pantallas Ingreso, Alta y esqueleto con cabecera, aviso de vigencia y navegación; mostrador vacío. Simulador local de identidad que emite ID tokens RS256 reales (scripts/dev-identidad.mjs + endpoint del servidor de Vite). Recorrido e2e con Playwright (pnpm e2e).",
+  "falta": "Ingreso real con Firebase (Google y correo/contraseña): no hay proyecto de Firebase todavía.",
+  "externalBlocker": "Proyecto de Firebase y su configuración web (fila en COLA-DUENO.md).",
+  "nextStep": "Con el proyecto creado: poner FIREBASE_PROJECT_ID y VITE_FIREBASE_CONFIG y probar los seis puntos de la evidencia.",
+  "evidencia": [
+    "2026-11-14: pnpm e2e → 4 pasan (2 omitidas a propósito a 1280): entrar como piloto → alta → mostrador vacío con «Te quedan 3 días»; recargar sigue en el mostrador; salir vuelve al ingreso y no deja nada en sessionStorage/localStorage; otra cuenta con el mismo teléfono → error junto al campo; correo no piloto → registro cerrado. Capturas en docs/roadmap/evidencia/AUT-02-*.png, revisadas por el subagente y por el orquestador.",
+    "pnpm exec vitest run src/worker/rutas/negocio.test.ts → pasa: misma cuenta → 409; mismo teléfono con otro formato → 409; dos altas simultáneas → una sola 201; SIGNUP_READY=0: correo no listado, piloto sin verificar y coincidencia parcial → 403, piloto y superadministrador → 201; uid, correo, plan y fechas salen del servidor aunque el cuerpo traiga otros; límite por IP → 429.",
+    "A1.7: no existe ningún modo sin autenticación. El simulador firma tokens que el Worker verifica igual que los de Firebase; solo existe en el servidor de desarrollo. pnpm check:release falla si el simulador aparece en dist/client (demostrado quitando la condición DEV y reconstruyendo) y el build de producción sin configuración muestra «El ingreso aún no está configurado» sin botones.",
+    "Por probar con Firebase real: (1) Google en móvil y escritorio (signInWithPopup); (2) registro con correo, verificación y renovación del token con email_verified; (3) piloto real con SIGNUP_READY=0 y rechazo de un correo no listado; (4) sesión tras recargar y Salir; (5) mensajes de error traducidos; (6) el Worker aceptando el token real con el JWKS de Google.",
+    "No visto en navegador: pantalla de «esta cuenta ya tiene tienda» y cabecera en estados vencido, desbloqueo y suspendido (cubiertos por prueba unitaria). Hecho por subagente."
+  ],
   "actualizado": "2026-11-14"
 }

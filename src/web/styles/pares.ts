@@ -31,6 +31,10 @@ export const pares: Par[] = [
   { uso: 'Monto verde sobre tarjeta blanca', texto: 'verde', fondo: 'blanco' },
   { uso: 'Monto verde sobre tarjeta crema', texto: 'verde', fondo: 'crema' },
   { uso: 'Monto rojo sobre tarjeta blanca', texto: 'rojo', fondo: 'blanco' },
+  { uso: 'Error de campo (el mensaje trae fondo blanco)', texto: 'rojo', fondo: 'blanco' },
+  { uso: 'Aviso de estado en ámbar (cabecera)', texto: 'tinta', fondo: 'ambar' },
+  { uso: 'Aviso de plan vencido (cabecera)', texto: 'blanco', fondo: 'rojo' },
+  { uso: 'Sección actual de la navegación', texto: 'blanco', fondo: 'tinta' },
 ];
 
 // Combinaciones prohibidas en DESIGN.md porque no alcanzan AA.

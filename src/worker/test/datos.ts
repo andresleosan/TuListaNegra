@@ -16,8 +16,8 @@ export async function sembrarNegocio(uid = 'uid_1', cambios: Partial<NegocioNuev
     subscription_plan: 'PASS_7D', subscription_expires_at: ahora + 7 * DIA, quota_cycle_started_at: ahora,
     terms_accepted_at: ahora, created_at: ahora, ...cambios,
   };
-  await bd(env).insert(businesses).values(fila);
-  return fila;
+  const [guardada] = await bd(env).insert(businesses).values(fila).returning();
+  return guardada!; // tal como quedó en la base, con sus valores por defecto
 }
 
 /** Los cinco estados de B2, como cambios sobre un negocio sembrado. */

@@ -9,7 +9,7 @@ Lo que solo el dueño puede hacer o decidir. Responde debajo de la fila o bórra
 | Poner `SUPERADMIN_EMAILS` (y `PILOT_EMAILS`) como variables en Cloudflare. | Consola real. |
 | Crear el repositorio remoto. | Push. |
 | Cuentas de pago de ALS DevStudio para `PAYMENT_ACCOUNTS_JSON`. | Pago real de pases. |
-| Clave de DeepSeek como secreto y encender `AI_READY`. | Fase 3 en real. |
+| Clave de DeepSeek como secreto (`DEEPSEEK_API_KEY`) y encender `AI_READY`. Al encender: probar una frase real, porque el cliente solo se ha probado contra respuestas simuladas. | Fase 3 en real. |
 | WhatsApp: decidir número propio o reenvío desde Sarin Bot; número verificado y plantillas aprobadas en Meta; encender `WHATSAPP_SEND_READY`. | Fase 4 en real. |
 | Abogado: términos y política de datos, reglas de cobranza, DeepSeek como proveedor fuera del país, plazos de conservación y semáforo. | LEG-01, SEM-01, `SIGNUP_READY`. |
 | Contador: cómo se facturan los pases. | Cobro formal. |

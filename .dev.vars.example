@@ -1,0 +1,19 @@
+# Variables locales del Worker. Copia a `.dev.vars` (ignorado por git) SOLO si vas a usar tu propio Firebase.
+# Si `.dev.vars` no existe, `pnpm dev` lo crea con una identidad local de pruebas (scripts/dev-identidad.mjs):
+# una llave RSA propia cuyo JWKS va en TEST_JWKS_JSON, cuentas ficticias de piloto y de superadministrador,
+# y el «Simulador local de ingreso» en la pantalla de entrada. Nada de eso llega a producción.
+
+# Id del proyecto de Firebase: el Worker solo acepta ID tokens emitidos para él.
+FIREBASE_PROJECT_ID=<ID_DEL_PROYECTO_FIREBASE>
+
+# Correos (separados por comas) que pueden crear negocio mientras SIGNUP_READY esté en "0".
+PILOT_EMAILS=<correo-piloto-1>,<correo-piloto-2>
+
+# Correos con acceso a la consola de superadministrador. Nunca en el repositorio (A1.5).
+SUPERADMIN_EMAILS=<correo-del-superadministrador>
+
+# Cómo contactar a soporte; se le muestra a un negocio suspendido.
+SOPORTE_CONTACTO=<whatsapp-o-correo-de-soporte>
+
+# NO definas TEST_JWKS_JSON a mano ni en Cloudflare: sustituye las llaves de Google por unas locales.
+# Solo lo escribe scripts/dev-identidad.mjs para el simulador, y `pnpm check:release` impide que llegue a producción.

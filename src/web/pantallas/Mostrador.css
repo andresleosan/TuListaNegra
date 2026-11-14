@@ -1,0 +1,39 @@
+.mostrador__vacio {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-3);
+}
+
+/* Renglones vacíos de libro mayor: cabecera en monoespaciada y líneas discontinuas. */
+.mostrador__libro {
+  width: 100%;
+  margin-bottom: var(--esp-2);
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-s);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mostrador__libro p {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr auto;
+  gap: var(--esp-3);
+  height: var(--esp-6);
+  align-items: end;
+  border-bottom: 1.5px dashed var(--tinta);
+}
+
+.mostrador__libro p:first-child {
+  height: auto;
+  padding-bottom: var(--esp-1);
+  border-bottom: var(--borde-grueso);
+}
+
+.mostrador__vigencia {
+  display: grid;
+  gap: var(--esp-1);
+}
+
+.mostrador__nota {
+  font-size: var(--texto-s);
+}

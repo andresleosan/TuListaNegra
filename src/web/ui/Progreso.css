@@ -1,0 +1,30 @@
+.progreso {
+  display: grid;
+  gap: var(--esp-1);
+  font-size: var(--texto-s);
+}
+
+.progreso__barra {
+  display: flex;
+  gap: var(--esp-1);
+}
+
+.progreso__tramo {
+  flex: 1;
+  height: var(--esp-2);
+  background: var(--blanco);
+  border: var(--borde-fino);
+}
+
+.progreso__tramo--hecho {
+  background: var(--tinta);
+}
+
+/* El paso en curso: medio lleno. */
+.progreso__tramo--actual::before {
+  content: '';
+  display: block;
+  width: 50%;
+  height: 100%;
+  background: var(--tinta);
+}

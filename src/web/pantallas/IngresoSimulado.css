@@ -1,0 +1,26 @@
+.simulado__opciones {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.simulado__opciones legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.simulado__opciones label {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-height: var(--toque);
+  cursor: pointer;
+}
+
+.simulado__opciones input {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--tinta);
+}

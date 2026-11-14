@@ -41,6 +41,13 @@ button {
   color: inherit;
 }
 
+a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
 /* Códigos (`TLN-0042`) y documentos: monoespaciada con cifras tabulares. */
 code {
   font-family: var(--fuente-mono);

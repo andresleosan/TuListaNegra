@@ -7,6 +7,8 @@ declare namespace Cloudflare {
     /** Cómo contactar a soporte; se muestra a un negocio suspendido. */
     SOPORTE_CONTACTO?: string;
     PAYMENT_ACCOUNTS_JSON?: string; // cuentas donde se pagan los pases: lista JSON que se muestra al dueño
+    /** Secreto de DeepSeek. Solo se usa con AI_READY = "1". */
+    DEEPSEEK_API_KEY?: string;
     /** Solo pruebas y simulador local: JWKS propio en vez del de Google. check:release impide que llegue a producción. */
     TEST_JWKS_JSON?: string;
   }

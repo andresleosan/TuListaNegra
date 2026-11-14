@@ -1,0 +1,75 @@
+.marca {
+  font-size: var(--texto-l);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.marca span {
+  margin-left: 2px;
+  padding: 0 var(--esp-1);
+  background: var(--tinta);
+  color: var(--blanco);
+}
+
+.hoja {
+  display: grid;
+  gap: var(--esp-6);
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: var(--esp-4) var(--esp-4) var(--esp-8);
+}
+
+.hoja__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--esp-3);
+  min-height: var(--toque);
+  padding-bottom: var(--esp-3);
+  border-bottom: var(--borde-grueso);
+}
+
+.hoja__cuerpo {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+/* Formularios de la hoja: una columna, más aire entre campos que dentro de cada uno. */
+.hoja__formulario {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.hoja__nota {
+  font-size: var(--texto-s);
+}
+
+/* Separador con texto, como el corte de una tirilla. */
+.hoja__corte {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  font-size: var(--texto-s);
+  font-weight: 700;
+}
+
+.hoja__corte::before,
+.hoja__corte::after {
+  content: '';
+  flex: 1;
+  border-top: 1.5px dashed var(--tinta);
+}
+
+/* Acción secundaria con aspecto de enlace, pero zona táctil completa. */
+.hoja__enlace {
+  min-height: var(--toque);
+  padding: 0;
+  background: none;
+  border: 0;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

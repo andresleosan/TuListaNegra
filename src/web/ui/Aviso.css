@@ -1,0 +1,22 @@
+/* Nota al margen del libro: papel blanco, borde fino y una franja de color a la izquierda. El texto va en tinta. */
+.aviso {
+  display: grid;
+  gap: var(--esp-1);
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-left: var(--esp-2) solid var(--ambar);
+  border-radius: var(--radio);
+}
+
+.aviso--error {
+  border-left-color: var(--rojo);
+}
+
+.aviso--bien {
+  border-left-color: var(--verde);
+}
+
+.aviso__titulo {
+  font-weight: 800;
+}

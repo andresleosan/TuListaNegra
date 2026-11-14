@@ -1,0 +1,52 @@
+.casilla__fila {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  min-height: var(--toque);
+  cursor: pointer;
+}
+
+/* Cuadro de 24 px centrado en la fila de 44 px. El texto se alinea con él y sigue hacia abajo si ocupa más líneas. */
+.casilla__fila {
+  --aire: calc((var(--toque) - 24px) / 2);
+}
+
+.casilla__fila span {
+  padding: var(--aire) 0;
+}
+
+.casilla__fila input {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: 24px;
+  height: 24px;
+  margin: var(--aire) 0;
+  background: var(--blanco);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+/* Visto bueno recortado: blanco sobre el cuadro en tinta. */
+.casilla__fila input::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: var(--blanco);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+  transform: scale(0);
+}
+
+.casilla__fila input:checked {
+  background: var(--tinta);
+}
+
+.casilla__fila input:checked::before {
+  transform: scale(1);
+}
+
+.casilla__fila input[aria-invalid='true'] {
+  border-color: var(--rojo);
+}
