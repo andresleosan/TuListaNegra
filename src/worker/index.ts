@@ -1,7 +1,11 @@
 import { Hono } from 'hono';
 import { type AppEnv, requiereSesion } from './auth';
 import { requiereNegocio } from './guardian';
+import { archivos } from './rutas/archivos';
+import { deudores } from './rutas/deudores';
 import { negocio } from './rutas/negocio';
+import { superadmin } from './rutas/superadmin';
+import { suscripcion } from './rutas/suscripcion';
 
 export const app = new Hono<AppEnv>();
 
@@ -20,6 +24,10 @@ app.use('/api/*', (c, next) =>
 app.get('/api/health', (c) => c.json({ ok: true, servicio: 'tulistanegra' }));
 app.get('/api/sesion', (c) => c.json(c.var.sesion));
 app.route('/api/negocio', negocio);
+app.route('/api/deudores', deudores);
+app.route('/api/suscripcion', suscripcion);
+app.route('/api/archivos', archivos);
+app.route('/api/superadmin', superadmin);
 
 app.notFound((c) => c.json({ error: 'no_encontrado' }, 404));
 

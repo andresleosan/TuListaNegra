@@ -5,6 +5,8 @@ import { app } from '../index';
 
 export const PROYECTO = 'tln-pruebas';
 
+let ipSiguiente = 1;
+
 type Claims = { uid?: string; email?: string; email_verified?: boolean; proveedor?: string };
 
 export async function tokenDe({ uid = 'uid_1', email = 'tendero@ejemplo.test', email_verified = true, proveedor = 'google.com' }: Claims = {}) {
@@ -23,6 +25,8 @@ export async function tokenDe({ uid = 'uid_1', email = 'tendero@ejemplo.test', e
 export async function api(ruta: string, claims: Claims | null = {}, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   if (claims) headers.set('Authorization', `Bearer ${await tokenDe(claims)}`);
-  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  if (typeof init.body === 'string' && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  // IP distinta en cada petición para no tropezar con los límites de frecuencia; la prueba que los ejercita fija la suya.
+  if (!headers.has('CF-Connecting-IP')) headers.set('CF-Connecting-IP', `203.0.113.${ipSiguiente++ % 250}`);
   return app.request(ruta, { ...init, headers }, env);
 }
