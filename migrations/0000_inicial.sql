@@ -59,11 +59,13 @@ CREATE TABLE `debtors` (
 	`last_reminder_sent_at` integer,
 	`created_at` integer NOT NULL,
 	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
-	CONSTRAINT "debtors_saldo_ck" CHECK("debtors"."current_balance_cop" >= 0),
+	CONSTRAINT "debtors_saldo_ck" CHECK(typeof(current_balance_cop) = 'integer' AND "debtors"."current_balance_cop" >= 0),
+	CONSTRAINT "debtors_doc_ck" CHECK(("debtors"."doc_number" IS NULL) = ("debtors"."doc_type" IS NULL)),
 	CONSTRAINT "debtors_tope_ck" CHECK("debtors"."credit_limit_cop" IS NULL OR "debtors"."credit_limit_cop" >= 0)
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `debtors_code_uq` ON `debtors` (`business_id`,`unique_code`);--> statement-breakpoint
+CREATE UNIQUE INDEX `debtors_negocio_id_uq` ON `debtors` (`business_id`,`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `debtors_doc_uq` ON `debtors` (`business_id`,`doc_type`,`doc_number`) WHERE doc_number IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `debtors_name_idx` ON `debtors` (`business_id`,`full_name`);--> statement-breakpoint
 CREATE TABLE `ledger_transactions` (
@@ -82,8 +84,9 @@ CREATE TABLE `ledger_transactions` (
 	`confirmed_at` integer,
 	`source` text NOT NULL,
 	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`debtor_id`) REFERENCES `debtors`(`id`) ON UPDATE no action ON DELETE no action,
-	CONSTRAINT "ledger_amount_ck" CHECK("ledger_transactions"."amount_cop" > 0),
+	FOREIGN KEY (`business_id`,`debtor_id`) REFERENCES `debtors`(`business_id`,`id`) ON UPDATE no action ON DELETE no action,
+	CONSTRAINT "ledger_amount_ck" CHECK(typeof(amount_cop) = 'integer' AND "ledger_transactions"."amount_cop" > 0),
+	CONSTRAINT "ledger_confirmado_ck" CHECK("ledger_transactions"."status" <> 'CONFIRMADO' OR ("ledger_transactions"."balance_after_cop" IS NOT NULL AND "ledger_transactions"."confirmed_at" IS NOT NULL)),
 	CONSTRAINT "ledger_type_ck" CHECK(type IN ('FIADO', 'ABONO', 'AJUSTE_SUMA', 'AJUSTE_RESTA')),
 	CONSTRAINT "ledger_status_ck" CHECK(status IN ('CONFIRMADO', 'PENDIENTE_VERIFICACION_WHATSAPP', 'RECHAZADO')),
 	CONSTRAINT "ledger_source_ck" CHECK(source IN ('MOSTRADOR', 'SARIN_TEXT', 'SARIN_AUDIO', 'SARIN_IMAGE_OCR', 'WHATSAPP_BOT'))
@@ -109,23 +112,9 @@ CREATE TABLE `subscription_payments` (
 	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
 	CONSTRAINT "payments_plan_ck" CHECK(plan_requested IN ('TRIAL_3D', 'PASS_7D', 'PASS_15D', 'PASS_30D')),
 	CONSTRAINT "payments_status_ck" CHECK(status IN ('PENDING_REVIEW', 'PAID', 'REJECTED')),
-	CONSTRAINT "payments_montos_ck" CHECK("subscription_payments"."amount_cop" > 0 AND "subscription_payments"."days_to_add" > 0)
+	CONSTRAINT "payments_montos_ck" CHECK(typeof(amount_cop) = 'integer' AND typeof(days_to_add) = 'integer' AND "subscription_payments"."amount_cop" > 0 AND "subscription_payments"."days_to_add" > 0)
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `payments_un_pendiente_uq` ON `subscription_payments` (`business_id`) WHERE status = 'PENDING_REVIEW';--> statement-breakpoint
 CREATE INDEX `payments_business_idx` ON `subscription_payments` (`business_id`,`created_at`);--> statement-breakpoint
-CREATE INDEX `payments_ocr_ref_idx` ON `subscription_payments` (`ocr_reference_number`);--> statement-breakpoint
--- Añadido a mano (drizzle-kit no genera disparadores): el libro y la auditoría no se editan ni se borran.
--- Única excepción (B3): un movimiento pendiente puede corregirse o pasar a confirmado o rechazado.
-CREATE TRIGGER `ledger_no_delete` BEFORE DELETE ON `ledger_transactions`
-BEGIN SELECT RAISE(ABORT, 'ledger: las filas no se borran'); END;
---> statement-breakpoint
-CREATE TRIGGER `ledger_no_update` BEFORE UPDATE ON `ledger_transactions`
-WHEN OLD.status <> 'PENDIENTE_VERIFICACION_WHATSAPP'
-BEGIN SELECT RAISE(ABORT, 'ledger: solo un pendiente puede cambiar'); END;
---> statement-breakpoint
-CREATE TRIGGER `audit_no_delete` BEFORE DELETE ON `admin_audit_log`
-BEGIN SELECT RAISE(ABORT, 'audit: solo se añade'); END;
---> statement-breakpoint
-CREATE TRIGGER `audit_no_update` BEFORE UPDATE ON `admin_audit_log`
-BEGIN SELECT RAISE(ABORT, 'audit: solo se añade'); END;
+CREATE INDEX `payments_ocr_ref_idx` ON `subscription_payments` (`ocr_reference_number`);

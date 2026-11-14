@@ -21,7 +21,8 @@
     "2026-11-14: pnpm exec vitest run --project worker → auth.test.ts pasa: token válido 200; sin cabecera, vencido, sin exp, otro proyecto (aud e iss), sin sub, sub vacío, otra llave RSA, firma alterada, cuerpo alterado, alg none, HS256 con la llave pública y basura → 401; sin FIREBASE_PROJECT_ID → 503 (falla cerrado).",
     "Llaves RSA locales generadas en cada ejecución por vitest.config.ts e inyectadas como TEST_JWKS_JSON (B5). check:release falla si cualquier variable TEST_* aparece en wrangler.jsonc o en dist/tulistanegra/wrangler.json: probado añadiendo TEST_JWKS_JSON → exit 1, y revertido.",
     "No comprobado contra Firebase real: falta el proyecto (cola del dueño). La verificación contra el JWKS de Google usa el mismo código con createRemoteJWKSet; se probará en AUT-02/BAS-05 cuando exista FIREBASE_PROJECT_ID.",
-    "Decisión (fuente A1.7): no existe ningún modo sin autenticación; en pruebas solo cambia el origen de las llaves públicas."
+    "Decisión (fuente A1.7): no existe ningún modo sin autenticación; en pruebas solo cambia el origen de las llaves públicas.",
+    "2026-11-14 (revisión independiente): sin forma de pasar sin token válido en 28 variantes de ruta. Corregido lo que señaló: el JWKS local solo vale si FIREBASE_PROJECT_ID es tln-pruebas o tln-local (si TEST_JWKS_JSON se colara como secreto en producción queda inerte); no poder descargar las llaves de Google responde 503 en vez de 401; sub debe ser cadena; pruebas nuevas para RS384/RS512/PS256 y para la rama remota con fetch simulado. Pendiente de aplicar cuando el otro agente suelte los archivos: ignorar .dev.vars.* y .env* en git y en check:release."
   ],
   "actualizado": "2026-11-14"
 }

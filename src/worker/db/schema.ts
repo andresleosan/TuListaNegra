@@ -1,7 +1,7 @@
 // Esquema D1 (docs/spec/producto.md, B3). Las propiedades usan el mismo nombre que la columna.
 // Convenciones: dinero en enteros COP; tiempo en milisegundos UTC; ids ULID con prefijo.
 import { sql } from 'drizzle-orm';
-import { check, index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { check, foreignKey, index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const PLANES_IDS = ['TRIAL_3D', 'PASS_7D', 'PASS_15D', 'PASS_30D'] as const;
 export const ESTADOS_PAGO = ['PENDING_REVIEW', 'PAID', 'REJECTED'] as const;
@@ -11,6 +11,8 @@ export const ORIGENES_MOVIMIENTO = ['MOSTRADOR', 'SARIN_TEXT', 'SARIN_AUDIO', 'S
 
 const en = (columna: string, valores: readonly string[]) =>
   sql.raw(`${columna} IN (${valores.map((v) => `'${v}'`).join(', ')})`);
+// SQLite guarda lo que le den: sin esto, 0.5 o 'abc' entrarían en una columna de dinero.
+const entero = (columna: string) => sql.raw(`typeof(${columna}) = 'integer'`);
 
 export const businesses = sqliteTable(
   'businesses',
@@ -73,7 +75,7 @@ export const subscription_payments = sqliteTable(
     index('payments_ocr_ref_idx').on(t.ocr_reference_number), // no único: sirve para alertar repetidos
     check('payments_plan_ck', en('plan_requested', PLANES_IDS)),
     check('payments_status_ck', en('status', ESTADOS_PAGO)),
-    check('payments_montos_ck', sql`${t.amount_cop} > 0 AND ${t.days_to_add} > 0`),
+    check('payments_montos_ck', sql`${entero('amount_cop')} AND ${entero('days_to_add')} AND ${t.amount_cop} > 0 AND ${t.days_to_add} > 0`),
   ],
 );
 
@@ -102,9 +104,11 @@ export const debtors = sqliteTable(
   },
   (t) => [
     uniqueIndex('debtors_code_uq').on(t.business_id, t.unique_code),
+    uniqueIndex('debtors_negocio_id_uq').on(t.business_id, t.id), // destino de la FK compuesta del libro
     uniqueIndex('debtors_doc_uq').on(t.business_id, t.doc_type, t.doc_number).where(sql`doc_number IS NOT NULL`),
     index('debtors_name_idx').on(t.business_id, t.full_name),
-    check('debtors_saldo_ck', sql`${t.current_balance_cop} >= 0`),
+    check('debtors_saldo_ck', sql`${entero('current_balance_cop')} AND ${t.current_balance_cop} >= 0`),
+    check('debtors_doc_ck', sql`(${t.doc_number} IS NULL) = (${t.doc_type} IS NULL)`), // tipo y número: ambos o ninguno
     check('debtors_tope_ck', sql`${t.credit_limit_cop} IS NULL OR ${t.credit_limit_cop} >= 0`),
   ],
 );
@@ -114,7 +118,7 @@ export const ledger_transactions = sqliteTable(
   {
     id: text().primaryKey(),
     business_id: text().notNull().references(() => businesses.id),
-    debtor_id: text().notNull().references(() => debtors.id),
+    debtor_id: text().notNull(),
     request_id: text().notNull(), // idempotencia: repetirlo no crea otro movimiento
     type: text({ enum: TIPOS_MOVIMIENTO }).notNull(),
     amount_cop: integer().notNull(),
@@ -128,9 +132,12 @@ export const ledger_transactions = sqliteTable(
     source: text({ enum: ORIGENES_MOVIMIENTO }).notNull(),
   },
   (t) => [
+    // El movimiento y su deudor son del mismo negocio: el aislamiento también vive en la base.
+    foreignKey({ name: 'ledger_deudor_fk', columns: [t.business_id, t.debtor_id], foreignColumns: [debtors.business_id, debtors.id] }),
     uniqueIndex('ledger_request_uq').on(t.business_id, t.request_id),
     index('ledger_debtor_idx').on(t.business_id, t.debtor_id, t.created_at),
-    check('ledger_amount_ck', sql`${t.amount_cop} > 0`),
+    check('ledger_amount_ck', sql`${entero('amount_cop')} AND ${t.amount_cop} > 0`),
+    check('ledger_confirmado_ck', sql`${t.status} <> 'CONFIRMADO' OR (${t.balance_after_cop} IS NOT NULL AND ${t.confirmed_at} IS NOT NULL)`),
     check('ledger_type_ck', en('type', TIPOS_MOVIMIENTO)),
     check('ledger_status_ck', en('status', ESTADOS_MOVIMIENTO)),
     check('ledger_source_ck', en('source', ORIGENES_MOVIMIENTO)),

@@ -6,3 +6,6 @@ export function formatoCOP(valor: number): string {
   const miles = String(Math.abs(valor)).replace(/\B(?=(\d{3})+$)/g, '.');
   return `${valor < 0 ? '−' : ''}$ ${miles}`;
 }
+
+/** Tope razonable para cualquier monto que entra al sistema (B5): cien millones de pesos. */
+export const MONTO_MAXIMO_COP = 100_000_000;

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2fa08393-b0aa-4b1d-877a-104bc6f59b30",
+  "id": "3ec85028-81e4-4e43-b5ca-d7124c55cd53",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "admin_audit_log": {
@@ -409,6 +409,14 @@
           ],
           "isUnique": true
         },
+        "debtors_negocio_id_uq": {
+          "name": "debtors_negocio_id_uq",
+          "columns": [
+            "business_id",
+            "id"
+          ],
+          "isUnique": true
+        },
         "debtors_doc_uq": {
           "name": "debtors_doc_uq",
           "columns": [
@@ -448,7 +456,11 @@
       "checkConstraints": {
         "debtors_saldo_ck": {
           "name": "debtors_saldo_ck",
-          "value": "\"debtors\".\"current_balance_cop\" >= 0"
+          "value": "typeof(current_balance_cop) = 'integer' AND \"debtors\".\"current_balance_cop\" >= 0"
+        },
+        "debtors_doc_ck": {
+          "name": "debtors_doc_ck",
+          "value": "(\"debtors\".\"doc_number\" IS NULL) = (\"debtors\".\"doc_type\" IS NULL)"
         },
         "debtors_tope_ck": {
           "name": "debtors_tope_ck",
@@ -591,14 +603,16 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "ledger_transactions_debtor_id_debtors_id_fk": {
-          "name": "ledger_transactions_debtor_id_debtors_id_fk",
+        "ledger_deudor_fk": {
+          "name": "ledger_deudor_fk",
           "tableFrom": "ledger_transactions",
           "tableTo": "debtors",
           "columnsFrom": [
+            "business_id",
             "debtor_id"
           ],
           "columnsTo": [
+            "business_id",
             "id"
           ],
           "onDelete": "no action",
@@ -610,7 +624,11 @@
       "checkConstraints": {
         "ledger_amount_ck": {
           "name": "ledger_amount_ck",
-          "value": "\"ledger_transactions\".\"amount_cop\" > 0"
+          "value": "typeof(amount_cop) = 'integer' AND \"ledger_transactions\".\"amount_cop\" > 0"
+        },
+        "ledger_confirmado_ck": {
+          "name": "ledger_confirmado_ck",
+          "value": "\"ledger_transactions\".\"status\" <> 'CONFIRMADO' OR (\"ledger_transactions\".\"balance_after_cop\" IS NOT NULL AND \"ledger_transactions\".\"confirmed_at\" IS NOT NULL)"
         },
         "ledger_type_ck": {
           "name": "ledger_type_ck",
@@ -782,7 +800,7 @@
         },
         "payments_montos_ck": {
           "name": "payments_montos_ck",
-          "value": "\"subscription_payments\".\"amount_cop\" > 0 AND \"subscription_payments\".\"days_to_add\" > 0"
+          "value": "typeof(amount_cop) = 'integer' AND typeof(days_to_add) = 'integer' AND \"subscription_payments\".\"amount_cop\" > 0 AND \"subscription_payments\".\"days_to_add\" > 0"
         }
       }
     }

@@ -2,7 +2,7 @@
   "id": "DEU-01",
   "fase": "F1",
   "titulo": "Deudores: crear, editar, archivar, código `TLN-XXXX`, documento opcional, lista negra.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "debtors"
   ],
   "criterio": "Código único bajo altas simultáneas; documento duplicado rechazado; límite de 15 en prueba.",
-  "hecho": "",
+  "hecho": "API de deudores (src/worker/rutas/deudores.ts): listar (resumen sin documento completo ni teléfono), crear con solo nombre o apodo, ver ficha, editar, archivar/recuperar, lista negra, consentimiento y baja de WhatsApp, tope de crédito. Código TLN-XXXX y límite del plan resueltos en una sola sentencia INSERT…SELECT…HAVING. Estado del deudor calculado en src/shared/deudor.ts.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/deudores.test.ts → 28 pruebas pasan: 20 altas simultáneas → TLN-0001…TLN-0020 sin repetir; documento duplicado → 409 (también escrito con puntos y al editar); límite de 15 en prueba con 18 altas simultáneas → 15 creadas y 3 rechazadas, y los archivados cuentan; con pase o gratis no hay límite.",
+    "También: validación (10 casos → 400 sin crear nada), campos que el navegador no puede fijar (negocio, código, saldo) ignorados, otro negocio recibe 404 al ver o editar, vencido lee pero no escribe. src/shared/deudor.test.ts: 12 casos del estado (lista negra → al día → promesa → mora → con saldo).",
+    "Decisión (fuente B3/B4, más simple): no existe borrar deudor, solo archivar; el consecutivo no se reutiliza. La promesa se guarda como inicio del día prometido en Bogotá y vale hasta que ese día termina. La tienda puede registrar una baja de WhatsApp pero no deshacerla.",
+    "Decisión: el servidor solo acepta teléfonos ya en E.164; la app normaliza con el módulo compartido de teléfono (AUT-02)."
+  ],
   "actualizado": "2026-11-14"
 }

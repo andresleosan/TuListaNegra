@@ -1,7 +1,7 @@
 // AUT-01: con llaves locales, un token válido pasa; vencido, de otro proyecto o con firma inválida se rechaza.
 import { env } from 'cloudflare:workers';
 import { exportJWK, generateKeyPair, importJWK, SignJWT } from 'jose';
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { app } from './index';
 import { api, PROYECTO, tokenDe } from './test/sesion';
 
@@ -58,6 +58,11 @@ describe('se rechaza con 401', () => {
       return new SignJWT({}).setProtectedHeader({ alg: 'HS256', kid: 'prueba' }).setSubject('u').setAudience(PROYECTO)
         .setIssuer(`https://securetoken.google.com/${PROYECTO}`).setExpirationTime('1h').sign(new TextEncoder().encode(JSON.stringify(publica)));
     }],
+    ...(['RS384', 'RS512', 'PS256'] as const).map((alg) => [`${alg} con la misma llave (solo vale RS256)`, async () => {
+      const llave = await importJWK(JSON.parse(env.TEST_PRIVATE_JWK), alg);
+      return new SignJWT({}).setProtectedHeader({ alg, kid: 'prueba' }).setSubject('u').setAudience(PROYECTO)
+        .setIssuer(`https://securetoken.google.com/${PROYECTO}`).setExpirationTime('1h').sign(llave);
+    }] as [string, () => Promise<string>]),
     ['basura', async () => 'no-es-un-jwt'],
   ])('token %s', async (_caso, crear) => {
     const res = await conToken(await crear());
@@ -70,6 +75,28 @@ describe('configuración', () => {
   test('sin FIREBASE_PROJECT_ID falla cerrado con 503', async () => {
     const res = await conToken(await tokenDe(), { ...env, FIREBASE_PROJECT_ID: undefined });
     expect(res.status).toBe(503);
+  });
+
+  // El orden importa: jose guarda en caché el JWKS que logra descargar.
+  describe('JWKS de Google', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    test('si Google no responde es 503, no una sesión inválida', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('red caída'); }));
+      const token = await firmar({ sub: 'u', exp: '1h', aud: 'tienda-real-2', iss: 'https://securetoken.google.com/tienda-real-2' });
+      const res = await conToken(token, { ...env, FIREBASE_PROJECT_ID: 'tienda-real-2' });
+      expect(res.status).toBe(503);
+      expect(await res.json()).toEqual({ error: 'servicio_no_disponible' });
+    });
+
+    test('el JWKS local solo vale con un proyecto ficticio: con uno real se usan las llaves de Google', async () => {
+      const pedido = vi.fn(async (_url: unknown) => Response.json({ keys: [] }));
+      vi.stubGlobal('fetch', pedido);
+      const token = await firmar({ sub: 'u', exp: '1h', aud: 'tienda-real', iss: 'https://securetoken.google.com/tienda-real' });
+      const res = await conToken(token, { ...env, FIREBASE_PROJECT_ID: 'tienda-real' });
+      expect(res.status).toBe(401); // la llave local no está entre las de Google
+      expect(String(pedido.mock.calls[0]?.[0])).toContain('securetoken@system.gserviceaccount.com');
+    });
   });
 
   test('la llave pública de prueba no sirve si el JWKS es otro', async () => {
