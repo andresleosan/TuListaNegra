@@ -2,7 +2,7 @@
   "id": "WAP-05",
   "fase": "F4",
   "titulo": "Comprobante, promesa y baja del deudor.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "ledger"
   ],
   "criterio": "El comprobante crea un abono pendiente con evidencia; la promesa fija la fecha; «SALIR» da de baja y bloquea cobros.",
-  "hecho": "",
+  "hecho": "src/worker/whatsapp/procesar.ts procesa, tras el enrutamiento y bajo waitUntil, los entrantes de un deudor concreto: imagen → R2 privado (negocios/<id>/comprobantes/<huella>) y un ABONO PENDIENTE_VERIFICACION_WHATSAPP con la imagen como evidencia y origen WHATSAPP_BOT que no mueve el saldo (monto sugerido = saldo actual; sin IA no hay lectura; máximo 3 pendientes por deudor; la misma imagen ya usada en el negocio no repite); fecha de pago → propuesta con botones Sí/No y solo el «Sí» de ese deudor fija promised_payment_date (A1.3); «SALIR» y variantes → baja (si no hay un único deudor, en todos los deudores con ese teléfono de las tiendas que le escribieron). Lo que falla se reintenta con el siguiente mensaje de ese teléfono durante 7 días. src/worker/whatsapp/promesa.ts reconoce fechas y bajas sin IA.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "WAP-06: aviso al dueño y aprobar o rechazar el abono pendiente (ver su nextStep: revisar el monto antes de confirmar).",
+  "evidencia": [
+    "2026-11-14: procesar.test.ts y promesa.test.ts con entrantes firmados por el webhook real: comprobante PNG → pendiente con evidencia en R2 del negocio correcto y saldo intacto; repetido → uno solo; no imagen → nada y respuesta neutra; misma imagen ya confirmada u otro deudor → nada; tope de 3; «el viernes» con reloj controlado → pregunta con botones y solo el «Sí» fija la fecha; montos («el 2 millones», «el 15 000»), horas, pasado («ya le pagué el viernes»), negación y «hasta mañana» → nada; «SALIR» (también sin deudor único, pasadas 72 h o en espera de elección) → baja y luego enlace y bot dan 409 BAJA, sin tocar a una tienda que nunca le escribió; fallos de fetchMedia, R2, INSERT o UPDATE se reintentan en el siguiente mensaje; la tienda B nunca recibe lo de A. Sin red.",
+    "2026-11-14: revisión independiente: ningún mensaje mueve un saldo; sus 2 graves (comprobante o baja perdidos tras un fallo; «SALIR» sin deudor único sin efecto) y medias (comprobante reutilizado, fechas mal leídas, promesa escrita sin confirmar, baja demasiado estricta, sin tope) arreglados con prueba que falló antes. Requisito anotado en WAP-06: aprobar exige ver y poder corregir el monto.",
+    "2026-11-14: verificado: pnpm test (954 pruebas), pnpm typecheck, pnpm build y pnpm check:release en verde; las pruebas de WhatsApp 5 veces seguidas sin intermitencias. Sin cambios de interfaz. No comprobado contra Meta real."
+  ],
   "actualizado": "2026-11-14"
 }

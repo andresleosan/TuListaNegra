@@ -296,9 +296,23 @@ describe('revisión independiente de WAP-04', () => {
     const roto = new Proxy(env.DB, {
       get(db, p) {
         if (p === 'prepare') {
+          // Falla la consulta de F1 por su teléfono: el orden de dos entrantes del mismo milisegundo lo decide la parte
+          // aleatoria del ULID, así que «la primera consulta» podía ser la de F2.
           return (q: string) => {
-            if (q.includes('FROM businesses WHERE whatsapp_phone') && fallos++ === 0) throw new Error('D1 caído');
-            return db.prepare(q);
+            const consulta = db.prepare(q);
+            if (!q.includes('FROM businesses WHERE whatsapp_phone')) return consulta;
+            return new Proxy(consulta, {
+              get(s, p) {
+                if (p === 'bind') {
+                  return (...args: unknown[]) => {
+                    if (args[0] === DEUDOR && fallos++ === 0) throw new Error('D1 caído');
+                    return s.bind(...args);
+                  };
+                }
+                const v = Reflect.get(s, p);
+                return typeof v === 'function' ? v.bind(s) : v;
+              },
+            });
           };
         }
         const v = Reflect.get(db, p);

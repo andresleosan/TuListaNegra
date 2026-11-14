@@ -3,7 +3,7 @@
 // entrantes sin enrutar (los nuevos y los que un fallo dejó a medias), y `marcar` impide decidir dos veces el mismo.
 // Este módulo decide los pasos 2 a 6, en su orden, y deja el entrante enrutado y clasificado.
 // Lo que viene después (verificar el código del dueño, comprobante, promesa, baja, aprobar o rechazar) es de WAP-02,
-// WAP-05 y WAP-06: aquí no se interpreta el texto ni se escribe dinero (A1.3).
+// WAP-05 (./procesar.ts) y WAP-06: aquí no se interpreta el texto ni se escribe dinero (A1.3).
 //
 // Aislamiento: el negocio sale de datos nuestros (el saliente citado, el teléfono verificado del dueño, los salientes de
 // las últimas 72 h) o del teléfono del remitente, que viene firmado. Nada de lo que escribe el remitente asigna un negocio:
@@ -11,6 +11,7 @@
 // entre los que le ofrecimos.
 import type { REGLAS_ENRUTAMIENTO } from '../db/schema';
 import { gatewayPara } from './index';
+import { esBaja } from './promesa';
 import { VENTANA_MS } from './simulado';
 
 /** Paso 4: cuánto tiempo hacia atrás cuenta que un negocio le haya escrito a ese número (límite incluido). */
@@ -154,27 +155,31 @@ function marcar(env: Env, id: string, d: Decision) {
   ).bind(d.estado, enrutado ? d.regla : null, enrutado ? d.negocio : null, enrutado ? d.deudor : null, id);
 }
 
-/** Enruta un entrante sin enrutar. Si otro proceso ya lo marcó, no hace nada. */
-async function enrutarUno(env: Env, id: string, ahora: () => number): Promise<void> {
+/**
+ * Enruta un entrante sin enrutar. Si otro proceso ya lo marcó, no hace nada. Devuelve los ids que ESTA llamada dejó
+ * ROUTED (con una elección, también los del tramo de su pregunta), para lo que viene después (WAP-05).
+ */
+async function enrutarUno(env: Env, id: string, ahora: () => number): Promise<string[]> {
   const e = await env.DB.prepare(
     `SELECT id, wa_message_id, phone, kind, content_json, reply_to_wa_message_id, occurred_at, created_at FROM whatsapp_messages
      WHERE id = ?1 AND direction = 'ENTRANTE' AND routing_state IS NULL`,
   ).bind(id).first<Entrante>();
-  if (!e) return;
+  if (!e) return [];
   let d = await decidir(env, e);
 
   if (d.estado === 'ROUTED' && d.pregunta) {
     // La elección y los entrantes del tramo de su pregunta, en una sola transacción: o todo o nada (y se reintenta).
     // Si otro proceso ya marcó este botón, repetir el tramo no cambia nada: es la misma elección.
     const tramo = await tramoDe(env, e.phone, d.pregunta, e.created_at);
-    await env.DB.batch([
+    const [propio, delTramo] = await env.DB.batch<{ id: string }>([
       marcar(env, e.id, d),
       ...(tramo ? [env.DB.prepare(
         `UPDATE whatsapp_messages SET routing_state = 'ROUTED', routing_rule = 'ELECCION', business_id = ?1, debtor_id = ?2
-         WHERE phone = ?3 AND direction = 'ENTRANTE' AND routing_state = 'AWAITING_TENANT_SELECTION' AND created_at BETWEEN ?4 AND ?5`,
+         WHERE phone = ?3 AND direction = 'ENTRANTE' AND routing_state = 'AWAITING_TENANT_SELECTION' AND created_at BETWEEN ?4 AND ?5
+         RETURNING id`,
       ).bind(d.negocio, d.deudor, e.phone, tramo.desde, tramo.hasta)] : []),
     ]);
-    return;
+    return [...(propio!.meta.changes === 1 ? [e.id] : []), ...(delTramo?.results.map((f) => f.id) ?? [])];
   }
 
   const pregunta = d.estado === 'AWAITING_TENANT_SELECTION' ? await preguntaDe(env, e.phone, e.created_at) : undefined;
@@ -182,7 +187,10 @@ async function enrutarUno(env: Env, id: string, ahora: () => number): Promise<vo
     // Ya contestaron la pregunta que cubre este entrante: va con esa elección.
     d = { estado: 'ROUTED', regla: 'ELECCION', negocio: pregunta.elegido, deudor: await deudorDe(env, pregunta.elegido, e.phone, null) };
   }
-  if ((await marcar(env, e.id, d).run()).meta.changes !== 1) return;
+  if ((await marcar(env, e.id, d).run()).meta.changes !== 1) return [];
+  if (d.estado === 'ROUTED') return [e.id];
+  // Una baja sin destino claro la aplica y la confirma ./procesar.ts sin nombrar tiendas: ni pregunta ni respuesta neutra.
+  if (e.kind === 'text' && esBaja((JSON.parse(e.content_json) as { text?: string }).text ?? '')) return [];
 
   if (d.estado === 'AWAITING_TENANT_SELECTION' && !pregunta) {
     await gatewayPara(env, ahora).sendReply({
@@ -194,25 +202,29 @@ async function enrutarUno(env: Env, id: string, ahora: () => number): Promise<vo
     const respondido = await env.DB.prepare(
       "SELECT 1 FROM whatsapp_messages WHERE phone = ?1 AND direction = 'SALIENTE' AND callback_data = ?2 AND status <> 'rejected' AND occurred_at >= ?3 LIMIT 1",
     ).bind(e.phone, CB_NEUTRO, ahora() - VENTANA_MS).first();
-    if (respondido) return;
+    if (respondido) return [];
     await gatewayPara(env, ahora).sendReply({
       to: e.phone, requestId: await claveRespuesta(env, CB_NEUTRO, e.phone, ahora()), replyTo: e.wa_message_id, callbackData: CB_NEUTRO,
       content: { kind: 'text', text: TEXTO_NEUTRO },
     });
   }
+  return [];
 }
 
 /**
  * Enruta, uno por uno y en orden, los entrantes sin enrutar que devolvió `guardarEventos`. Un fallo en uno no corta los
  * demás: ese queda sin enrutar (lo retoma la reentrega de Meta o el siguiente mensaje de ese teléfono) o, si ya quedó en
  * espera sin que saliera la pregunta, la hace el siguiente mensaje ambiguo. Nada se registra en consola (B5).
+ * Devuelve los ids que quedaron ROUTED en esta llamada.
  */
-export async function enrutarEntrantes(env: Env, ids: string[], ahora: () => number = Date.now): Promise<void> {
+export async function enrutarEntrantes(env: Env, ids: string[], ahora: () => number = Date.now): Promise<string[]> {
+  const enrutados: string[] = [];
   for (const id of ids) {
     try {
-      await enrutarUno(env, id, ahora);
+      enrutados.push(...(await enrutarUno(env, id, ahora)));
     } catch {
       // sigue con el siguiente
     }
   }
+  return enrutados;
 }

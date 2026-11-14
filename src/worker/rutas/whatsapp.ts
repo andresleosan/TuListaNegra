@@ -7,6 +7,7 @@ import { guardarEventos } from '../whatsapp/bandeja';
 import { gatewayPara } from '../whatsapp';
 import { enrutarEntrantes } from '../whatsapp/enrutar';
 import { MAX_WEBHOOK_BYTES } from '../whatsapp/meta';
+import { procesarEntrantes } from '../whatsapp/procesar';
 import { ErrorWebhook } from '../whatsapp/tipos';
 
 export const whatsapp = new Hono<AppEnv>();
@@ -58,9 +59,10 @@ whatsapp.post('/webhook', limitar('LIMITE_WEBHOOK', ipDe), async (c) => {
     throw e;
   }
   // Enrutamiento (WAP-04) de los entrantes sin enrutar: los nuevos y los que un fallo dejó a medias (un evento ya
-  // enrutado no se enruta dos veces). En segundo plano (B5).
+  // enrutado no se enruta dos veces). Justo después, lo que escribe un deudor (WAP-05): los de este lote, los que el
+  // enrutamiento acaba de dejar ROUTED y los reintentos de esos teléfonos. En segundo plano (B5).
   if (porEnrutar.length > 0) {
-    const trabajo = enrutarEntrantes(c.env, porEnrutar);
+    const trabajo = enrutarEntrantes(c.env, porEnrutar).then((enrutados) => procesarEntrantes(c.env, [...new Set([...porEnrutar, ...enrutados])]));
     try {
       c.executionCtx.waitUntil(trabajo);
     } catch {
