@@ -1,8 +1,8 @@
 // Lo que escribe un DEUDOR (WAP-05, producto.md B4, fase 4): comprobante → abono pendiente, fecha de pago → propuesta
 // que el deudor confirma con un botón, «SALIR» → baja. Corre justo después del enrutamiento (WAP-04), en el mismo `waitUntil`.
 //
-// Comprobante y fecha: solo entrantes ROUTED con negocio y deudor (reglas RESPUESTA, UNICO_72H y ELECCION). Las órdenes
-// del dueño (ORDEN_DUENO) y aprobar o rechazar el abono son de WAP-06. El negocio y el deudor salen de lo que decidió
+// Comprobante y fecha: solo entrantes ROUTED con negocio y deudor (reglas RESPUESTA, UNICO_72H y ELECCION). Aprobar o
+// rechazar el abono (órdenes del dueño, WAP-06) va a ./abonos.ts. El negocio y el deudor salen de lo que decidió
 // el enrutador con datos nuestros, nunca del texto del mensaje.
 // Baja sin un único deudor (UNROUTED, en espera de elección o ROUTED sin deudor): B6, lo más protector. El remitente
 // viene firmado, así que la baja se aplica a TODOS los deudores con ese teléfono en las tiendas que ya le habían escrito
@@ -25,6 +25,7 @@
 // comprobantes y bajas que siguen sin efecto (sin movimiento ni respuesta registrada; deudor sin baja). Las fechas no se
 // reintentan: una pregunta vieja podría llegar después de otra nueva.
 import { MAX_CAPTURA_BYTES, tipoDeImagen } from '../pagos';
+import { atenderDueno, avisarAlDueno, ordenDe } from './abonos';
 import { gatewayPara } from './index';
 import { esBaja, fechaPrometida } from './promesa';
 
@@ -112,6 +113,7 @@ async function comprobante(env: Env, e: DeDeudor, ahora: () => number): Promise<
   // Clave por huella: la misma imagen ocupa un solo objeto y delata el comprobante reutilizado.
   const clave = `negocios/${e.business_id}/comprobantes/${hex(await crypto.subtle.digest('SHA-256', bytes))}.${tipo.ext}`;
   await env.ARCHIVOS.put(clave, bytes, { httpMetadata: { contentType: tipo.contentType } });
+  const id = `mov_${crypto.randomUUID().replaceAll('-', '')}`;
   let entro = false;
   try {
     // Una sola sentencia: el deudor es de este negocio, tiene saldo, no llegó al tope de pendientes y nadie del negocio
@@ -124,13 +126,14 @@ async function comprobante(env: Env, e: DeDeudor, ahora: () => number): Promise<
        WHERE id = ?3 AND business_id = ?2 AND current_balance_cop > 0 AND ${pendientes('?2', '?3')} < ?8 AND NOT EXISTS (
          SELECT 1 FROM ledger_transactions WHERE business_id = ?2 AND type = 'ABONO'
            AND status IN ('PENDIENTE_VERIFICACION_WHATSAPP', 'CONFIRMADO') AND evidence_r2_key = ?6)`,
-    ).bind(`mov_${crypto.randomUUID().replaceAll('-', '')}`, e.business_id, e.debtor_id, requestId, DESCRIPCION_COMPROBANTE, clave, ahora(), MAX_PENDIENTES_POR_DEUDOR).run();
+    ).bind(id, e.business_id, e.debtor_id, requestId, DESCRIPCION_COMPROBANTE, clave, ahora(), MAX_PENDIENTES_POR_DEUDOR).run();
     entro = meta.changes === 1;
   } catch (err) {
     if (!(err instanceof Error && err.message.includes('movimiento repetido'))) throw err;
     return; // otro proceso ya lo creó (y usa el objeto)
   }
-  if (entro) return;
+  // Doble aviso (B4, WAP-06): la app lo lista; el WhatsApp verificado del dueño recibe el aviso (sin monto ni botón que confirme).
+  if (entro) return avisarAlDueno(env, e.business_id, id, ahora);
   // No entró: el objeto solo se queda si algún movimiento de este negocio lo usa como evidencia.
   const usado = await env.DB.prepare('SELECT 1 FROM ledger_transactions WHERE business_id = ?1 AND evidence_r2_key = ?2 LIMIT 1').bind(e.business_id, clave).first();
   if (!usado) await env.ARCHIVOS.delete(clave);
@@ -204,7 +207,12 @@ async function procesarUno(env: Env, id: string, ahora: () => number): Promise<v
        occurred_at, created_at
      FROM whatsapp_messages WHERE id = ?1 AND direction = 'ENTRANTE' AND routing_state IS NOT NULL`,
   ).bind(id).first<Entrante>();
-  if (!e || e.routing_rule === 'ORDEN_DUENO') return;
+  if (!e) return;
+  // Aprobar o rechazar un abono (WAP-06): solo el dueño con el teléfono VERIFICADO de ese negocio (./abonos.ts lo
+  // comprueba). Si no lo es (p. ej. un deudor que responde «aprobar…» a nuestro cobro), sigue el flujo de deudor.
+  const orden = e.routing_state === 'ROUTED' && (e.routing_rule === 'ORDEN_DUENO' || e.routing_rule === 'RESPUESTA') ? ordenDe(e.kind, e.content_json) : null;
+  if (orden && (await atenderDueno(env, e, orden, ahora))) return;
+  if (e.routing_rule === 'ORDEN_DUENO') return;
   const texto = e.kind === 'text' ? (JSON.parse(e.content_json) as { text?: string }).text ?? '' : '';
   if (texto && esBaja(texto)) return baja(env, e, ahora);
   if (!esDeDeudor(e)) return;

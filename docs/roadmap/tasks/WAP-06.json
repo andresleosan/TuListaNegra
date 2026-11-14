@@ -2,7 +2,7 @@
   "id": "WAP-06",
   "fase": "F4",
   "titulo": "Aviso al dueño con Aprobar y Rechazar, y envío de tirilla.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,10 +16,15 @@
     "whatsapp"
   ],
   "criterio": "Aprobar confirma el movimiento una sola vez y envía la tirilla; con dos pendientes del mismo deudor, pregunta cuál.",
-  "hecho": "",
+  "hecho": "src/worker/whatsapp/abonos.ts: aprobarAbono (un solo db.batch con marca: confirma con el monto final, mueve el saldo, recalcula la mora; dos aprobaciones o aprobar/rechazar a la vez → un solo efecto; no supera el saldo de ese momento) y rechazarAbono (no mueve el saldo). Doble aviso al dueño: en la app (mostrador y ficha, con la foto y el monto editable: pieza RevisarAbono) y por WhatsApp al dueño verificado. Por WhatsApp nada confirma en un solo paso: el dueño escribe APROBAR <código> <monto según la foto> (códigos TLN-0042, TLN0042 o 4–6 cifras), el bot responde con un botón final que muestra el monto y nombra al deudor, y solo ese botón, pulsado por el dueño verificado de ese negocio, confirma; con 2–3 pendientes primero pregunta cuál; rechazar también se confirma. Al aprobar se envía la tirilla al deudor (texto) si tiene consentimiento y no está de baja, dentro de su ventana de 24 h; al rechazar, un mensaje neutro. Rutas GET /api/abonos y POST /api/abonos/:id/{aprobar,rechazar}.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "Requisito de la revisión de WAP-05: el abono pendiente llega con el saldo completo como monto sugerido (sin IA no hay lectura), así que aprobar nunca puede confirmar sin que el dueño vea y pueda corregir el monto: el botón de WhatsApp lleva a revisar el monto (o pide el monto), no confirma a ciegas. Al aprobar: comprobar el saldo de ese momento y mover el saldo en el mismo db.batch que el cambio a CONFIRMADO. Los pendientes se reconocen por source WHATSAPP_BOT, status PENDIENTE_VERIFICACION_WHATSAPP y request_id wa:<wamid>.",
-  "evidencia": [],
+  "nextStep": "",
+  "evidencia": [
+    "2026-11-14: src/worker/whatsapp/abonos.test.ts (con entrantes firmados, reloj controlado y sin red): aprobar confirma una vez (dos a la vez → una), saldo y mora exactos; monto mayor que el saldo → nada; rechazar no mueve el saldo; dueño no verificado, extraño, botón reenviado o de otra tienda → nada; APROBAR con dos pendientes → pregunta cuál; ningún texto ni botón del aviso confirma el saldo sugerido; «APROBAR 1» no es un código; tirilla solo con consentimiento y sin baja. Ataques de las rutas en aislamiento.test.ts. El historial ordena por confirmed_at (abono aprobado después de un fiado posterior queda en su sitio).",
+    "2026-11-14: e2e/abonos.spec.ts (360 y 1280): aviso en el mostrador, foto en la ficha, monto corregido, aprobar → saldo nuevo y movimiento confirmado; otro pendiente se rechaza. El recorrido corrió fuera del horario de cobro, así que sembró los pendientes en la base local de pruebas (el camino webhook → pendiente → aviso lo cubren las pruebas del Worker). Capturas docs/roadmap/evidencia/abonos-pendiente-360.png, abonos-pendiente-1280.png, abonos-mostrador-360.png.",
+    "2026-11-14: revisión independiente sin fallos de dinero ni aislamiento; arreglados con prueba: el botón del aviso ya no confirma el saldo sugerido de un toque y el texto con monto pide confirmar con un botón que nombra al deudor; códigos de 1–3 cifras ya no se confunden con opciones; orden del historial por fecha de confirmación; mensajes de deudor que empiezan por «aprobar» siguen su flujo. Decisión: la tirilla no aplica el horario de cobro (responde a un mensaje del propio deudor; B6 regula los cobros).",
+    "2026-11-14: verificado: pnpm test (1001 pruebas), pnpm typecheck, pnpm build, pnpm check:release y e2e completo en base nueva (26 pasan, 2 saltadas por diseño). No comprobado contra Meta real."
+  ],
   "actualizado": "2026-11-14"
 }

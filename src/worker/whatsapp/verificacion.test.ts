@@ -109,10 +109,10 @@ describe('verificar por WhatsApp', () => {
     expect(JSON.parse(respuesta!.content_json)).toEqual({ text: TEXTO_VERIFICADO });
     expect(await (await api('/api/negocio', { uid: 'uid_a' })).json()).toMatchObject({ whatsapp_verificado_en: MARTES_10 + 60_000 });
 
-    // Paso 3 de enrutar.ts: ya es orden del dueño, sin respuesta del bot.
+    // Paso 3 de enrutar.ts: ya es orden del dueño. Sin la respuesta neutra del bot: la contesta la tienda (WAP-06, ./abonos.ts).
     const orden = await escribe(DUENO_A, 'wamid.V2', 'APROBAR 0042');
     expect(orden).toMatchObject({ routing_state: 'ROUTED', routing_rule: 'ORDEN_DUENO', business_id: A });
-    expect(await respuestaA('wamid.V2')).toEqual([]);
+    expect(await respuestaA('wamid.V2')).toMatchObject([{ business_id: A, callback_data: 'dueno', content_json: JSON.stringify({ text: 'No encontramos el código TLN-0042 en tu libro.' }) }]);
   });
 
   test('sin verificar no se aceptan órdenes: el dueño es un desconocido', async () => {

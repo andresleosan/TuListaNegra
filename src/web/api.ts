@@ -83,3 +83,28 @@ export async function apiArchivo(ruta: string): Promise<Blob> {
   const respuesta = await pedir(ruta, 'GET');
   return respuesta.ok ? respuesta.blob() : fallo(respuesta);
 }
+
+/** `GET /api/abonos`: un abono que llegó por WhatsApp con su comprobante y espera que el tendero lo revise (WAP-06). */
+export type AbonoPendiente = {
+  id: string;
+  debtor_id: string;
+  /** Monto sugerido: sin lectura de la imagen, el saldo del deudor cuando envió el comprobante. */
+  amount_cop: number;
+  created_at: number;
+  /** La foto del comprobante: se pide con `apiArchivo(`/archivos/${clave}`)`. */
+  evidence_r2_key: string | null;
+  full_name: string;
+  unique_code: string;
+  /** Saldo de hoy: el monto aprobado no puede pasar de aquí. */
+  current_balance_cop: number;
+};
+
+/** Qué pasó con el mensaje al deudor al revisar (tirilla al aprobar, aviso neutro al rechazar). */
+export type EnvioDeudor = 'enviado' | 'sin_telefono' | 'sin_permiso' | 'baja' | 'ventana_cerrada' | 'bot_apagado' | 'fallo' | 'sin_confirmar';
+
+/** Respuesta de `POST /api/abonos/:id/aprobar` y `…/rechazar`. Errores: 404 `no_encontrado`, 409 `ya_revisado` o `supera_saldo` (con `saldo`). */
+export type AbonoRevisado = {
+  movimiento: { id: string; status: 'CONFIRMADO' | 'RECHAZADO'; amount_cop: number; balance_after_cop: number | null };
+  deudor: { current_balance_cop: number; oldest_unpaid_date: number | null; promised_payment_date: number | null };
+  envio: EnvioDeudor;
+};

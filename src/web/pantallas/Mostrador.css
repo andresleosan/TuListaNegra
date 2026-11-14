@@ -398,3 +398,42 @@
   margin: 0;
   font-size: 0.875rem;
 }
+
+/* Comprobantes por WhatsApp que esperan revisión (WAP-06): un renglón por deudor con su enlace a la ficha. */
+.mostrador__pendientes {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mostrador__pendientes li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-1) var(--esp-3);
+  padding: var(--esp-2) 0;
+  overflow-wrap: anywhere;
+}
+
+.mostrador__pendientes li + li {
+  border-top: 1.5px dashed var(--tinta);
+}
+
+.mostrador__revisar {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: 0 var(--esp-4);
+  background: var(--tinta);
+  color: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mostrador__revisar:active {
+  transform: translate(1px, 1px);
+}

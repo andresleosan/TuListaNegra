@@ -23,12 +23,18 @@ const contenidoRespuesta = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('image'), r2Key: z.string().min(1), caption: z.string().optional() }),
 ]);
 
+const deBase64 = (b64: string) => [...atob(b64)].map((c) => c.charCodeAt(0));
+
 /** Medios de muestra (d.8): imágenes mínimas reconocibles por su firma, y un archivo que no es imagen. */
 const MEDIOS: Record<string, { bytes: number[]; mimeType: string }> = {
   'sim-png': { bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0], mimeType: 'image/png' },
   'sim-jpeg': { bytes: [0xff, 0xd8, 0xff, 0xe0, 0, 0x10], mimeType: 'image/jpeg' },
   'sim-webp': { bytes: [0x52, 0x49, 0x46, 0x46, 4, 0, 0, 0, 0x57, 0x45, 0x42, 0x50], mimeType: 'image/webp' },
   'sim-no-imagen': { bytes: [...new TextEncoder().encode('no soy una imagen')], mimeType: 'image/jpeg' }, // miente en el tipo a propósito
+  // Dos «fotos» de recibo que el navegador sí dibuja (96×128, escala de grises), distintas entre sí: para ver el
+  // comprobante en la app (WAP-06) y en sus recorridos.
+  'sim-recibo-1': { bytes: deBase64('iVBORw0KGgoAAAANSUhEUgAAAGAAAACACAAAAADRtzNmAAAAm0lEQVR42u3aUQpAQBAGYIdwOvc/g1fyRBGTdrNmvykKtd+D+ZHdYa5cA6AzYCxUXwJLgQIAsgGRWAEAggYAZAWmYO2DHo+7AHQRIFGSr3PRBaCLAAmSfB60cNDaB3QRINk7uerHb7uALgIAqgPb/u3mHgDyAM8/wu+uAgCCBgAAWgWiE719A8GTAICgeVwDACHg7ytmLYsGvKoV+uilifqyea8AAAAASUVORK5CYII='), mimeType: 'image/png' },
+  'sim-recibo-2': { bytes: deBase64('iVBORw0KGgoAAAANSUhEUgAAAGAAAACACAAAAADRtzNmAAAAnElEQVR42u3aOwqAMBAFQA/h6TyJJ7dV7BT8hJCg2cwDLVJkCvcpBIelcgZAZ8BYKF8Ca4EAANGAlFoBAIoGAEQFpoScNz2udQGYIkCQJt93owvAFAECNbnqJ/PfgCkCNN7k600LFq0NwBQBANWB/Z57eQaAOMDzQfjbMTkAoGgAAOCvwHwTwBFIXAQAFM3rGgBIAlr/Y9Zv0YCsbEVy7QVnEoMKAAAAAElFTkSuQmCC'), mimeType: 'image/png' },
 };
 
 type FilaEnvio = Pick<typeof wa.$inferSelect, 'status' | 'wa_message_id' | 'error_code'>;

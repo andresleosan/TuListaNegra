@@ -31,7 +31,7 @@ async function conFoto(ruta: string): Promise<Peticion> {
 }
 
 /** Lo que la tienda A tiene sembrado: ids y textos que B nunca debe ver. */
-type Victima = { negocio: string; deudor: string; movimiento: string; request_id: string; pago: string; captura: string; cuaderno: string };
+type Victima = { negocio: string; deudor: string; movimiento: string; request_id: string; pago: string; captura: string; cuaderno: string; abono: string };
 let v: Victima;
 
 /**
@@ -61,6 +61,10 @@ const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
   ],
   // Sarin solo interpreta la frase de quien la envía: el negocio y la cuota salen de la sesión de B, nunca del cuerpo.
   'POST /api/ia/orden': () => [conJson(`/api/ia/orden?business_id=${v.negocio}`, 'POST', { frase: 'abónale veinte mil a don Carlos el del taller', business_id: v.negocio })],
+  // El abono pendiente de A (llegó por WhatsApp): B no lo ve, ni lo aprueba ni lo rechaza, aunque nombre su negocio.
+  'GET /api/abonos': () => [{ ruta: `/api/abonos?business_id=${v.negocio}` }],
+  'POST /api/abonos/:id/aprobar': () => [conJson(`/api/abonos/${v.abono}/aprobar?business_id=${v.negocio}`, 'POST', { amount_cop: 1_000, business_id: v.negocio })],
+  'POST /api/abonos/:id/rechazar': () => [conJson(`/api/abonos/${v.abono}/rechazar`, 'POST', { business_id: v.negocio })],
   'GET /api/suscripcion': () => [{ ruta: `/api/suscripcion?business_id=${v.negocio}` }],
   'POST /api/suscripcion/pagos': () => [conCaptura(`/api/suscripcion/pagos?business_id=${v.negocio}`)],
   'POST /api/cuadernos/fotos': () => [conFoto(`/api/cuadernos/fotos?business_id=${v.negocio}`)],
@@ -104,7 +108,13 @@ beforeEach(async () => {
   const { movimiento } = await pedir(conJson(`/api/deudores/${deudor.id}/movimientos`, 'POST', { request_id: 'toque-de-a-0001', type: 'FIADO', amount_cop: 50_000, description: 'SECRETO mercado' }));
   const { pago } = await pedir(conCaptura('/api/suscripcion/pagos'));
   const { foto: cuaderno } = await pedir(conFoto('/api/cuadernos/fotos'));
-  v = { negocio: `bus_${A.uid}`, deudor: deudor.id, movimiento: movimiento.id, request_id: 'toque-de-a-0001', pago: pago.id, captura: `negocios/bus_${A.uid}/pagos/${pago.id}.png`, cuaderno };
+  // Un abono pendiente como los que crea un comprobante por WhatsApp (WAP-05): no mueve el saldo.
+  const abono = 'mov_0123456789abcdef0123456789abcdef';
+  await env.DB.prepare(
+    `INSERT INTO ledger_transactions (id, business_id, debtor_id, request_id, type, amount_cop, status, description, evidence_r2_key, created_at, source)
+     VALUES (?1, ?2, ?3, 'wa:wamid.SECRETO', 'ABONO', 50000, 'PENDIENTE_VERIFICACION_WHATSAPP', 'SECRETO comprobante', ?4, ?5, 'WHATSAPP_BOT')`,
+  ).bind(abono, `bus_${A.uid}`, deudor.id, `negocios/bus_${A.uid}/comprobantes/secreto.png`, Date.now()).run();
+  v = { negocio: `bus_${A.uid}`, deudor: deudor.id, movimiento: movimiento.id, request_id: 'toque-de-a-0001', pago: pago.id, captura: `negocios/bus_${A.uid}/pagos/${pago.id}.png`, cuaderno, abono };
 });
 
 describe('cobertura', () => {
@@ -118,7 +128,7 @@ describe('cobertura', () => {
 describe('B no ve ni cambia nada de A', () => {
   test.each(Object.keys(ATAQUES))('%s', async (clave) => {
     const antes = await fotoDeA();
-    const secretos = ['SECRETO', v.negocio, v.deudor, v.movimiento, v.pago, '1032456789', '3001112233', '3009990001', 'toque-de-a-0001'];
+    const secretos = ['SECRETO', v.negocio, v.deudor, v.movimiento, v.pago, v.abono, '1032456789', '3001112233', '3009990001', 'toque-de-a-0001'];
     for (const peticion of ATAQUES[clave]!()) {
       const { ruta, init } = await peticion;
       const res = await api(ruta, B, init);
@@ -127,7 +137,7 @@ describe('B no ve ni cambia nada de A', () => {
       for (const secreto of secretos) expect(texto, `${ruta} filtró «${secreto}»`).not.toContain(secreto);
       // Con un id ajeno en la URL la respuesta es la misma que si no existiera.
       if (ruta.includes(v.deudor) && !ruta.endsWith('/movimientos')) expect(res.status, ruta).toBe(404);
-      if (ruta.startsWith('/api/archivos/')) expect(res.status, ruta).toBe(404);
+      if (ruta.startsWith('/api/archivos/') || ruta.includes(v.abono)) expect(res.status, ruta).toBe(404);
     }
     expect(await fotoDeA(), `${clave} cambió algo de la tienda A`).toBe(antes);
   });
@@ -135,7 +145,8 @@ describe('B no ve ni cambia nada de A', () => {
   test('A sí ve lo suyo (el recorrido no pasa por estar todo roto)', async () => {
     expect(await (await api(`/api/deudores/${v.deudor}`, A)).json()).toMatchObject({ full_name: 'SECRETO don Carlos', current_balance_cop: 50_000 });
     expect((await api(`/api/archivos/${v.captura}`, A)).status).toBe(200);
-    expect((await (await api(`/api/deudores/${v.deudor}/movimientos`, A)).json<any>()).movimientos).toHaveLength(1);
+    expect((await (await api(`/api/deudores/${v.deudor}/movimientos`, A)).json<any>()).movimientos).toHaveLength(2); // el fiado y el abono pendiente
+    expect((await (await api('/api/abonos', A)).json<any>()).pendientes).toMatchObject([{ id: v.abono, full_name: 'SECRETO don Carlos' }]);
   });
 });
 

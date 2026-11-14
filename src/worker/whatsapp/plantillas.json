@@ -22,8 +22,8 @@
     {
       "nombre": "aviso_abono_pendiente",
       "idioma": "es_CO",
-      "variables": 3,
-      "texto": "{{1}} envió un comprobante de pago por {{2}} (código {{3}}). Revíselo y apruébelo o recházelo."
+      "variables": 2,
+      "texto": "{{1}} ({{2}}) te envió un comprobante de pago por WhatsApp. Mira la foto en la app: el monto no se lee de la imagen. Para aprobarlo, responde APROBAR {{2}} y lo que pagó según la foto, por ejemplo APROBAR {{2}} 20000; antes de abonar te pedimos confirmarlo. Si no es un pago, toca Rechazar."
     },
     {
       "nombre": "codigo_verificacion",

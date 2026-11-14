@@ -96,3 +96,23 @@ export async function whatsappEntrante(pagina: Page, de: string, texto: string) 
   const respuesta = await pagina.request.post('/api/whatsapp/webhook', { data: cuerpo, headers: { 'Content-Type': 'application/json', 'X-Hub-Signature-256': firma } });
   expect(respuesta.status(), await respuesta.text()).toBe(200);
 }
+
+/**
+ * Una foto (medio de muestra del simulador: `sim-recibo-1`, `sim-recibo-2`…) que llega por WhatsApp al webhook real,
+ * FIRMADA como en `whatsappEntrante`. El simulador sirve sus bytes con `fetchMedia`.
+ */
+export async function whatsappImagen(pagina: Page, de: string, mediaId: string) {
+  const secreto = /^WHATSAPP_APP_SECRET=(.+)$/m.exec(readFileSync('.dev.vars', 'utf8'))?.[1]?.trim();
+  expect(secreto, 'falta WHATSAPP_APP_SECRET de desarrollo en .dev.vars (lo crea scripts/dev-identidad.mjs)').toMatch(/^tln-dev-whatsapp-/);
+  const cuerpo = JSON.stringify({
+    object: 'whatsapp_business_account',
+    entry: [{ id: '200000000000002', changes: [{ field: 'messages', value: {
+      messaging_product: 'whatsapp', metadata: { phone_number_id: '100000000000001' },
+      contacts: [{ wa_id: de.replace(/^\+/, '') }],
+      messages: [{ id: `wamid.E2E.${Date.now()}.${Math.random().toString(36).slice(2)}`, from: de.replace(/^\+/, ''), timestamp: String(Math.floor(Date.now() / 1000)), type: 'image', image: { id: mediaId, mime_type: 'image/png' } }],
+    } }] }],
+  });
+  const firma = `sha256=${createHmac('sha256', secreto!).update(cuerpo).digest('hex')}`;
+  const respuesta = await pagina.request.post('/api/whatsapp/webhook', { data: cuerpo, headers: { 'Content-Type': 'application/json', 'X-Hub-Signature-256': firma } });
+  expect(respuesta.status(), await respuesta.text()).toBe(200);
+}

@@ -1,9 +1,10 @@
 // Mostrador (MOS-01, MOS-02, IAS-02): buscar en la copia local, anotar deudores, fiar y abonar en un toque, o pedírselo a Sarin.
+// WAP-06: aviso de los comprobantes que llegaron por WhatsApp y esperan revisión (se revisan en la ficha del deudor).
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { buscar, buscarCandidatos } from '../../shared/buscar';
 import { type DeudorResumen, estadoDeudor } from '../../shared/deudor';
 import { formatoCOP, MONTO_MAXIMO_COP } from '../../shared/dinero';
-import { api, ErrorApi, type Negocio } from '../api';
+import { type AbonoPendiente, api, ErrorApi, type Negocio } from '../api';
 import { refrescarCartera, useCartera } from '../cartera';
 import { Enlace } from '../ruta';
 import { Aviso } from '../ui/Aviso';
@@ -62,9 +63,14 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
   const [creado, setCreado] = useState<DeudorResumen | null>(null);
   const [abierto, setAbierto] = useState<{ id: string; tipo: Tipo } | null>(null);
   const [hecho, setHecho] = useState<Hecho | null>(null);
+  const [pendientes, setPendientes] = useState<AbonoPendiente[]>([]);
 
   useEffect(() => {
-    const traer = () => refrescarCartera().then(() => setFalloCarga(null), (e) => setFalloCarga(comoError(e)));
+    const traer = () => {
+      // Si la lista de comprobantes no llega, el mostrador sigue igual: el aviso aparece en la próxima carga.
+      api<{ pendientes: AbonoPendiente[] }>('/abonos').then((r) => setPendientes(r.pendientes), () => {});
+      return refrescarCartera().then(() => setFalloCarga(null), (e) => setFalloCarga(comoError(e)));
+    };
     void traer();
     // Al perder o recuperar la red se vuelve a pedir: así el aviso de «sin conexión» aparece y se va solo.
     addEventListener('online', traer);
@@ -244,6 +250,7 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
           </p>
         </Aviso>
       )}
+      {pendientes.length > 0 && <ComprobantesPorRevisar pendientes={pendientes} />}
       {cuerpo}
       {negocio.vence_en !== null && !negocio.gratis && (
         <Tarjeta crema>
@@ -264,6 +271,34 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
         </Tarjeta>
       )}
     </>
+  );
+}
+
+/** Aviso en la app de los comprobantes por WhatsApp (B4, «doble aviso»): uno por deudor, con enlace a su ficha. */
+function ComprobantesPorRevisar({ pendientes }: { pendientes: AbonoPendiente[] }) {
+  const porDeudor = new Map<string, AbonoPendiente[]>();
+  for (const p of pendientes) porDeudor.set(p.debtor_id, [...(porDeudor.get(p.debtor_id) ?? []), p]);
+  const n = pendientes.length;
+  return (
+    <Aviso titulo={n === 1 ? 'Tienes 1 comprobante por revisar' : `Tienes ${n} comprobantes por revisar`}>
+      <p>Llegaron por WhatsApp. Mira la foto y apruébalos o recházalos: el saldo solo cambia cuando apruebas.</p>
+      <ul className="mostrador__pendientes" aria-label="Comprobantes por revisar">
+        {[...porDeudor.values()].map((lista) => {
+          const d = lista[0]!;
+          return (
+            <li key={d.debtor_id}>
+              <span>
+                <strong>{d.full_name}</strong> <code>{d.unique_code}</code>
+                <span className="mostrador__nota"> · {lista.length === 1 ? '1 comprobante' : `${lista.length} comprobantes`} · debe <Monto valor={d.current_balance_cop} /></span>
+              </span>
+              <Enlace a={`/deudor/${d.debtor_id}`} className="mostrador__revisar" aria-label={`Revisar los comprobantes de ${d.full_name}`}>
+                Revisar
+              </Enlace>
+            </li>
+          );
+        })}
+      </ul>
+    </Aviso>
   );
 }
 

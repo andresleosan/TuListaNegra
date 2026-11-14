@@ -1,5 +1,5 @@
 // Movimientos de un deudor (LIB-01): /api/deudores/:id/movimientos
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { MONTO_MAXIMO_COP } from '../../shared/dinero';
@@ -23,12 +23,13 @@ const Nuevo = z.object({
 
 export const movimientos = new Hono<AppEnv>();
 
-// Historial con saldo corrido (balance_after_cop), lo más nuevo arriba.
+// Historial con saldo corrido (balance_after_cop), lo más nuevo arriba. Va por la hora en que el movimiento entró al
+// saldo: un abono por WhatsApp se aprueba después de recibido (y `created_at` no cambia), así que cuenta su `confirmed_at`.
 // ponytail: tope de 500 filas sin paginar; añadir cursor cuando una ficha lo necesite.
 movimientos.get('/', async (c) => {
   const filas = await bd(c.env).select().from(ledger_transactions)
     .where(and(eq(ledger_transactions.business_id, c.var.negocio.id), eq(ledger_transactions.debtor_id, c.req.param('id')!)))
-    .orderBy(desc(ledger_transactions.created_at), desc(ledger_transactions.id)).limit(500);
+    .orderBy(desc(sql`COALESCE(${ledger_transactions.confirmed_at}, ${ledger_transactions.created_at})`), desc(ledger_transactions.id)).limit(500);
   return c.json({ movimientos: filas });
 });
 

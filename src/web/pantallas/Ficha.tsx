@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { type DeudorDetalle, TIPOS_DOCUMENTO } from '../../shared/deudor';
 import { formatoCOP, MONTO_MAXIMO_COP } from '../../shared/dinero';
 import { normalizarTelefonoCO } from '../../shared/telefono';
-import { api, ErrorApi, type Negocio } from '../api';
+import { type AbonoRevisado, api, type EnvioDeudor, ErrorApi, type Negocio } from '../api';
 import { refrescarCartera } from '../cartera';
 import { Enlace } from '../ruta';
 import { Aviso } from '../ui/Aviso';
@@ -10,6 +10,7 @@ import { Boton } from '../ui/Boton';
 import { BotonCobrar } from '../ui/BotonCobrar';
 import { Campo } from '../ui/Campo';
 import { Monto } from '../ui/Monto';
+import { RevisarAbono } from '../ui/RevisarAbono';
 import { type EstadoSello, Sello } from '../ui/Sello';
 import { Tarjeta } from '../ui/Tarjeta';
 import { Tirilla } from '../ui/Tirilla';
@@ -27,6 +28,10 @@ type Movimiento = {
   balance_after_cop: number | null;
   description: string;
   created_at: number;
+  confirmed_at: number | null;
+  /** La foto del comprobante de un abono que llegó por WhatsApp. */
+  evidence_r2_key: string | null;
+  source: string;
 };
 
 /** FIADO y AJUSTE_SUMA aumentan la deuda; ABONO y AJUSTE_RESTA la reducen (igual que el libro del servidor). */
@@ -41,15 +46,33 @@ const telefonoLocal = (e164: string) => e164.replace(/^\+57(\d{3})(\d{3})(\d{4})
 
 const ESTADO_PENDIENTE = { PENDIENTE_VERIFICACION_WHATSAPP: 'Por verificar', RECHAZADO: 'Rechazado' } as const;
 
+/** La descripción de un comprobante por WhatsApp se escribió antes de revisarlo (y no se puede cambiar): se muestra otra. */
+const concepto = (m: Movimiento) => (m.source === 'WHATSAPP_BOT' && m.type === 'ABONO' ? 'Abono con comprobante por WhatsApp' : m.description);
+
+/** Cuándo entró al saldo: un abono por WhatsApp se aprueba después de recibido (el historial va en este orden). */
+const cuando = (m: Movimiento) => m.confirmed_at ?? m.created_at;
+
+/** Qué pasó con el mensaje al deudor tras revisar un comprobante. */
+const TEXTO_ENVIO: Record<EnvioDeudor, string> = {
+  enviado: 'Le llegó por WhatsApp.',
+  ventana_cerrada: 'No le pudimos escribir por WhatsApp: pasaron más de 24 horas desde su último mensaje.',
+  sin_permiso: 'No le escribimos: no ha autorizado mensajes por WhatsApp.',
+  baja: 'No le escribimos: pidió no recibir mensajes.',
+  sin_telefono: 'No le escribimos: no tiene WhatsApp anotado.',
+  bot_apagado: 'No le escribimos: el bot de WhatsApp está apagado.',
+  fallo: 'No le pudimos escribir por WhatsApp.',
+  sin_confirmar: 'No sabemos si le llegó el mensaje por WhatsApp.',
+};
+
 /** Texto plano del recibo, para compartirlo por WhatsApp o el menú del sistema. */
 function textoRecibo(tienda: string, codigo: string, m: Movimiento, medios: string | null) {
   const saldo = m.balance_after_cop ?? 0;
   return [
     tienda,
     `Recibo · Código ${codigo}`,
-    fechaLarga(m.created_at),
+    fechaLarga(cuando(m)),
     `Saldo anterior: ${formatoCOP(saldo - delta(m))}`,
-    `${m.description}: ${formatoCOP(delta(m))}`,
+    `${concepto(m)}: ${formatoCOP(delta(m))}`,
     `Total: ${formatoCOP(saldo)}`,
     medios ? `Medios de pago: ${medios}` : null,
   ]
@@ -89,10 +112,10 @@ function Recibo({ negocio, deudor, movimiento, alCerrar }: { negocio: Negocio; d
           codigo={deudor.unique_code}
           lineas={[
             { concepto: 'Saldo anterior', monto: saldo - delta(movimiento) },
-            { concepto: movimiento.description, monto: delta(movimiento) },
+            { concepto: concepto(movimiento), monto: delta(movimiento) },
           ]}
           total={saldo}
-          fecha={fechaLarga(movimiento.created_at)}
+          fecha={fechaLarga(cuando(movimiento))}
         />
         {negocio.payment_methods_info && (
           <p className="ficha__medios">
@@ -262,6 +285,7 @@ export function Ficha({ negocio, id }: { negocio: Negocio; id: string }) {
   const [confirmarArchivo, setConfirmarArchivo] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [falloAccion, setFalloAccion] = useState<string | null>(null);
+  const [revisado, setRevisado] = useState<AbonoRevisado | null>(null);
   const escribir = negocio.permisos.escribir;
 
   useEffect(() => {
@@ -326,6 +350,8 @@ export function Ficha({ negocio, id }: { negocio: Negocio; id: string }) {
   }
 
   const ahora = Date.now();
+  // Comprobantes por revisar, el más viejo primero (la lista llega con lo más nuevo arriba).
+  const pendientes = movimientos.filter((m) => m.type === 'ABONO' && m.status === 'PENDIENTE_VERIFICACION_WHATSAPP').reverse();
   const promesaVencida = deudor.promised_payment_date !== null && deudor.promised_payment_date + 86_400_000 <= ahora;
 
   return (
@@ -356,6 +382,48 @@ export function Ficha({ negocio, id }: { negocio: Negocio; id: string }) {
           </Aviso>
         )}
       </header>
+
+      {(pendientes.length > 0 || revisado) && (
+        <section className="ficha__seccion" aria-labelledby="ficha-pendientes">
+          <h2 id="ficha-pendientes">Comprobantes por revisar</h2>
+          {revisado &&
+            (revisado.movimiento.status === 'CONFIRMADO' ? (
+              <Aviso tono="bien" titulo={`Abono de ${formatoCOP(revisado.movimiento.amount_cop)} aprobado`}>
+                <p>
+                  Ahora debe <Monto valor={revisado.deudor.current_balance_cop} />. Tirilla: {TEXTO_ENVIO[revisado.envio]}
+                  {revisado.envio !== 'enviado' && ' Puedes compartir el recibo desde aquí.'}
+                </p>
+                <Boton variante="secundaria" onClick={() => verRecibo(revisado.movimiento.id)}>
+                  Ver recibo
+                </Boton>
+              </Aviso>
+            ) : (
+              <Aviso tono="bien" titulo="Comprobante rechazado">
+                <p>
+                  El saldo sigue en <Monto valor={revisado.deudor.current_balance_cop} />. Aviso al deudor: {TEXTO_ENVIO[revisado.envio]}
+                </p>
+              </Aviso>
+            ))}
+          {pendientes.length > 0 && (
+            <p>Llegaron por WhatsApp. Mira la foto, corrige el monto si hace falta y apruébalo: el saldo solo cambia cuando apruebas.</p>
+          )}
+          {pendientes.map((m) => (
+            <RevisarAbono
+              key={m.id}
+              abono={m}
+              nombre={deudor.full_name}
+              saldo={deudor.current_balance_cop}
+              puedeEscribir={escribir}
+              alRevisar={(r) => {
+                setRevisado(r);
+                setIntento((n) => n + 1); // trae saldo y movimientos como quedaron
+                void refrescarCartera().catch(() => {});
+              }}
+              alCambiarFuera={() => setIntento((n) => n + 1)}
+            />
+          ))}
+        </section>
+      )}
 
       <div className="ficha__columnas">
         <section className="ficha__seccion ficha__zona-saldo" aria-labelledby="ficha-cuenta">
@@ -403,8 +471,8 @@ export function Ficha({ negocio, id }: { negocio: Negocio; id: string }) {
               </li>
               {movimientos.map((m) => (
                 <li key={m.id} className="ficha__renglon" data-testid="movimiento">
-                  <span className="ficha__fecha">{fechaCorta(m.created_at)}</span>
-                  <span className="ficha__concepto">{m.description}</span>
+                  <span className="ficha__fecha">{fechaCorta(cuando(m))}</span>
+                  <span className="ficha__concepto">{concepto(m)}</span>
                   <span className="ficha__valor">
                     <Monto valor={delta(m)} tono={delta(m) < 0 ? 'verde' : undefined} />
                   </span>
@@ -414,7 +482,7 @@ export function Ficha({ negocio, id }: { negocio: Negocio; id: string }) {
                   </span>
                   <span className="ficha__accion">
                     {m.balance_after_cop !== null && (
-                      <button type="button" className="ficha__ver-recibo" onClick={() => verRecibo(m.id)} aria-label={`Ver recibo: ${m.description} del ${fechaCorta(m.created_at)}`}>
+                      <button type="button" className="ficha__ver-recibo" onClick={() => verRecibo(m.id)} aria-label={`Ver recibo: ${concepto(m)} del ${fechaCorta(cuando(m))}`}>
                         Recibo
                       </button>
                     )}

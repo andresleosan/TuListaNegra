@@ -23,9 +23,10 @@ const DESCRIPCION = { FIADO: 'Fiado', ABONO: 'Abono', AJUSTE_SUMA: 'Ajuste (suma
 /** FIADO y AJUSTE_SUMA aumentan la deuda; ABONO y AJUSTE_RESTA la reducen. */
 export const signo = (tipo: Movimiento['type']) => (tipo === 'FIADO' || tipo === 'AJUSTE_SUMA' ? 1 : -1);
 
-// Fecha del fiado sin cubrir más antiguo: los abonos pagan primero los fiados más viejos (B3).
+// Fecha del fiado sin cubrir más antiguo: los abonos pagan primero los fiados más viejos (B3). La reutiliza la
+// aprobación de un abono por WhatsApp (whatsapp/abonos.ts). Parámetros: ?1 deudor, ?2 negocio, ?3 id del movimiento.
 // ponytail: recorre el historial del deudor en cada movimiento; si un deudor llega a miles de filas, guardar un cursor.
-const SQL_MORA = `
+export const SQL_MORA = `
   UPDATE debtors SET oldest_unpaid_date = (
     SELECT MIN(created_at) FROM (
       SELECT created_at, SUM(amount_cop) OVER (ORDER BY created_at, id) AS acumulado
