@@ -47,6 +47,10 @@ function cuerpoNegocio(n: Negocio, estado: EstadoNegocio, env: Env) {
     payment_methods_info: n.payment_methods_info,
     tono_cobro: tonoDe(n),
     whatsapp_phone: n.whatsapp_phone,
+    // Apagado (A3), los cobros por bot van al simulador: la app los marca como de prueba.
+    bot_whatsapp_activo: env.WHATSAPP_SEND_READY === '1',
+    // Solo desarrollo: el botón del bot se ofrece contra el simulador. En producción con el interruptor apagado, no aparece.
+    bot_whatsapp_simulado: env.WHATSAPP_SEND_READY !== '1' && env.TEST_WHATSAPP_SIMULADO === '1',
   };
 }
 

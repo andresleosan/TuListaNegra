@@ -156,8 +156,10 @@ deudores.post('/:id/cobros', async (c) => {
   if (!contacto.permitido) return c.json({ error: 'contacto_bloqueado', motivo: contacto.motivo, mensaje: contacto.mensaje }, 409);
   // Solo anota si nadie cobró entre la lectura y ahora: dos toques a la vez no generan dos cobros.
   const { meta } = await c.env.DB.prepare(
-    'UPDATE debtors SET last_reminder_sent_at = ?1 WHERE id = ?2 AND business_id = ?3 AND last_reminder_sent_at IS ?4',
-  ).bind(ahora, deudor.id, negocio.id, deudor.last_reminder_sent_at).run();
+    // Consentimiento, baja y teléfono deben seguir como se leyeron: un cambio en ese instante no se salta (B6).
+    `UPDATE debtors SET last_reminder_sent_at = ?1 WHERE id = ?2 AND business_id = ?3 AND last_reminder_sent_at IS ?4
+       AND wa_opt_out_at IS NULL AND wa_consent_at IS ?5 AND whatsapp_phone IS ?6`,
+  ).bind(ahora, deudor.id, negocio.id, deudor.last_reminder_sent_at, deudor.wa_consent_at, deudor.whatsapp_phone).run();
   if (meta.changes !== 1) return c.json({ error: 'contacto_bloqueado', motivo: 'YA_COBRADO_HOY', mensaje: 'Ya le cobraste hoy a este deudor. Solo se permite un cobro al día.' }, 409);
   const texto = textoDeCobro(tono, { tienda: negocio.name, nombre: deudor.full_name, saldo_cop: deudor.current_balance_cop, medios_de_pago: negocio.payment_methods_info });
   return c.json({ texto, url: enlaceWhatsApp(deudor.whatsapp_phone, texto), last_reminder_sent_at: ahora });

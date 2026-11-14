@@ -11,6 +11,8 @@ PILOT_EMAILS=<correo-piloto-1>,<correo-piloto-2>
 
 # Correos con acceso a la consola de superadministrador. Nunca en el repositorio (A1.5).
 SUPERADMIN_EMAILS=<correo-del-superadministrador>
+# Solo desarrollo: ofrece el cobro por bot contra el simulador con WHATSAPP_SEND_READY apagado. Nunca en producción.
+TEST_WHATSAPP_SIMULADO=1
 
 # Cómo contactar a soporte; se le muestra a un negocio suspendido.
 SOPORTE_CONTACTO=<whatsapp-o-correo-de-soporte>

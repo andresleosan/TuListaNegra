@@ -62,6 +62,16 @@ describe('alta correcta', () => {
     expect(fila!.created_at).toBeGreaterThan(1);
   });
 
+  test('dice si el bot de WhatsApp envía de verdad: con WHATSAPP_SEND_READY apagado, no', async () => {
+    await alta();
+    expect(await (await api('/api/negocio', { uid: 'uid_1', email: PILOTO }, {}, CERRADO)).json()).toMatchObject({ bot_whatsapp_activo: false });
+    const encendido = { ...CERRADO, WHATSAPP_SEND_READY: '1' };
+    expect(await (await api('/api/negocio', { uid: 'uid_1', email: PILOTO }, {}, encendido)).json()).toMatchObject({ bot_whatsapp_activo: true, bot_whatsapp_simulado: false });
+    // Producción con el interruptor apagado (sin el simulador de desarrollo): el botón del bot no se ofrece.
+    const produccion = { ...CERRADO, TEST_WHATSAPP_SIMULADO: undefined };
+    expect(await (await api('/api/negocio', { uid: 'uid_1', email: PILOTO }, {}, produccion)).json()).toMatchObject({ bot_whatsapp_activo: false, bot_whatsapp_simulado: false });
+  });
+
   test('recorta el nombre', async () => {
     const res = await alta(undefined, { ...DATOS, name: '  Tienda Rubi  ' });
     expect(await res.json()).toMatchObject({ name: 'Tienda Rubi' });

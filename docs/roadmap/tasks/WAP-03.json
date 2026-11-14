@@ -2,7 +2,7 @@
   "id": "WAP-03",
   "fase": "F4",
   "titulo": "Cobro por plantilla con los tres tonos.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,10 +16,15 @@
     "whatsapp"
   ],
   "criterio": "Respeta COB-01 y la cuota; cada envío queda registrado.",
-  "hecho": "",
+  "hecho": "POST /api/cobros-bot/:id envía la plantilla cobro_<tono> por SarinGateway con las mismas reglas que el cobro por enlace, gastando una unidad de «cobros por bot»; el envío queda en whatsapp_messages con el negocio. BotonCobrar ofrece «Enviar con el bot» (con «(simulado)» en desarrollo); en producción con WHATSAPP_SEND_READY apagado no aparece y la ruta responde bot_apagado sin gastar ni anotar.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Envío real: cola del dueño (variante A o B, plantillas aprobadas, WHATSAPP_SEND_READY).",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/cobros-bot.test.ts → 28 pruebas pasan, sin red (fetch vigilado): sin consentimiento, baja, fuera de horario, sin saldo o sin teléfono → 409 sin enviar, sin cuota y sin fila; en regla → una fila con la plantilla y variables idénticas al texto de cobro, business_id de la sesión y una cuota; sin cuota → 409; dos toques a la vez → un envío; mismo request_id → misma respuesta sin gastar; rechazo → 502 sin cuota ni anotación; unknown o envío que lanza → 202 con cuota gastada (ambiguo no se reintenta); vencida → 403. e2e/morosos.spec.ts pulsa «Enviar con el bot» (respuesta simulada: corrió fuera de horario). Captura docs/roadmap/evidencia/morosos-bot-360.png.",
+    "2026-11-14: revisión independiente sin hallazgos de seguridad; arreglados con prueba: en producción con el interruptor apagado el botón no aparece y la ruta no gasta cuota ni bloquea el cobro real (TEST_WHATSAPP_SIMULADO solo en desarrollo, prohibido por check:release); un envío que lanza es ambiguo (202); el trabajo corre bajo waitUntil para que una desconexión no lo deje a medias; la anotación exige que consentimiento, baja y teléfono sigan como se leyeron (también en el cobro por enlace); un envío «failed» no se responde como enviado; los medios de pago van en una sola línea (Meta rechaza saltos de línea en variables).",
+    "No comprobado: envío real con Meta (gateway real sin implementar hasta que el dueño elija la variante; plantillas sin aprobar).",
+    "2026-11-14: lote verificado: pnpm test (753 pruebas, 32 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo en base local nueva (todas las pantallas, 360 y 1280 px) → 22 pasan, 2 saltadas por diseño."
+  ],
   "actualizado": "2026-11-14"
 }

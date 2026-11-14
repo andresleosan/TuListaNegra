@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { api, ErrorApi, type Negocio, type NegocioSuspendido } from './api';
-import { borrarCartera } from './cartera';
+import { borrarCartera, guardarNegocio, negocioGuardado } from './cartera';
 import { Alta } from './pantallas/Alta';
 import { Esqueleto } from './pantallas/Esqueleto';
 import { Hoja } from './pantallas/Hoja';
@@ -78,15 +78,29 @@ function Tienda({ proveedor }: { proveedor: ProveedorSesion }) {
   const refrescar = useCallback(() => {
     api<Negocio | NegocioSuspendido>('/negocio').then((negocio) => setCarga({ tipo: 'lista', negocio }), () => {});
   }, []);
+  // Si abrió sin red con el negocio guardado, al volver la red se trae el de verdad.
+  useEffect(() => {
+    addEventListener('online', refrescar);
+    return () => removeEventListener('online', refrescar);
+  }, [refrescar]);
+  // El último negocio queda guardado junto a la copia de la cartera (ligado a esta cuenta; se borra al salir).
+  useEffect(() => {
+    if (carga.tipo === 'lista') guardarNegocio(carga.negocio);
+  }, [carga]);
 
   const cargar = useCallback(() => {
     let vigente = true;
     setCarga({ tipo: 'cargando' });
     api<Negocio | NegocioSuspendido>('/negocio').then(
       (negocio) => vigente && setCarga({ tipo: 'lista', negocio }),
-      (e: unknown) => {
+      async (e: unknown) => {
         if (!vigente) return;
         const error = e instanceof ErrorApi ? e : new ErrorApi(0, 'error_desconocido');
+        // Sin red (MOS-05): se abre con el último negocio de esta cuenta guardado en este navegador. Las pantallas ven
+        // la cartera «sin conexión» y no dejan escribir; sin red tampoco llega nada al servidor.
+        const guardado = error.status === 0 ? await negocioGuardado() : null;
+        if (!vigente) return;
+        if (guardado) return setCarga({ tipo: 'lista', negocio: guardado });
         setCarga(error.status === 404 && error.error === 'sin_negocio' ? { tipo: 'sin_negocio' } : { tipo: 'error', error });
       },
     );

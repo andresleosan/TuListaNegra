@@ -1,9 +1,10 @@
 // Copia local de solo lectura de los deudores (MOS-01): con ella se busca sin esperar a la red.
 // Solo lleva lo necesario para buscar y pintar la lista (`DeudorResumen`): nunca el documento completo ni el teléfono.
 // Se guarda también en IndexedDB para que, si la red falla, se pueda buscar en la última copia. Se borra al salir.
+// Junto a ella va el último negocio (MOS-05): así la app instalada abre sin red con la tienda de esta cuenta.
 import { useSyncExternalStore } from 'react';
 import type { DeudorResumen } from '../shared/deudor';
-import { api, ErrorApi } from './api';
+import { api, ErrorApi, type Negocio, type NegocioSuspendido } from './api';
 import { cargarProveedor } from './sesion';
 
 export type Cartera = {
@@ -33,6 +34,7 @@ export const useCartera = () =>
 const BASE = 'tln-cartera';
 const ALMACEN = 'copia';
 type Guardada = { uid: string; deudores: DeudorResumen[]; actualizada_en: number };
+type NegocioGuardado = { uid: string; negocio: Negocio | NegocioSuspendido };
 
 // Sube al borrar: una copia que se estaba guardando mientras se salía no vuelve a escribirse.
 let generacion = 0;
@@ -48,7 +50,8 @@ function abrir(): Promise<IDBDatabase> {
   });
 }
 
-async function guardar(copia: Omit<Guardada, 'uid'>) {
+/** Guarda `valor` en `clave`, ligado a la cuenta de la sesión actual. */
+async function guardar<T extends { uid: string }>(clave: 'actual' | 'negocio', valor: Omit<T, 'uid'>) {
   const antes = generacion;
   try {
     const uid = await uidActual();
@@ -56,21 +59,21 @@ async function guardar(copia: Omit<Guardada, 'uid'>) {
     const db = await abrir();
     if (antes !== generacion) return db.close();
     const tx = db.transaction(ALMACEN, 'readwrite');
-    tx.objectStore(ALMACEN).put({ ...copia, uid } satisfies Guardada, 'actual');
+    tx.objectStore(ALMACEN).put({ ...valor, uid }, clave);
     tx.oncomplete = tx.onerror = () => db.close();
   } catch {
     // Sin copia persistente: se busca igual mientras la pestaña siga abierta.
   }
 }
 
-/** La última copia guardada de esta misma cuenta, o `null`. */
-async function leerGuardada(): Promise<Guardada | null> {
+/** Lo último guardado en `clave` por esta misma cuenta, o `null`. */
+async function leerGuardada<T extends { uid: string }>(clave: 'actual' | 'negocio'): Promise<T | null> {
   try {
     const uid = await uidActual();
     const db = await abrir();
-    const copia = await new Promise<Guardada | undefined>((resolver, fallar) => {
-      const pedido = db.transaction(ALMACEN).objectStore(ALMACEN).get('actual');
-      pedido.onsuccess = () => resolver(pedido.result as Guardada | undefined);
+    const copia = await new Promise<T | undefined>((resolver, fallar) => {
+      const pedido = db.transaction(ALMACEN).objectStore(ALMACEN).get(clave);
+      pedido.onsuccess = () => resolver(pedido.result as T | undefined);
       pedido.onerror = () => fallar(pedido.error);
     });
     db.close();
@@ -91,16 +94,22 @@ export async function refrescarCartera(): Promise<void> {
     if (esta !== ultimaPeticion) return;
     const actualizada_en = Date.now();
     publicar({ deudores, estado: 'lista', actualizada_en });
-    void guardar({ deudores, actualizada_en });
+    void guardar<Guardada>('actual', { deudores, actualizada_en });
   } catch (e) {
     if (esta !== ultimaPeticion) return;
     if (!(e instanceof ErrorApi && e.status === 0)) throw e;
     // Sin red: lo que ya hay en memoria, o si no la última copia guardada en este navegador.
-    const guardada = cartera.actualizada_en === null ? await leerGuardada() : null;
+    const guardada = cartera.actualizada_en === null ? await leerGuardada<Guardada>('actual') : null;
     if (esta !== ultimaPeticion) return;
     publicar(guardada ? { deudores: guardada.deudores, estado: 'sin_conexion', actualizada_en: guardada.actualizada_en } : { ...cartera, estado: 'sin_conexion' });
   }
 }
+
+/** Guarda el último negocio que dio el servidor, para abrir sin red. */
+export const guardarNegocio = (negocio: Negocio | NegocioSuspendido) => void guardar<NegocioGuardado>('negocio', { negocio });
+
+/** El último negocio guardado por esta misma cuenta en este navegador, o `null`. */
+export const negocioGuardado = async () => (await leerGuardada<NegocioGuardado>('negocio'))?.negocio ?? null;
 
 /** Al cerrar sesión no queda nada de la tienda en este navegador. */
 export async function borrarCartera(): Promise<void> {

@@ -61,6 +61,7 @@ async function preparar() {
       `TEST_JWKS_JSON='${JSON.stringify(jwks)}'`,
       'PILOT_EMAILS=piloto@ejemplo.test,piloto2@ejemplo.test',
       'SUPERADMIN_EMAILS=admin@ejemplo.test',
+      'TEST_WHATSAPP_SIMULADO=1',
       '',
     ].join('\n'),
     { mode: 0o600 },

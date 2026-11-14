@@ -1,0 +1,279 @@
+/* Pasar mi cuaderno: la foto junto a una hoja de renglones numerados, como copiar el cuaderno viejo al libro mayor. */
+.cua__nota {
+  font-size: var(--texto-s);
+}
+
+.cua__inicio {
+  display: grid;
+  gap: var(--esp-6);
+}
+
+.cua__como {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.cua__como ol {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding-left: var(--esp-6);
+}
+
+.cua__subir {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-4);
+}
+
+.cua__subir > .campo {
+  width: 100%;
+  max-width: 32rem;
+}
+
+/* Móvil: la foto arriba y la tabla debajo. Escritorio: la foto queda fija al lado mientras se copia. */
+.cua__mesa {
+  display: grid;
+  gap: var(--esp-6);
+  align-items: start;
+}
+
+.cua__foto {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+}
+
+.cua__foto img {
+  display: block;
+  width: 100%;
+  max-height: 45vh;
+  object-fit: contain;
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.cua__tabla {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.cua__tabla > * {
+  width: 100%;
+}
+
+.cua__tabla > .boton {
+  width: auto;
+}
+
+.cua__tabla h2 {
+  padding-bottom: var(--esp-2);
+  border-bottom: var(--borde-grueso);
+}
+
+/* La hoja: renglones blancos separados por líneas discontinuas, cada uno con su número en monoespaciada. */
+.cua__renglones {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.cua__renglon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'numero quitar'
+    'nombre nombre'
+    'apodo saldo';
+  gap: var(--esp-2) var(--esp-3);
+  align-items: start;
+  padding: var(--esp-3) var(--esp-4) var(--esp-4);
+}
+
+.cua__renglon + .cua__renglon {
+  border-top: 1.5px dashed var(--tinta);
+}
+
+.cua__numero {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.cua__renglon > .cua__numero {
+  grid-area: numero;
+  align-self: center;
+  font-size: var(--texto-l);
+}
+
+.cua__nombre {
+  grid-area: nombre;
+}
+
+.cua__apodo {
+  grid-area: apodo;
+}
+
+.cua__saldo {
+  grid-area: saldo;
+}
+
+.cua__saldo input {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cua__quitar {
+  grid-area: quitar;
+  justify-self: end;
+}
+
+.cua__total {
+  display: grid;
+  gap: var(--esp-2);
+  padding: var(--esp-3) 0;
+  border-top: var(--borde-grueso);
+  border-bottom: var(--borde-grueso);
+  font-size: var(--texto-l);
+}
+
+.cua__total .campo__error {
+  font-size: var(--texto-s);
+}
+
+.cua__botones {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.cua__botones a.boton {
+  text-decoration: none;
+}
+
+.cua__confirmar {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+/* Lo que se va a pasar, y lo que se pasó: renglones de libro con el monto a la derecha. */
+.cua__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cua__lista li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--esp-3);
+  align-items: center;
+  min-height: var(--toque);
+  padding: var(--esp-2) 0;
+  border-bottom: 1.5px dashed var(--tinta);
+}
+
+.cua__lista--hoja {
+  padding: 0 var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.cua__lista--hoja li:last-child {
+  border-bottom: 0;
+}
+
+.cua__quien {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* El nombre lleva a la ficha: zona de toque cómoda aunque el texto sea corto. */
+.cua__quien a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+}
+
+.cua__apodo-texto {
+  font-size: var(--texto-s);
+}
+
+.cua__codigo {
+  font-size: var(--texto-s);
+  font-weight: 700;
+}
+
+.cua__suma {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  font-size: var(--texto-l);
+  font-weight: 800;
+}
+
+@media (min-width: 48rem) {
+  .cua__inicio {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .cua__mesa {
+    grid-template-columns: 18rem minmax(0, 1fr);
+  }
+
+  .cua__foto {
+    position: sticky;
+    top: var(--esp-4);
+  }
+
+  .cua__foto img {
+    max-height: calc(100vh - 8rem);
+  }
+
+  /* Un renglón por persona, como columnas de libro mayor. */
+  .cua__renglon {
+    grid-template-columns: 2rem minmax(0, 1fr) minmax(0, 1fr) 8rem auto;
+    grid-template-areas: 'numero nombre apodo saldo quitar';
+    padding-top: var(--esp-3);
+  }
+
+  /* Etiquetas en un renglón: así las cajas de todas las columnas quedan a la misma altura. */
+  .cua__renglon label {
+    white-space: nowrap;
+  }
+
+  .cua__renglon > .cua__numero {
+    align-self: start;
+    padding-top: 2.4rem;
+    font-size: var(--texto-m);
+  }
+
+  .cua__quitar {
+    align-self: start;
+    padding-top: 1.85rem;
+  }
+
+  .cua__botones {
+    grid-template-columns: repeat(2, max-content);
+  }
+
+  .cua__confirmar {
+    max-width: 40rem;
+  }
+
+  .cua__lista--hoja {
+    max-width: 40rem;
+  }
+}

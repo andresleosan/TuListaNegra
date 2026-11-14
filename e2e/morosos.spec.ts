@@ -149,6 +149,34 @@ test('morosos: orden por antigüedad, tres tonos, sin consentimiento y fuera de 
   await expect(filaWilmar.getByRole('alert')).toContainText('no ha autorizado que le escriban por WhatsApp');
   expect(await abiertos(page)).toHaveLength(3);
 
+  // WAP-03: «Enviar con el bot» a un deudor en mora con consentimiento. Con WHATSAPP_SEND_READY apagado va al simulador
+  // y la pantalla lo dice. Si el reloj real cae fuera del horario de cobro, el servidor responde 409 y se simula su respuesta.
+  const hernan = await deudor('Hernán Ospina', 15_000, { wa_consentimiento: true, promised_payment_date: Date.now() - 3 * DIA });
+  const pedidosBot: { tono: string; request_id: string }[] = [];
+  await page.route(`**/api/cobros-bot/${hernan.id}`, async (route) => {
+    pedidosBot.push(route.request().postDataJSON());
+    const real = await route.fetch();
+    if (real.ok()) return route.fulfill({ response: real });
+    const cuerpo = await real.json();
+    expect(['DOMINGO', 'FESTIVO', 'FUERA_DE_HORARIO']).toContain(cuerpo.motivo);
+    info.annotations.push({ type: 'cobro por bot simulado', description: `${hernan.full_name}: el servidor respondió ${cuerpo.motivo}` });
+    await route.fulfill({ json: { estado: 'enviado', simulado: true, last_reminder_sent_at: Date.now() } });
+  });
+  await page.reload();
+  await expect(filas).toHaveCount(5);
+  const filaHernan = filas.filter({ hasText: 'Hernán Ospina' });
+  await filaHernan.getByRole('button', { name: 'Cobrar a Hernán Ospina' }).click();
+  if (ancho === 360) await captura(page, 'morosos-bot-panel-360');
+  const antesBot = (await abiertos(page)).length;
+  await filaHernan.getByRole('button', { name: 'Enviar con el bot (simulado)' }).click();
+  await expect(filaHernan.getByRole('status')).toContainText('Enviado (simulado)');
+  await expect(filaHernan.getByRole('status')).toContainText('a Hernán Ospina no le llegó nada');
+  expect(await abiertos(page)).toHaveLength(antesBot); // el bot no abre el WhatsApp del tendero
+  expect(pedidosBot).toEqual([{ tono: 'CORTE_DE_QUINCENA', request_id: expect.stringMatching(/^[A-Za-z0-9_-]{8,64}$/) }]);
+  await sinDesborde(page);
+  if (ancho === 360) await captura(page, 'morosos-bot-360');
+  await page.unroute(`**/api/cobros-bot/${hernan.id}`);
+
   // Plan vencido: se ve la lista, pero Cobrar lleva a Suscripción en vez de fallar.
   await page.route('**/api/negocio', async (route) => {
     if (route.request().method() !== 'GET') return route.fallback();
@@ -157,7 +185,7 @@ test('morosos: orden por antigüedad, tres tonos, sin consentimiento y fuera de 
     await route.fulfill({ response: respuesta, json: { ...negocio, estado: 'EXPIRED_READONLY', permisos: { ver: true, escribir: false, ia: false } } });
   });
   await page.reload();
-  await expect(filas).toHaveCount(4);
+  await expect(filas).toHaveCount(5);
   await expect(filas.nth(0).getByRole('link', { name: 'Suscripción' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Cobrar a / })).toHaveCount(0);
   await page.unroute('**/api/negocio');

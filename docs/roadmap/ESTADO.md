@@ -2,6 +2,9 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · MOS-05 · TuListaNegra se puede instalar en el teléfono y, tras abrirla una vez, abre sin internet y busca en la copia guardada (sin fiar ni abonar hasta que vuelva la red). · 26 → 27 de 39
+- 2026-11-14 · WAP-03 · El tendero puede cobrar con el bot de WhatsApp usando las plantillas de los tres tonos, con las mismas reglas de horario y permiso y su cuota; por ahora solo contra el simulador (el envío real espera la decisión del dueño). · 25 → 26 de 39
+- 2026-11-14 · IAS-04 · El tendero pasa su cuaderno a la app: sube la foto, corrige la tabla mirándola y confirma; los deudores entran con su saldo y la foto como evidencia. La lectura automática espera a que se encienda la IA. · 24 → 25 de 39
 - 2026-11-14 · WAP-01 · Existe la base de WhatsApp: webhook firmado, registro de mensajes sin duplicados y un simulador que permite probar toda la fase 4 sin Meta y sin escribir a nadie. Sin cambio visible. · 23 → 24 de 39
 - 2026-11-14 · SUP-01..04 · El superadministrador tiene su consola: revisa capturas y aprueba o rechaza pagos con motivo, busca negocios y les da cortesía, gratis, suspensión o reactivación con motivo, y ve los indicadores. · 19 → 23 de 39
 - 2026-11-14 · SUS-01, AJU-01 · El tendero elige su pase, ve dónde pagar y sube la captura desde la app; en Ajustes cambia cómo le pagan, los días para pasar a mora y el tono de cobro, y lo ve en el recibo y en el cobro. · 17 → 19 de 39

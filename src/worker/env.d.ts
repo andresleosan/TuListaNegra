@@ -15,6 +15,8 @@ declare namespace Cloudflare {
     WHATSAPP_APP_SECRET?: string;
     /** Token que Meta repite en el reto GET de alta del webhook. Sin él, el reto responde 403. */
     WHATSAPP_VERIFY_TOKEN?: string;
+    /** Solo desarrollo y pruebas: habilita el cobro por bot contra el simulador con el interruptor apagado. check:release lo prohíbe en producción. */
+    TEST_WHATSAPP_SIMULADO?: string;
     /** Solo pruebas y simulador local: JWKS propio en vez del de Google. check:release impide que llegue a producción. */
     TEST_JWKS_JSON?: string;
   }

@@ -43,6 +43,13 @@
   font-weight: 700;
 }
 
+/* Enlace discreto al migrador de cuadernos: texto pequeño, pero con zona de toque de 44 px. */
+.mostrador__cuaderno {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+}
+
 /* Buscador: el campo ocupa todo el ancho; «Nuevo deudor» debajo en móvil y al lado desde 48 rem. */
 .mostrador__buscador {
   display: grid;

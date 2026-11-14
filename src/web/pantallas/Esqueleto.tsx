@@ -4,13 +4,14 @@ import { Boton } from '../ui/Boton';
 import { Tarjeta } from '../ui/Tarjeta';
 import { avisoDeEstado } from '../vigencia';
 import { Ajustes } from './Ajustes';
+import { Cuaderno } from './Cuaderno';
 import { Ficha } from './Ficha';
 import { Morosos } from './Morosos';
 import { Mostrador } from './Mostrador';
 import { Suscripcion } from './Suscripcion';
 import './Esqueleto.css';
 
-// Las secciones de la navegación. La ficha de un deudor (/deudor/<id>) cuelga del mostrador.
+// Las secciones de la navegación. La ficha de un deudor (/deudor/<id>) y el migrador (/cuaderno) cuelgan del mostrador.
 const SECCIONES = [
   { ruta: '/', nombre: 'Mostrador' },
   { ruta: '/morosos', nombre: 'Morosos' },
@@ -33,7 +34,7 @@ type Props = {
 export function Esqueleto({ negocio, alSalir, alRecargar, alActualizar, esSuperadmin }: Props) {
   const ruta = useRuta();
   const ficha = ruta.match(/^\/deudor\/([\w-]+)$/)?.[1];
-  const seccionActual = ficha ? '/' : ruta;
+  const seccionActual = ficha || ruta === '/cuaderno' ? '/' : ruta;
   const estado = avisoDeEstado(negocio, Date.now());
   return (
     <div className="app">
@@ -61,6 +62,8 @@ export function Esqueleto({ negocio, alSalir, alRecargar, alActualizar, esSupera
           <Mostrador negocio={negocio} />
         ) : ficha ? (
           <Ficha key={ficha} negocio={negocio} id={ficha} />
+        ) : ruta === '/cuaderno' ? (
+          <Cuaderno negocio={negocio} />
         ) : ruta === '/morosos' ? (
           <Morosos negocio={negocio} />
         ) : ruta === '/suscripcion' ? (

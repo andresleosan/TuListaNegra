@@ -19,11 +19,15 @@ const PLANTILLAS: Record<Tono, (d: DatosDeCobro & { saldo: string }) => string> 
   AVISO_FIRME: (d) => `${d.nombre}, le escribe ${d.tienda}. Su saldo pendiente es de ${d.saldo} y ya pasó el plazo acordado. Le pedimos ponerse al día o decirnos qué día puede pagar.`,
 };
 
+/** La frase de cómo pagar, con un solo punto final. La usan el cobro por enlace y la plantilla del bot. */
+export const comoPagar = (medios: string | null | undefined) =>
+  // Una sola línea: Meta rechaza variables de plantilla con saltos de línea, tabuladores o espacios repetidos.
+  medios?.trim() ? `Puede pagar así: ${medios.replace(/\s+/g, ' ').replace(/[.\s]*$/, '')}.` : 'Puede pagar directamente en la tienda.';
+
 export function textoDeCobro(tono: Tono, d: DatosDeCobro): string {
-  const comoPagar = d.medios_de_pago ? `Puede pagar así: ${d.medios_de_pago.replace(/[.\s]*$/, '')}.` : 'Puede pagar directamente en la tienda.';
   return [
     PLANTILLAS[tono]({ ...d, saldo: formatoCOP(d.saldo_cop) }),
-    comoPagar,
+    comoPagar(d.medios_de_pago),
     'Si ya pagó, no tenga en cuenta este mensaje. Si no quiere recibir más recordatorios, responda SALIR.',
   ].join(' ');
 }

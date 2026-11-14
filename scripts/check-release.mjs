@@ -2,6 +2,7 @@
 // Comprobaciones previas a publicar. Falla (exit 1) si algo de solo-pruebas o prohibido llegaría a producción.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import vm from 'node:vm';
 
 const fallos = [];
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8');
@@ -48,6 +49,12 @@ if (!existe('dist/client')) {
     const halladas = MARCAS_SIMULADOR.filter((marca) => contenido.includes(marca));
     if (halladas.length) fallos.push(`${ruta.slice(ruta.indexOf('dist/client'))} contiene el simulador de ingreso de desarrollo: ${halladas.join(', ')}.`);
   }
+}
+
+// MOS-05: el service worker nunca guarda la API ni la sesión de desarrollo (datos privados): se prueba su filtro `seGuarda`.
+const seGuarda = vm.runInNewContext(`${leer('public/sw.js')}\n;seGuarda`, { self: { addEventListener() {} }, location: { origin: 'https://tln.test' }, URL, Set });
+for (const ruta of ['/api', '/api/deudores', '/api/negocio', '/__dev/token']) {
+  if (seGuarda(new URL(ruta, 'https://tln.test'))) fallos.push(`public/sw.js guardaría ${ruta} en la caché: /api y /__dev van siempre a la red.`);
 }
 
 if (fallos.length) {

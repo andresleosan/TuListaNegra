@@ -1,6 +1,6 @@
 // AUT-02: entrar → crear negocio → mostrador vacío con «Te quedan 3 días», contra el simulador local de identidad.
 import { expect, type Page, test } from '@playwright/test';
-import { captura as capturaEn, entrar as entrarSinEsperar, llenarAlta, sinDesborde, SUFIJO } from './ayudas';
+import { captura as capturaEn, entrar as entrarSinEsperar, esperarMostrador, llenarAlta, sinDesborde, SUFIJO } from './ayudas';
 
 async function entrar(pagina: Page, correo: string, uid: string) {
   await entrarSinEsperar(pagina, correo, uid);
@@ -43,8 +43,8 @@ test('entrar → alta → mostrador vacío con «Te quedan 3 días»; recargar; 
   if (movil) await captura(page, 'alta-360');
   await page.getByRole('button', { name: 'Empezar mi prueba de 3 días' }).click();
 
-  // Mostrador vacío con el aviso de vigencia.
-  await expect(page.getByRole('heading', { name: 'Mostrador' })).toBeVisible();
+  // Mostrador vacío con el aviso de vigencia (esperando el minuto si otros recorridos agotaron el límite de altas).
+  await esperarMostrador(page);
   await expect(page.getByRole('banner')).toContainText('Tienda La Esquina de Rubi');
   await expect(page.getByRole('banner')).toContainText('Te quedan 3 días');
   await expect(page.getByRole('heading', { name: 'Tu libro está en blanco' })).toBeVisible();

@@ -118,6 +118,12 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
           <h2>Tu libro está en blanco</h2>
           <p>Anota a tu primer deudor: basta con el nombre o el apodo. Después le fías, le abonas y le cobras desde aquí.</p>
           {puedeEscribir && <Boton onClick={() => setCreando('')}>Crear mi primer deudor</Boton>}
+          <p className="mostrador__nota">
+            ¿Llevas los fiados en un cuaderno?{' '}
+            <Enlace a="/cuaderno" className="mostrador__cuaderno">
+              Pasar mi cuaderno
+            </Enlace>
+          </p>
         </div>
       </Tarjeta>
     ) : (
@@ -187,6 +193,12 @@ export function Mostrador({ negocio }: { negocio: Negocio }) {
             ))}
           </ol>
         )}
+        <p className="mostrador__nota">
+          ¿Te quedan fiados en el cuaderno?{' '}
+          <Enlace a="/cuaderno" className="mostrador__cuaderno">
+            Pasar mi cuaderno
+          </Enlace>
+        </p>
       </>
     );
 

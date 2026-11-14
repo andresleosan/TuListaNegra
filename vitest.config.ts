@@ -23,6 +23,7 @@ export default defineConfig({
                 FIREBASE_PROJECT_ID: 'tln-pruebas',
                 // Vacías a propósito: sin esto las pruebas heredarían las listas de un .dev.vars local.
                 SUPERADMIN_EMAILS: '',
+                TEST_WHATSAPP_SIMULADO: '1', // el cobro por bot se prueba contra el simulador
                 PILOT_EMAILS: '',
                 TEST_JWKS_JSON: JSON.stringify(jwks),
                 TEST_PRIVATE_JWK: JSON.stringify(await exportJWK(llaves.privateKey)),

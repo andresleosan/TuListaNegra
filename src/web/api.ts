@@ -39,6 +39,9 @@ export type Negocio = {
   payment_methods_info: string | null;
   tono_cobro: Tono;
   whatsapp_phone: string | null;
+  /** `false` mientras `WHATSAPP_SEND_READY` esté apagado: los cobros por bot son de prueba (simulados). */
+  bot_whatsapp_activo: boolean;
+  bot_whatsapp_simulado: boolean;
 };
 
 /** Un negocio suspendido solo recibe el aviso y cómo contactar. */

@@ -2,7 +2,7 @@
   "id": "MOS-05",
   "fase": "F1",
   "titulo": "PWA instalable.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "pwa"
   ],
   "criterio": "Se instala en el móvil y, tras una carga, busca sin conexión.",
-  "hecho": "",
-  "falta": "Abrir la app desde cero sin red: hoy la copia local en IndexedDB solo sirve si /api/negocio carga (App.tsx muestra «No hay conexión» si no). Con la PWA hay que servir el esqueleto y el último negocio sin red (viene de MOS-01).",
+  "hecho": "PWA: manifest con iconos 192/512 y maskable, service worker escrito a mano (red primero; caché solo para el esqueleto; nunca /api ni /__dev; caché versionada), guardado del último negocio junto a la copia de la cartera (mismo uid, se borra al salir) y apertura sin red con aviso «Sin conexión» y sin acciones de escribir.",
+  "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: e2e/pwa.spec.ts (360 y 1280): manifest válido e iconos PNG que responden; service worker activo y en control tras una carga; Chrome (Page.getInstallabilityErrors) no pone ninguna objeción salvo «in-incognito», que es del navegador de pruebas; sin red se recarga, abre el mostrador con «Sin conexión» y la búsqueda encuentra al deudor; al volver la red desaparece el aviso; salir borra la copia y el negocio. check:release ejecuta el filtro del service worker y falla si guardaría /api o /__dev. Capturas docs/roadmap/evidencia/pwa-sin-conexion-360.png, pwa-sin-conexion-1280.png.",
+    "2026-11-14: build de producción probado aparte por el subagente (servido en estático): tras una carga, sin red y sin caché HTTP, la página abre con CSS y fuente. Una de 9 ejecuciones del recorrido falló (toBeVisible) y no se reprodujo en 8 posteriores; anotado en MEJORAS.",
+    "No comprobado: instalar en un móvil real; el flujo sin red con Firebase real (según el código del SDK, conserva la sesión guardada); en desarrollo el simulador de identidad no recupera la sesión sin red y el e2e responde /__dev/token con page.route.",
+    "2026-11-14: lote verificado: pnpm test (753 pruebas, 32 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo en base local nueva (todas las pantallas, 360 y 1280 px) → 22 pasan, 2 saltadas por diseño."
+  ],
   "actualizado": "2026-11-14"
 }

@@ -54,6 +54,9 @@ const ATAQUES: Record<string, () => (Peticion | Promise<Peticion>)[]> = {
     conJson(`/api/deudores/${v.deudor}/movimientos`, 'POST', { request_id: v.request_id, type: 'FIADO', amount_cop: 5_000 }), // el request_id de A
   ],
   'POST /api/deudores/:id/cobros': () => [conJson(`/api/deudores/${v.deudor}/cobros`, 'POST', { tono: 'AVISO_FIRME' })],
+  'POST /api/cobros-bot/:id': () => [
+    conJson(`/api/cobros-bot/${v.deudor}`, 'POST', { tono: 'AVISO_FIRME', request_id: 'ataque-bot-0001', business_id: v.negocio }),
+  ],
   'GET /api/suscripcion': () => [{ ruta: `/api/suscripcion?business_id=${v.negocio}` }],
   'POST /api/suscripcion/pagos': () => [conCaptura(`/api/suscripcion/pagos?business_id=${v.negocio}`)],
   'POST /api/cuadernos/fotos': () => [conFoto(`/api/cuadernos/fotos?business_id=${v.negocio}`)],
@@ -84,6 +87,7 @@ async function fotoDeA() {
     deudores: await filas('debtors'),
     libro: await filas('ledger_transactions'),
     pagos: await filas('subscription_payments'),
+    mensajes: await filas('whatsapp_messages'),
     archivos: (await env.ARCHIVOS.list({ prefix: `negocios/${v.negocio}/` })).objects.map((o) => `${o.key}:${o.size}`),
   });
 }
