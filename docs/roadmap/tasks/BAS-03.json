@@ -2,7 +2,7 @@
   "id": "BAS-03",
   "fase": "F0",
   "titulo": "Esquema D1 inicial con Drizzle: `businesses`, `subscription_payments`, `debtors`, `ledger_transactions`, `admin_audit_log`.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "schema"
   ],
   "criterio": "La migración aplica sobre una base local nueva; pruebas de únicos, índices parciales y montos mayores que 0.",
-  "hecho": "",
+  "hecho": "Esquema Drizzle (src/worker/db/schema.ts) y migración migrations/0000_inicial.sql con las cinco tablas, únicos, índices parciales, CHECK de montos/estados/saldo no negativo y disparadores que impiden editar o borrar el libro (salvo pendientes) y la auditoría. Binding DB en wrangler.jsonc. Ids ULID con prefijo en src/shared/ids.ts.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: wrangler d1 migrations apply tulistanegra --local sobre .wrangler/state recién borrado → 21 comandos, 0000_inicial ✅; sqlite_master lista 5 tablas y 4 disparadores.",
+    "pnpm exec vitest run --project worker → 23 pruebas pasan (schema.test.ts: únicos, parciales de documento y de pago pendiente, montos > 0, CHECK de tipo/estado/origen/plan, FK, inmutabilidad). Cada prueba reinicia el almacenamiento y reaplica las migraciones (src/worker/test/setup.ts).",
+    "Decisión (más simple, fuente B3): las propiedades TypeScript usan el mismo nombre snake_case que las columnas, sin capa de mapeo. El consecutivo TLN se generará en DEU-01 con una sola sentencia INSERT…SELECT MAX+1, sin columna contador.",
+    "Decisión: database_id remoto fuera de wrangler.jsonc hasta BAS-05; en local no hace falta. Los disparadores se añadieron a mano al final del SQL generado (drizzle-kit no los genera)."
+  ],
   "actualizado": "2026-11-14"
 }

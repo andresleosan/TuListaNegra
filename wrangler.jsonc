@@ -10,6 +10,8 @@
     "run_worker_first": ["/api/*"]
   },
   "triggers": { "crons": ["0 * * * *"] },
+  // El database_id remoto se añade al crear la base (BAS-05). En local no hace falta.
+  "d1_databases": [{ "binding": "DB", "database_name": "tulistanegra", "migrations_dir": "migrations" }],
   "observability": { "enabled": true },
   // Interruptores (docs/spec/reglas.md, A3). Solo el dueño los enciende.
   "vars": {

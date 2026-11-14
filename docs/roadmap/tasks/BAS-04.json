@@ -2,17 +2,22 @@
   "id": "BAS-04",
   "fase": "F0",
   "titulo": "Inspección de referencias → `docs/spec/referencias.md` y `docs/spec/contrato-sarin.md`.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [],
   "resources": [
     "docs-spec"
   ],
   "criterio": "Ambos citan archivos concretos, dicen qué patrón se adapta de cada uno y no contienen secretos. Si la ruta local no existe, usa los repositorios y anótalo.",
-  "hecho": "",
+  "hecho": "docs/spec/referencias.md (6 patrones con archivos concretos, qué se adapta y qué no) y docs/spec/contrato-sarin.md (interfaz SarinGateway, webhook y firma, las dos variantes, simulador, supuestos sin confirmar).",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: inspeccionados andresleosan/SarinBotSAAS@651f36f y andresleosan/AgendIA@db58e36 (clones superficiales, solo lectura, nada ejecutado). La ruta local E:\\\\Proyectos\\\\Sarin Bot no existe en este equipo (Linux): se usaron los repositorios y quedó anotado en ambos documentos.",
+    "Barrido con grep de tokens, claves, correos, teléfonos, UUID y hashes largos sobre los dos documentos: sin coincidencias. 35 y 10 citas de archivos de las referencias.",
+    "No encontrado en las referencias (documentado como tal): OCR de comprobantes, envío de plantillas, medios entrantes, enrutamiento entre negocios con número compartido, interfaz para que otra app use Sarin Bot, bitácora de auditoría y gratis sin vencimiento. Esas piezas son diseño propio de TuListaNegra.",
+    "Hecho por subagente de solo lectura; el orquestador repitió el barrido de secretos y revisó la estructura."
+  ],
   "actualizado": "2026-11-14"
 }
