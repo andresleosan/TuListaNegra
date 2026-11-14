@@ -6,6 +6,7 @@ import { nuevoId } from '../../shared/ids';
 import { servirObjeto } from '../archivos';
 import type { AppEnv } from '../auth';
 import { type businesses, ESTADOS_PAGO } from '../db/schema';
+import { indicadores } from '../indicadores';
 import { DIA } from '../planes';
 import { aprobarPago, rechazarPago, type ResultadoRevision } from '../revision';
 import { requiereSuperadmin } from '../superadmin';
@@ -142,3 +143,7 @@ superadmin.post('/negocios/:id/:accion', async (c) => {
   if (!negocio) return c.json({ error: 'no_encontrado' }, 404);
   return c.json(vistaNegocio(negocio, ahora));
 });
+
+// --- Indicadores (SUP-04) ---
+
+superadmin.get('/indicadores', async (c) => c.json(await indicadores(c.env)));
