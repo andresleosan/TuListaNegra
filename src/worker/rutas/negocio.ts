@@ -13,6 +13,7 @@ import { ipDe, limitar } from '../limite';
 import { cuotasDe, PLANES } from '../planes';
 import { enLista } from '../superadmin';
 import { cuerpo } from '../validar';
+import { emitirCodigo } from '../whatsapp/verificacion';
 
 export const negocio = new Hono<AppEnv>();
 
@@ -47,6 +48,8 @@ function cuerpoNegocio(n: Negocio, estado: EstadoNegocio, env: Env) {
     payment_methods_info: n.payment_methods_info,
     tono_cobro: tonoDe(n),
     whatsapp_phone: n.whatsapp_phone,
+    // WAP-02: cuándo se verificó el teléfono de la tienda (sin verificar, sus mensajes no son órdenes). Nunca la huella.
+    whatsapp_verificado_en: n.whatsapp_verified_at,
     // Apagado (A3), los cobros por bot van al simulador: la app los marca como de prueba.
     bot_whatsapp_activo: env.WHATSAPP_SEND_READY === '1',
     // Solo desarrollo: el botón del bot se ofrece contra el simulador. En producción con el interruptor apagado, no aparece.
@@ -79,6 +82,17 @@ negocio.patch('/', async (c) => {
     .where(eq(businesses.id, c.var.negocio.id)) // el negocio de la sesión, nunca uno que nombre el navegador
     .returning();
   return c.json(cuerpoNegocio(guardado!, c.var.estado, c.env));
+});
+
+// Código para verificar el teléfono de la tienda (WAP-02). El negocio es el de la sesión; el cuerpo va vacío (`{}`).
+// Devuelve el código una sola vez, para mostrarlo: la base guarda solo su huella.
+negocio.post('/whatsapp/codigo', async (c) => {
+  await cuerpo(c, z.strictObject({}));
+  const n = c.var.negocio;
+  if (!n.whatsapp_phone) return c.json({ error: 'sin_telefono' }, 409);
+  if (n.whatsapp_verified_at !== null) return c.json({ error: 'ya_verificado' }, 409);
+  const emitido = await emitirCodigo(c.env, n.id, Date.now());
+  return emitido ? c.json(emitido) : c.json({ error: 'espera_codigo' }, 429);
 });
 
 // Solo esto llega del navegador. Plan, fechas, cuotas, dueño e ids los fija el servidor: lo demás se descarta.

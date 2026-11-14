@@ -2,7 +2,7 @@
   "id": "WAP-02",
   "fase": "F4",
   "titulo": "Verificación del teléfono del dueño por código.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,15 @@
     "whatsapp"
   ],
   "criterio": "Código correcto verifica; vencido o con demasiados intentos, no; sin verificar no se aceptan órdenes.",
-  "hecho": "",
+  "hecho": "POST /api/negocio/whatsapp/codigo emite un código de 6 dígitos (10 min; uno cada 30 s; la base guarda solo su huella SHA-256 atada al negocio). El dueño lo envía por WhatsApp desde el número de su tienda: el enrutamiento lo intercepta (paso 3 bis, solo con código vigente y con intentos) y src/worker/whatsapp/verificacion.ts compara en tiempo constante; correcto → whatsapp_verified_at y desde entonces sus mensajes son orden del dueño; incorrecto suma intento; vencido o con 5 fallos no verifica. Cambiar el teléfono borra la verificación (disparador en la migración aditiva 0005). Ajustes muestra el estado, el código y la instrucción (modo de prueba con el interruptor apagado).",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "WAP-06 ya puede empezar (órdenes del dueño verificado).",
+  "evidencia": [
+    "2026-11-14: src/worker/whatsapp/verificacion.test.ts con entrantes firmados por el webhook real y reloj controlado: correcto → verificado y luego ORDEN_DUENO; sin verificar no hay órdenes; incorrecto suma intento; vencido no; 6.º intento correcto no; código nuevo invalida el anterior; código de A desde el teléfono de B o de un extraño → nada; la base y la API nunca llevan el código en claro; límite de 30 s; reentregas idempotentes; cambiar el teléfono borra la verificación. Ataque de la ruta en aislamiento.test.ts. Sin red ni registros.",
+    "2026-11-14: e2e/ajustes.spec.ts genera el código en la pantalla y lo envía como entrante FIRMADO al webhook real (secreto de desarrollo tln-dev-whatsapp- en .dev.vars, que crea scripts/dev-identidad.mjs; nada salta la firma) → «Verificado» tras recargar. Capturas docs/roadmap/evidencia/ajustes-whatsapp-360.png, ajustes-whatsapp-verificado-360.png.",
+    "2026-11-14: revisión independiente: nadie que no sea el dueño queda verificado; arreglado con prueba el hallazgo medio (un código vencido o agotado desviaba los mensajes de 6 dígitos de ese teléfono a «verificación»); los bajos en MEJORAS (reintento si falla la comprobación, teléfono reservado sin verificar, huella sin secreto, verificación sin caducidad).",
+    "2026-11-14: verificado: pnpm test (972 pruebas), pnpm typecheck, pnpm build, pnpm check:release y e2e completo en base nueva (24 pasan, 2 saltadas por diseño). No comprobado contra Meta real."
+  ],
   "actualizado": "2026-11-14"
 }

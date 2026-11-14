@@ -74,3 +74,112 @@
     top: var(--esp-4);
   }
 }
+
+/* WhatsApp de la tienda (WAP-02): estado del número y código de verificación como un recibo. */
+.ajustes-wa {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.ajustes-wa h2 {
+  justify-self: stretch;
+  padding-bottom: var(--esp-2);
+  border-bottom: var(--borde-grueso);
+}
+
+.ajustes-wa__linea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.ajustes-wa__numero {
+  font-family: var(--fuente-mono);
+  font-variant-ligatures: none;
+  font-weight: 700;
+}
+
+/* Sello de caucho propio de la pantalla: el texto dice el estado; el verde solo lo refuerza. */
+.ajustes-wa__sello {
+  display: inline-block;
+  padding: 1px var(--esp-2);
+  background: var(--blanco);
+  color: var(--tinta);
+  border: 4px double currentColor;
+  border-radius: var(--radio);
+  font-size: var(--texto-s);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-2deg);
+}
+
+.ajustes-wa__sello--si {
+  color: var(--verde);
+}
+
+.ajustes-wa__codigo {
+  display: grid;
+  gap: var(--esp-2);
+  width: 100%;
+  max-width: 26rem;
+  padding: var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  box-shadow: var(--sombra-dura);
+}
+
+.ajustes-wa__etiqueta {
+  font-size: var(--texto-s);
+  font-weight: 700;
+}
+
+.ajustes-wa__digitos {
+  padding: var(--esp-2) 0;
+  border-top: 1.5px dashed var(--tinta);
+  border-bottom: 1.5px dashed var(--tinta);
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+}
+
+/* Marcador del número que aún no existe: se ve que falta, no parece un dato. */
+.ajustes-wa__pendiente {
+  padding: 0 var(--esp-1);
+  background: var(--crema);
+  border: 1.5px dashed var(--tinta);
+  font-family: var(--fuente-mono);
+  font-variant-ligatures: none;
+  font-size: var(--texto-s);
+  white-space: nowrap;
+}
+
+.ajustes-wa__sin-corte {
+  white-space: nowrap;
+}
+
+.ajustes-wa__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+}
+
+@media (min-width: 48rem) {
+  .ajustes-wa {
+    grid-column: 1;
+  }
+
+  /* La muestra ocupa las dos filas: sigue a la vista al bajar hasta el WhatsApp. */
+  .ajustes__muestra {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}

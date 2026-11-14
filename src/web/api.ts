@@ -39,6 +39,8 @@ export type Negocio = {
   payment_methods_info: string | null;
   tono_cobro: Tono;
   whatsapp_phone: string | null;
+  /** Cuándo se verificó el teléfono de la tienda (WAP-02); `null` = sin verificar: sus mensajes no son órdenes. */
+  whatsapp_verificado_en: number | null;
   /** `false` mientras `WHATSAPP_SEND_READY` esté apagado: los cobros por bot son de prueba (simulados). */
   bot_whatsapp_activo: boolean;
   bot_whatsapp_simulado: boolean;

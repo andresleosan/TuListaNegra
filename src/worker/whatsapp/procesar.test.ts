@@ -375,7 +375,8 @@ describe('«SALIR» → baja inmediata que bloquea los cobros', () => {
 
 describe('lo que no es de un deudor enrutado no se procesa aquí', () => {
   test('órdenes del dueño verificado (aunque su teléfono sea también el de un deudor): ni abono, ni baja, ni promesa', async () => {
-    await env.DB.prepare('UPDATE businesses SET whatsapp_phone = ?1, whatsapp_verified_at = ?2 WHERE id = ?3').bind(DUENO_A, MARTES_10 - 1, A).run();
+    await env.DB.prepare('UPDATE businesses SET whatsapp_phone = ?1 WHERE id = ?2').bind(DUENO_A, A).run(); // un número nuevo llega sin verificar
+    await env.DB.prepare('UPDATE businesses SET whatsapp_verified_at = ?1 WHERE id = ?2').bind(MARTES_10 - 1, A).run();
     const d = await deudor('uid_a', DUENO_A);
     await cobrar('uid_a', d);
     await manda(imagen('wamid.D1', { de: DUENO_A }));

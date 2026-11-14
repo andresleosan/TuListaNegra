@@ -7,6 +7,7 @@ import { Boton } from '../ui/Boton';
 import { Campo } from '../ui/Campo';
 import { CampoTexto } from '../ui/CampoTexto';
 import { Opcion } from '../ui/Opcion';
+import { fechaLarga } from '../vigencia';
 import './Ajustes.css';
 
 // Una frase por tono para elegir rápido; el mensaje completo sale en la muestra de al lado.
@@ -22,6 +23,130 @@ const ERROR_DIAS = 'Escribe un número entero de días entre 1 y 365. Ejemplo: 3
 type CampoAjuste = 'medios' | 'dias' | 'tono';
 const DEL_SERVIDOR: Record<string, CampoAjuste> = { payment_methods_info: 'medios', default_alert_days: 'dias', tono_cobro: 'tono' };
 const MENSAJE: Record<CampoAjuste, string> = { medios: ERROR_MEDIOS, dias: ERROR_DIAS, tono: 'Elige uno de los tres tonos.' };
+
+/** «+57 310 999 8877» */
+const telefonoLegible = (t: string) => t.replace(/^\+57(\d{3})(\d{3})(\d{4})$/, '+57 $1 $2 $3');
+
+type Codigo = { codigo: string; vence_en: number };
+
+/**
+ * WhatsApp de la tienda (WAP-02): estado de la verificación y el código que el dueño envía desde ese número.
+ * El código solo se ve aquí, al generarlo: el servidor guarda su huella, no el código.
+ */
+function WhatsappTienda({ negocio, soloLectura, alVerificar }: { negocio: Negocio; soloLectura: boolean; alVerificar: (negocio: Negocio) => void }) {
+  const [codigo, setCodigo] = useState<Codigo | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [fallo, setFallo] = useState<ErrorApi | null>(null);
+  const [sinLlegar, setSinLlegar] = useState(false);
+  const telefono = negocio.whatsapp_phone ? telefonoLegible(negocio.whatsapp_phone) : null;
+  const bloqueado = soloLectura || fallo?.status === 403;
+
+  async function pedir<T>(hacer: () => Promise<T>): Promise<T | null> {
+    setFallo(null);
+    setEnviando(true);
+    try {
+      return await hacer();
+    } catch (error) {
+      setFallo(error instanceof ErrorApi ? error : new ErrorApi(0, 'error_desconocido'));
+      return null;
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  const generar = async () => {
+    setSinLlegar(false);
+    const nuevo = await pedir(() => api<Codigo>('/negocio/whatsapp/codigo', { metodo: 'POST', cuerpo: {} }));
+    if (nuevo) setCodigo(nuevo);
+  };
+
+  const comprobar = async () => {
+    const nuevo = await pedir(() => api<Negocio>('/negocio'));
+    if (!nuevo) return;
+    setSinLlegar(nuevo.whatsapp_verificado_en === null);
+    alVerificar(nuevo);
+  };
+
+  return (
+    <section className="ajustes-wa" aria-labelledby="ajustes-wa-titulo">
+      <h2 id="ajustes-wa-titulo">WhatsApp de la tienda</h2>
+      <p className="ajustes-wa__linea">
+        <span className="ajustes-wa__numero">{telefono ?? 'Sin número'}</span>
+        <span className={`ajustes-wa__sello${negocio.whatsapp_verificado_en ? ' ajustes-wa__sello--si' : ''}`}>
+          {negocio.whatsapp_verificado_en ? 'Verificado' : 'Sin verificar'}
+        </span>
+      </p>
+
+      {negocio.whatsapp_verificado_en ? (
+        <>
+          <p>Verificado el {fechaLarga(negocio.whatsapp_verificado_en)}</p>
+          <p>Los mensajes que envíes desde este número se toman como órdenes de tu tienda.</p>
+        </>
+      ) : (
+        <>
+          <p>Las órdenes por WhatsApp se activan al verificar el número. Hasta entonces, lo que escribas desde él no se toma como una orden.</p>
+          {!negocio.bot_whatsapp_activo && (
+            <Aviso titulo="Modo de prueba">
+              <p>El WhatsApp de TuListaNegra todavía está apagado: ningún mensaje sale ni llega de verdad. El código solo sirve en las pruebas.</p>
+            </Aviso>
+          )}
+          {codigo && (
+            <div className="ajustes-wa__codigo">
+              <p className="ajustes-wa__etiqueta">Tu código</p>
+              <p className="ajustes-wa__digitos">{`${codigo.codigo.slice(0, 3)} ${codigo.codigo.slice(3)}`}</p>
+              <p className="ajustes-wa__etiqueta">Sirve hasta el {fechaLarga(codigo.vence_en)}</p>
+              <p>
+                Envía este código por WhatsApp desde el número de tu tienda (<span className="ajustes-wa__sin-corte">{telefono}</span>) al número de TuListaNegra:{' '}
+                <span className="ajustes-wa__pendiente">número aún sin activar</span>
+              </p>
+              <p className="ajustes__ayuda">
+                TuListaNegra todavía no tiene su número de WhatsApp. Cuando lo tenga, saldrá aquí. Si generas otro código, este deja de servir.
+              </p>
+            </div>
+          )}
+          {sinLlegar && (
+            <Aviso titulo="Todavía no nos llega tu código">
+              <p>Revisa que lo enviaste desde {telefono}, tal como sale aquí, y vuelve a tocar «Ya lo envié».</p>
+            </Aviso>
+          )}
+          {fallo && fallo.status !== 403 && (
+            <Aviso tono="error" titulo={fallo.status === 0 ? 'No hay conexión' : fallo.error === 'espera_codigo' ? 'Acabas de pedir un código' : 'No pudimos hacerlo'}>
+              <p>
+                {fallo.status === 0
+                  ? 'Revisa tu internet y vuelve a tocar el botón.'
+                  : fallo.error === 'espera_codigo'
+                    ? 'Espera medio minuto y vuelve a tocar «Generar código».'
+                    : fallo.error === 'sin_telefono'
+                      ? 'Tu tienda no tiene un número de WhatsApp registrado.'
+                      : fallo.status === 401
+                        ? 'Tu sesión venció. Sal, vuelve a entrar e inténtalo de nuevo.'
+                        : 'Es un problema nuestro, no tuyo. Vuelve a tocar el botón en un momento.'}
+              </p>
+            </Aviso>
+          )}
+          {bloqueado ? (
+            <p className="ajustes__ayuda">
+              Con el plan vencido no puedes generar códigos. Renuévalo en <Enlace a="/suscripcion">Suscripción</Enlace>.
+            </p>
+          ) : (
+            telefono && (
+              <div className="ajustes-wa__acciones">
+                <Boton variante={codigo ? 'secundaria' : 'primaria'} onClick={generar} disabled={enviando}>
+                  {codigo ? 'Generar otro código' : 'Generar código'}
+                </Boton>
+                {codigo && (
+                  <Boton onClick={comprobar} disabled={enviando}>
+                    Ya lo envié
+                  </Boton>
+                )}
+              </div>
+            )
+          )}
+        </>
+      )}
+    </section>
+  );
+}
 
 const revisarDias = (v: string) => (/^\d{1,3}$/.test(v.trim()) && Number(v) >= 1 && Number(v) <= 365 ? null : ERROR_DIAS);
 
@@ -165,6 +290,7 @@ export function Ajustes({ negocio, alGuardar }: { negocio: Negocio; alGuardar: (
           <p className="ajustes__ayuda">Ejemplo con un cliente inventado. Cambia al escribir.</p>
           <p className="ajustes__mensaje">{muestra}</p>
         </aside>
+        <WhatsappTienda negocio={negocio} soloLectura={soloLectura} alVerificar={alGuardar} />
       </div>
     </>
   );

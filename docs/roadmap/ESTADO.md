@@ -2,6 +2,7 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · WAP-02 · En Ajustes el tendero genera un código y lo envía por WhatsApp desde el número de su tienda; al verificarlo, sus mensajes cuentan como órdenes. Funciona con el simulador hasta que exista el número de TuListaNegra. · 31 → 32 de 39
 - 2026-11-14 · WAP-05 · Cuando un deudor manda por WhatsApp la foto de su pago, queda un abono pendiente con la foto para que el tendero lo apruebe; si dice una fecha, se le pregunta y se anota al confirmar; si escribe «SALIR», no se le vuelve a cobrar. Por ahora contra el simulador. · 30 → 31 de 39
 - 2026-11-14 · IAS-03 · Al encender la IA, la bandeja de pagos mostrará el monto y la referencia leídos de cada captura y alertará si el monto no cuadra o la referencia ya se usó, también en otra tienda; nunca aprueba sola. · 29 → 30 de 39
 - 2026-11-14 · IAS-02 · El tendero le escribe (o dicta con el teclado) a Sarin «abónale veinte mil a don Carlos» y ve la propuesta con el saldo antes y después; nada se anota hasta que confirma. Apagado hasta encender la IA. · 28 → 29 de 39

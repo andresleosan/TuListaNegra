@@ -1,6 +1,6 @@
 // AJU-01: cambiar medios de pago, días de alerta y tono; recargar y verlos; que lleguen a los cobros; tienda vencida.
 import { expect, type Page, test } from '@playwright/test';
-import { apiComo, captura, entrar, esperarMostrador, llenarAlta, sinDesborde, SUFIJO, tokenComo, uidDe } from './ayudas';
+import { apiComo, captura, entrar, esperarMostrador, llenarAlta, sinDesborde, SUFIJO, tokenComo, uidDe, whatsappEntrante } from './ayudas';
 
 /** Una tienda por proyecto, compartida con suscripcion.spec.ts: la crea el primero que llega. Prefijo 315 (móvil) o 316 (escritorio). */
 async function abrirTienda(pagina: Page, movil: boolean) {
@@ -62,6 +62,36 @@ test('guardar ajustes, recargar, verlos en los cobros; vencida no cambia nada', 
   await expect(dias).toHaveValue('7');
   await expect(page.getByRole('radio', { name: /Corte de quincena/ })).toBeChecked();
   expect(await apiComo(page, uidDe(clave), '/negocio')).toMatchObject({ payment_methods_info: MEDIOS, default_alert_days: 7, tono_cobro: 'CORTE_DE_QUINCENA' });
+
+  // WAP-02: WhatsApp de la tienda sin verificar → generar el código y verlo con su instrucción.
+  const wa = page.getByRole('region', { name: 'WhatsApp de la tienda' });
+  await expect(wa.getByText('Sin verificar', { exact: true })).toBeVisible();
+  await expect(wa.getByText('Las órdenes por WhatsApp se activan al verificar el número.', { exact: false })).toBeVisible();
+  await expect(wa.getByText('Modo de prueba')).toBeVisible(); // WHATSAPP_SEND_READY apagado en local
+  await wa.getByRole('button', { name: 'Generar código' }).click();
+  await expect(wa.getByText(/^\d{3} \d{3}$/)).toBeVisible();
+  await expect(wa.getByText(/^Sirve hasta el /)).toBeVisible();
+  await expect(wa.getByText('número aún sin activar')).toBeVisible();
+  await expect(wa.getByRole('button', { name: 'Generar otro código' })).toBeVisible();
+  await sinDesborde(page);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); // la barra fija queda al pie de la captura
+  await captura(page, `ajustes-whatsapp-${ancho}`);
+  // Nadie lo ha enviado: el servidor sigue sin verificar y la pantalla lo dice.
+  await wa.getByRole('button', { name: 'Ya lo envié' }).click();
+  await expect(wa.getByText('Todavía no nos llega tu código')).toBeVisible();
+  expect(await apiComo(page, uidDe(clave), '/negocio')).toMatchObject({ whatsapp_verificado_en: null });
+  // El dueño envía el código desde el número de su tienda: llega al webhook real, firmado (secreto de desarrollo).
+  const codigo = (await wa.getByText(/^\d{3} \d{3}$/).textContent())!.replace(/\s/g, '');
+  await whatsappEntrante(page, `+57${movil ? 315 : 316}${SUFIJO}`, codigo);
+  await expect.poll(async () => (await apiComo(page, uidDe(clave), '/negocio')).whatsapp_verificado_en).not.toBeNull();
+  await page.reload();
+  await expect(wa.getByText('Verificado', { exact: true })).toBeVisible();
+  await expect(wa.getByText(/^Verificado el .+\d/)).toBeVisible();
+  await expect(wa.getByText('Los mensajes que envíes desde este número se toman como órdenes de tu tienda.')).toBeVisible();
+  await expect(wa.getByRole('button', { name: /Generar/ })).toHaveCount(0);
+  await sinDesborde(page);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); // la barra fija queda al pie de la captura
+  await captura(page, `ajustes-whatsapp-verificado-${ancho}`);
 
   // En los cobros: deudor con saldo, teléfono y consentimiento.
   const deudor = await apiComo(page, uidDe(clave), '/deudores', { metodo: 'POST', cuerpo: { full_name: 'don Carlos', whatsapp_phone: '+573001234567', wa_consentimiento: true } });

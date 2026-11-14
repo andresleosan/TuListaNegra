@@ -134,7 +134,8 @@ describe('paso 2: respuesta a un mensaje nuestro → negocio y deudor exactos', 
   });
 
   test('va antes que el paso 3: el dueño verificado de A que responde a un cobro de B → B', async () => {
-    await env.DB.prepare('UPDATE businesses SET whatsapp_phone = ?1, whatsapp_verified_at = ?2 WHERE id = ?3').bind(DUENO_A, MARTES_10, A).run();
+    await env.DB.prepare('UPDATE businesses SET whatsapp_phone = ?1 WHERE id = ?2').bind(DUENO_A, A).run(); // un número nuevo llega sin verificar
+    await env.DB.prepare('UPDATE businesses SET whatsapp_verified_at = ?1 WHERE id = ?2').bind(MARTES_10, A).run();
     const deudorB = await deudor('uid_b', DUENO_A);
     const cobroB = await cobrar('uid_b', deudorB);
     const fila = await escribe({ de: DUENO_A, id: 'wamid.R5', respondeA: cobroB });
@@ -144,7 +145,8 @@ describe('paso 2: respuesta a un mensaje nuestro → negocio y deudor exactos', 
 
 describe('paso 3: teléfono verificado de un dueño → orden del dueño', () => {
   test('el dueño VERIFICADO de A escribe → orden de A, sin deudor y sin respuesta del bot', async () => {
-    await env.DB.prepare('UPDATE businesses SET whatsapp_phone = ?1, whatsapp_verified_at = ?2 WHERE id = ?3').bind(DUENO_A, MARTES_10 - HORA, A).run();
+    await env.DB.prepare('UPDATE businesses SET whatsapp_phone = ?1 WHERE id = ?2').bind(DUENO_A, A).run(); // un número nuevo llega sin verificar
+    await env.DB.prepare('UPDATE businesses SET whatsapp_verified_at = ?1 WHERE id = ?2').bind(MARTES_10 - HORA, A).run();
     const fila = await escribe({ de: DUENO_A, id: 'wamid.D1', texto: 'APROBAR 0042' });
     expect(fila).toMatchObject({ routing_state: 'ROUTED', routing_rule: 'ORDEN_DUENO', business_id: A, debtor_id: null });
     expect(await respuestasDelBot()).toEqual([]);

@@ -1,4 +1,6 @@
 // Ayudas compartidas por los recorridos de navegador (Playwright) contra el simulador local de identidad.
+import { createHmac } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { expect, type Page, test } from '@playwright/test';
 
 /** Único por ejecución (lo fija playwright.config.ts): la D1 local persiste y cada recorrido necesita cuentas nuevas. */
@@ -73,4 +75,24 @@ export async function apiComo<T = any>(pagina: Page, uid: string, ruta: string, 
   const respuesta = await pagina.request.fetch(`/api${ruta}`, { method: metodo, headers: { Authorization: `Bearer ${await tokenComo(pagina, uid)}` }, data: cuerpo });
   expect(respuesta.ok(), `${metodo} /api${ruta} → ${respuesta.status()} ${await respuesta.text()}`).toBe(true);
   return (await respuesta.json()) as T;
+}
+
+/**
+ * Un mensaje de WhatsApp que llega al webhook real, FIRMADO con el secreto de desarrollo de `.dev.vars` (prefijo
+ * `tln-dev-whatsapp-`, el único que el simulador acepta con el interruptor apagado). Nada salta la firma (A1.7).
+ */
+export async function whatsappEntrante(pagina: Page, de: string, texto: string) {
+  const secreto = /^WHATSAPP_APP_SECRET=(.+)$/m.exec(readFileSync('.dev.vars', 'utf8'))?.[1]?.trim();
+  expect(secreto, 'falta WHATSAPP_APP_SECRET de desarrollo en .dev.vars (lo crea scripts/dev-identidad.mjs)').toMatch(/^tln-dev-whatsapp-/);
+  const cuerpo = JSON.stringify({
+    object: 'whatsapp_business_account',
+    entry: [{ id: '200000000000002', changes: [{ field: 'messages', value: {
+      messaging_product: 'whatsapp', metadata: { phone_number_id: '100000000000001' },
+      contacts: [{ wa_id: de.replace(/^\+/, '') }],
+      messages: [{ id: `wamid.E2E.${Date.now()}.${Math.random().toString(36).slice(2)}`, from: de.replace(/^\+/, ''), timestamp: String(Math.floor(Date.now() / 1000)), type: 'text', text: { body: texto } }],
+    } }] }],
+  });
+  const firma = `sha256=${createHmac('sha256', secreto!).update(cuerpo).digest('hex')}`;
+  const respuesta = await pagina.request.post('/api/whatsapp/webhook', { data: cuerpo, headers: { 'Content-Type': 'application/json', 'X-Hub-Signature-256': firma } });
+  expect(respuesta.status(), await respuesta.text()).toBe(200);
 }

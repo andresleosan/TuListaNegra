@@ -2,8 +2,10 @@
 // El paso 1 (firma válida y `wa_message_id` no repetido) ya lo hicieron el webhook y `guardarEventos`: aquí solo llegan
 // entrantes sin enrutar (los nuevos y los que un fallo dejó a medias), y `marcar` impide decidir dos veces el mismo.
 // Este módulo decide los pasos 2 a 6, en su orden, y deja el entrante enrutado y clasificado.
-// Lo que viene después (verificar el código del dueño, comprobante, promesa, baja, aprobar o rechazar) es de WAP-02,
-// WAP-05 (./procesar.ts) y WAP-06: aquí no se interpreta el texto ni se escribe dinero (A1.3).
+// Entre los pasos 3 y 4 va la verificación del teléfono del dueño (WAP-02, ./verificacion.ts): el código que envía un
+// dueño sin verificar se marca VERIFICACION y se comprueba aquí mismo, así no cae en los pasos 4 a 6 (ni recibe la
+// respuesta neutra). Lo demás (comprobante, promesa, baja, aprobar o rechazar) es de WAP-05 (./procesar.ts) y WAP-06:
+// aquí no se interpreta el texto ni se escribe dinero (A1.3).
 //
 // Aislamiento: el negocio sale de datos nuestros (el saliente citado, el teléfono verificado del dueño, los salientes de
 // las últimas 72 h) o del teléfono del remitente, que viene firmado. Nada de lo que escribe el remitente asigna un negocio:
@@ -13,6 +15,7 @@ import type { REGLAS_ENRUTAMIENTO } from '../db/schema';
 import { gatewayPara } from './index';
 import { esBaja } from './promesa';
 import { VENTANA_MS } from './simulado';
+import { codigoDe, pendienteDe, verificarCodigo } from './verificacion';
 
 /** Paso 4: cuánto tiempo hacia atrás cuenta que un negocio le haya escrito a ese número (límite incluido). */
 export const VENTANA_ENRUTAMIENTO_MS = 72 * 3_600_000;
@@ -84,6 +87,12 @@ export async function decidir(env: Env, e: Entrante): Promise<Decision> {
   const dueno = await env.DB.prepare('SELECT id FROM businesses WHERE whatsapp_phone = ?1 AND whatsapp_verified_at IS NOT NULL')
     .bind(e.phone).first<{ id: string }>();
   if (dueno) return { estado: 'ROUTED', regla: 'ORDEN_DUENO', negocio: dueno.id, deudor: null };
+
+  // 3 bis (WAP-02). Un código desde el teléfono de un dueño SIN verificar con código pendiente → verificación de ese negocio.
+  if (e.kind === 'text' && codigoDe((JSON.parse(e.content_json) as { text?: string }).text ?? '')) {
+    const pendiente = await pendienteDe(env, e.phone, e.occurred_at);
+    if (pendiente) return { estado: 'ROUTED', regla: 'VERIFICACION', negocio: pendiente.id, deudor: null };
+  }
 
   // 4 y 5. Negocios que le escribieron a este número en las 72 h ANTERIORES al entrante (un envío rechazado o fallido no
   // llegó; uno posterior, como en una reentrega tardía, no es al que responde).
@@ -188,6 +197,8 @@ async function enrutarUno(env: Env, id: string, ahora: () => number): Promise<st
     d = { estado: 'ROUTED', regla: 'ELECCION', negocio: pregunta.elegido, deudor: await deudorDe(env, pregunta.elegido, e.phone, null) };
   }
   if ((await marcar(env, e.id, d).run()).meta.changes !== 1) return [];
+  // Solo la llamada que lo marcó comprueba el código: una reentrega o un reproceso no suman otro intento.
+  if (d.estado === 'ROUTED' && d.regla === 'VERIFICACION') await verificarCodigo(env, e, ahora);
   if (d.estado === 'ROUTED') return [e.id];
   // Una baja sin destino claro la aplica y la confirma ./procesar.ts sin nombrar tiendas: ni pregunta ni respuesta neutra.
   if (e.kind === 'text' && esBaja((JSON.parse(e.content_json) as { text?: string }).text ?? '')) return [];

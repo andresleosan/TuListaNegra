@@ -41,7 +41,7 @@ beforeEach(async () => {
 describe('migración inicial', () => {
   test('crea las tablas y los disparadores de inmutabilidad', async () => {
     const disparadores = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'trigger' ORDER BY name").all();
-    expect(disparadores.results.map((r) => r.name)).toEqual(['audit_no_delete', 'audit_no_replace', 'audit_no_update', 'ledger_no_delete', 'ledger_no_replace', 'ledger_no_update', 'ledger_pendiente_acotado']);
+    expect(disparadores.results.map((r) => r.name)).toEqual(['audit_no_delete', 'audit_no_replace', 'audit_no_update', 'businesses_telefono_nuevo', 'ledger_no_delete', 'ledger_no_replace', 'ledger_no_update', 'ledger_pendiente_acotado']);
     const { results } = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name NOT LIKE 'd1_%'").all();
     expect(results.map((r) => r.name).sort()).toEqual(['admin_audit_log', 'businesses', 'debtors', 'ledger_transactions', 'subscription_notices', 'subscription_payments', 'whatsapp_messages']);
   });

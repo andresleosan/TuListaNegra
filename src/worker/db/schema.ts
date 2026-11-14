@@ -25,6 +25,11 @@ export const businesses = sqliteTable(
     doc_number: text(),
     whatsapp_phone: text(), // E.164
     whatsapp_verified_at: integer(),
+    // Verificación del teléfono del dueño (WAP-02): solo la huella SHA-256 del código pendiente (nunca el código),
+    // su vencimiento y los intentos fallidos. Cambiar `whatsapp_phone` borra todo esto y la verificación (disparador).
+    whatsapp_code_hash: text(),
+    whatsapp_code_expires_at: integer(),
+    whatsapp_code_attempts: integer().notNull().default(0),
     payment_methods_info: text(),
     subscription_plan: text({ enum: PLANES_IDS }).notNull().default('TRIAL_3D'),
     subscription_expires_at: integer().notNull(),
@@ -187,8 +192,11 @@ export const ESTADOS_WA = ['accepted', 'rejected', 'unknown', 'sent', 'delivered
  * `ROUTED`: tiene negocio. `AWAITING_TENANT_SELECTION`: se preguntó con botones a qué comercio va. `UNROUTED`: desconocido.
  */
 export const ESTADOS_ENRUTAMIENTO = ['ROUTED', 'AWAITING_TENANT_SELECTION', 'UNROUTED'] as const;
-/** Por qué paso de B4 se asignó el negocio: respuesta a un mensaje nuestro, orden del dueño verificado, único negocio en 72 h o elegido con botón. */
-export const REGLAS_ENRUTAMIENTO = ['RESPUESTA', 'ORDEN_DUENO', 'UNICO_72H', 'ELECCION'] as const;
+/**
+ * Por qué paso de B4 se asignó el negocio: respuesta a un mensaje nuestro, orden del dueño verificado, único negocio en
+ * 72 h o elegido con botón. `VERIFICACION` (WAP-02): el código que envía el dueño aún sin verificar desde su teléfono.
+ */
+export const REGLAS_ENRUTAMIENTO = ['RESPUESTA', 'ORDEN_DUENO', 'UNICO_72H', 'ELECCION', 'VERIFICACION'] as const;
 
 /**
  * Bandeja de WhatsApp (WAP-01, docs/spec/contrato-sarin.md): entrantes y salientes, del simulador o de Meta.

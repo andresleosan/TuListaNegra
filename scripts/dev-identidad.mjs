@@ -62,6 +62,8 @@ async function preparar() {
       'PILOT_EMAILS=piloto@ejemplo.test,piloto2@ejemplo.test',
       'SUPERADMIN_EMAILS=admin@ejemplo.test',
       'TEST_WHATSAPP_SIMULADO=1',
+      // Secreto del webhook de WhatsApp SOLO para el simulador local (prefijo que check:release prohíbe en producción).
+      `WHATSAPP_APP_SECRET=tln-dev-whatsapp-${crypto.randomUUID()}`,
       '',
     ].join('\n'),
     { mode: 0o600 },
