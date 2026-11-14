@@ -2,17 +2,22 @@
   "id": "BAS-01",
   "fase": "F0",
   "titulo": "Proyecto base: pnpm, TypeScript estricto, Vite + React, Worker con Hono y archivos estáticos, scripts `dev`, `test`, `typecheck`, `build`, `check:release`.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [],
   "resources": [
     "scaffold"
   ],
   "criterio": "Instalación limpia, pruebas y build pasan; `GET /api/health` responde en local; no existen `package-lock.json` ni `yarn.lock`.",
-  "hecho": "",
+  "hecho": "Proyecto base: pnpm 11.23.0 exacto (Node 24), TypeScript estricto, SPA React + Vite, Worker único con Hono (/api/*), assets en modo SPA, cron horario declarado y scripts dev, test, typecheck, build, check:release y ruta.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: rm -rf node_modules && pnpm install --frozen-lockfile → OK; pnpm test (3 pruebas), pnpm typecheck, pnpm build y pnpm check:release pasan.",
+    "pnpm dev: GET /api/health → 200 {ok:true}; GET /mostrador → 200 text/html (SPA); GET /api/nada → 404 JSON. No existen package-lock.json ni yarn.lock (check:release lo vigila).",
+    "Decisión (fuente: spec B1 + más simple): @cloudflare/vite-plugin para dev y build en un solo comando; pruebas con vitest 4.1 + @cloudflare/vitest-plugin (el paquete vitest-pool-workers está obsoleto y renombrado); dos proyectos de vitest: unit en Node (módulos puros) y worker en workerd.",
+    "Decisión: TypeScript 7.0.2 (la versión vigente); identidad git local del repo con correo noreply de GitHub para no versionar un correo personal (A1.5)."
+  ],
   "actualizado": "2026-11-14"
 }
