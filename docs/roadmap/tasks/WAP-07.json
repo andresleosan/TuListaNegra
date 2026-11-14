@@ -1,0 +1,26 @@
+{
+  "id": "WAP-07",
+  "fase": "F4",
+  "titulo": "Cobro masivo desde Morosos y alertas programadas.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-03"
+    },
+    {
+      "id": "MOS-04"
+    }
+  ],
+  "resources": [
+    "whatsapp",
+    "morosos"
+  ],
+  "criterio": "Envía solo a quienes cumplen las reglas e informa cuántos quedaron fuera y por qué.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

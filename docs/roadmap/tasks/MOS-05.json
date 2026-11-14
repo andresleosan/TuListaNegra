@@ -1,0 +1,22 @@
+{
+  "id": "MOS-05",
+  "fase": "F1",
+  "titulo": "PWA instalable.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "MOS-01"
+    }
+  ],
+  "resources": [
+    "pwa"
+  ],
+  "criterio": "Se instala en el móvil y, tras una carga, busca sin conexión.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

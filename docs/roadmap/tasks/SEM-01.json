@@ -1,0 +1,18 @@
+{
+  "id": "SEM-01",
+  "fase": "F5",
+  "titulo": "Semáforo comunitario.",
+  "estado": "bloqueado",
+  "responsable": "dueño",
+  "dependencies": [],
+  "resources": [
+    "semaforo"
+  ],
+  "criterio": "Bloqueada. Si se aprueba: identificador con HMAC y clave secreta (no un hash simple), sin revelar datos de otras tiendas.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "Visto bueno legal por escrito (decisión A2 n.º 3).",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "AUT-01",
+  "fase": "F1",
+  "titulo": "Verificación del token de Firebase en el Worker y contexto de sesión.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "BAS-01"
+    }
+  ],
+  "resources": [
+    "auth"
+  ],
+  "criterio": "Con llaves locales: un token válido pasa; vencido, de otro proyecto o con firma inválida se rechaza.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

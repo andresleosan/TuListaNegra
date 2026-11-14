@@ -1,0 +1,22 @@
+{
+  "id": "BAS-03",
+  "fase": "F0",
+  "titulo": "Esquema D1 inicial con Drizzle: `businesses`, `subscription_payments`, `debtors`, `ledger_transactions`, `admin_audit_log`.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "BAS-01"
+    }
+  ],
+  "resources": [
+    "schema"
+  ],
+  "criterio": "La migración aplica sobre una base local nueva; pruebas de únicos, índices parciales y montos mayores que 0.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "WAP-06",
+  "fase": "F4",
+  "titulo": "Aviso al dueño con Aprobar y Rechazar, y envío de tirilla.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-05"
+    },
+    {
+      "id": "WAP-02"
+    }
+  ],
+  "resources": [
+    "whatsapp"
+  ],
+  "criterio": "Aprobar confirma el movimiento una sola vez y envía la tirilla; con dos pendientes del mismo deudor, pregunta cuál.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

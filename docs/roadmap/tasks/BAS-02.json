@@ -1,0 +1,23 @@
+{
+  "id": "BAS-02",
+  "fase": "F0",
+  "titulo": "`DESIGN.md`, variables CSS y piezas base: botón, tarjeta, sello, monto, tirilla.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "BAS-01"
+    }
+  ],
+  "resources": [
+    "design",
+    "ui-base"
+  ],
+  "criterio": "Una página de muestra (solo desarrollo) enseña las piezas a 360 y 1280 px; contraste AA comprobado; capturas en la evidencia.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

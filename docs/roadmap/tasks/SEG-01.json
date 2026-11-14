@@ -1,0 +1,23 @@
+{
+  "id": "SEG-01",
+  "fase": "F1",
+  "titulo": "Aislamiento entre negocios y validación de entradas.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-03"
+    }
+  ],
+  "resources": [
+    "api-routes",
+    "tests-isolation"
+  ],
+  "criterio": "La prueba de aislamiento de B5 existe y pasa.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

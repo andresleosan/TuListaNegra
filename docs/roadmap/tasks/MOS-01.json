@@ -1,0 +1,26 @@
+{
+  "id": "MOS-01",
+  "fase": "F1",
+  "titulo": "Mostrador: buscador con copia local de solo lectura.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "DEU-01"
+    },
+    {
+      "id": "BAS-02"
+    }
+  ],
+  "resources": [
+    "mostrador",
+    "ui-app"
+  ],
+  "criterio": "Búsqueda por nombre, apodo, código y últimos 4 en menos de 50 ms con 5.000 deudores sintéticos; sin conexión busca y avisa; la copia se borra al salir.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

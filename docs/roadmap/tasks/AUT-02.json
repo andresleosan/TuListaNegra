@@ -1,0 +1,30 @@
+{
+  "id": "AUT-02",
+  "fase": "F1",
+  "titulo": "Ingreso y alta del negocio con prueba de 72 h y aceptación de términos.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-01"
+    },
+    {
+      "id": "BAS-02"
+    },
+    {
+      "id": "BAS-03"
+    }
+  ],
+  "resources": [
+    "auth",
+    "onboarding",
+    "ui-app"
+  ],
+  "criterio": "Recorrido en navegador: entrar → crear negocio → mostrador vacío con «te quedan 3 días». Segunda alta con la misma cuenta o teléfono, rechazada. Con `SIGNUP_READY=0` solo entran correos piloto.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

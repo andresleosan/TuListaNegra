@@ -1,0 +1,22 @@
+{
+  "id": "IAS-01",
+  "fase": "F3",
+  "titulo": "Cliente de IA con cuota y envío mínimo de datos.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-03"
+    }
+  ],
+  "resources": [
+    "ai"
+  ],
+  "criterio": "20 llamadas simultáneas no pasan la cuota; una prueba inspecciona la petición saliente y falla si lleva documento, teléfono o saldo; sin cuota, mensaje claro y ninguna llamada.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

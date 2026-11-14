@@ -1,0 +1,18 @@
+{
+  "id": "LEG-01",
+  "fase": "F5",
+  "titulo": "Páginas de términos y política de datos.",
+  "estado": "pendiente",
+  "responsable": "dueño",
+  "dependencies": [],
+  "resources": [
+    "legal"
+  ],
+  "criterio": "Publicadas con el texto entregado y enlazadas desde el registro.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "El dueño entrega los textos legales.",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

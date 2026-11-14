@@ -1,0 +1,26 @@
+{
+  "id": "WAP-05",
+  "fase": "F4",
+  "titulo": "Comprobante, promesa y baja del deudor.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-04"
+    },
+    {
+      "id": "LIB-01"
+    }
+  ],
+  "resources": [
+    "whatsapp",
+    "ledger"
+  ],
+  "criterio": "El comprobante crea un abono pendiente con evidencia; la promesa fija la fecha; «SALIR» da de baja y bloquea cobros.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

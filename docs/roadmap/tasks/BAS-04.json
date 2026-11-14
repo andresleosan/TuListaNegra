@@ -1,0 +1,18 @@
+{
+  "id": "BAS-04",
+  "fase": "F0",
+  "titulo": "Inspección de referencias → `docs/spec/referencias.md` y `docs/spec/contrato-sarin.md`.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [],
+  "resources": [
+    "docs-spec"
+  ],
+  "criterio": "Ambos citan archivos concretos, dicen qué patrón se adapta de cada uno y no contienen secretos. Si la ruta local no existe, usa los repositorios y anótalo.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

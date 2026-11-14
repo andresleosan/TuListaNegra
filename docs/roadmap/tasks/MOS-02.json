@@ -1,0 +1,25 @@
+{
+  "id": "MOS-02",
+  "fase": "F1",
+  "titulo": "Fiar y abonar en un toque.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "MOS-01"
+    },
+    {
+      "id": "LIB-01"
+    }
+  ],
+  "resources": [
+    "mostrador"
+  ],
+  "criterio": "En navegador a 360 px: buscar → fiar $ 5.000 → saldo actualizado en 3 toques o menos; alerta al pasar el tope.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

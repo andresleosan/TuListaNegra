@@ -1,0 +1,26 @@
+{
+  "id": "WAP-08",
+  "fase": "F4",
+  "titulo": "Panel del puente en la consola.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-01"
+    },
+    {
+      "id": "SUP-01"
+    }
+  ],
+  "resources": [
+    "whatsapp",
+    "superadmin"
+  ],
+  "criterio": "Muestra la salud del webhook y el último evento; el envío de prueba solo va al superadministrador.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "SUS-01",
+  "fase": "F2",
+  "titulo": "Pases y captura de pago en R2 privado.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-03"
+    }
+  ],
+  "resources": [
+    "payments"
+  ],
+  "criterio": "El servidor fija monto y días; imagen inválida o grande, rechazada; segundo pago pendiente, rechazado; la captura solo la ven su dueño y el superadministrador.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "BAS-05",
+  "fase": "F0",
+  "titulo": "Despliegue: Worker, D1 y R2 remotos. *(Requiere sesión de Cloudflare: cola del dueño.)*",
+  "estado": "bloqueado",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "BAS-01"
+    },
+    {
+      "id": "BAS-03"
+    }
+  ],
+  "resources": [
+    "deploy"
+  ],
+  "criterio": "La URL pública responde `GET /api/health` y las migraciones remotas están al día.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "Sesión de Cloudflare en este equipo (fila en COLA-DUENO.md).",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

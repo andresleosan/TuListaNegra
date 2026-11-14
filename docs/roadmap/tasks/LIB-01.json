@@ -1,0 +1,22 @@
+{
+  "id": "LIB-01",
+  "fase": "F1",
+  "titulo": "Libro: fiar, abonar y ajustar; saldo y fecha de mora.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "DEU-01"
+    }
+  ],
+  "resources": [
+    "ledger"
+  ],
+  "criterio": "20 movimientos simultáneos dejan el saldo exacto; repetir `request_id` no duplica; abono mayor al saldo, rechazado; `pnpm verificar:saldos` confirma que saldo = suma de movimientos confirmados.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "IAS-03",
+  "fase": "F3",
+  "titulo": "Lectura de la captura de pago para el superadministrador.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "IAS-01"
+    },
+    {
+      "id": "SUP-02"
+    }
+  ],
+  "resources": [
+    "ai",
+    "superadmin"
+  ],
+  "criterio": "La bandeja muestra monto y referencia leídos y alerta si no coinciden o se repiten; un fallo de lectura no bloquea el pago.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

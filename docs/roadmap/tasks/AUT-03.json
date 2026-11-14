@@ -1,0 +1,25 @@
+{
+  "id": "AUT-03",
+  "fase": "F1",
+  "titulo": "Guardián de acceso: estado calculado y límites del plan.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-01"
+    },
+    {
+      "id": "BAS-03"
+    }
+  ],
+  "resources": [
+    "access"
+  ],
+  "criterio": "Prueba por tabla de `estadoEfectivo` con los seis casos de B2 y de cada permiso por ruta.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

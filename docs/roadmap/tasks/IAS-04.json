@@ -1,0 +1,26 @@
+{
+  "id": "IAS-04",
+  "fase": "F3",
+  "titulo": "Migrador de cuadernos.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "IAS-01"
+    },
+    {
+      "id": "LIB-01"
+    }
+  ],
+  "resources": [
+    "ai",
+    "ledger"
+  ],
+  "criterio": "Con 3 fotos de prueba: la tabla se puede corregir; importar crea deudores y saldos con la foto como evidencia; nada entra sin confirmar.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

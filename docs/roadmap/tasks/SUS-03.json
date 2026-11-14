@@ -1,0 +1,23 @@
+{
+  "id": "SUS-03",
+  "fase": "F2",
+  "titulo": "Avisos de vencimiento: aviso en la app y cron horario.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-03"
+    }
+  ],
+  "resources": [
+    "cron",
+    "access"
+  ],
+  "criterio": "Aviso correcto a 3 días, a 1 día y vencido; el manejador `scheduled` se prueba en local.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

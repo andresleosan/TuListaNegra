@@ -1,0 +1,22 @@
+{
+  "id": "WAP-02",
+  "fase": "F4",
+  "titulo": "Verificación del teléfono del dueño por código.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-01"
+    }
+  ],
+  "resources": [
+    "whatsapp"
+  ],
+  "criterio": "Código correcto verifica; vencido o con demasiados intentos, no; sin verificar no se aceptan órdenes.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

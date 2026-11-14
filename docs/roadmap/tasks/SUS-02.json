@@ -1,0 +1,22 @@
+{
+  "id": "SUS-02",
+  "fase": "F2",
+  "titulo": "Desbloqueo preventivo de 24 h.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "SUS-01"
+    }
+  ],
+  "resources": [
+    "payments"
+  ],
+  "criterio": "Vencido y elegible → desbloqueo; tras un rechazo → sin desbloqueo; el desbloqueo no renueva cuotas.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

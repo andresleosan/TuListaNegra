@@ -1,0 +1,26 @@
+{
+  "id": "IAS-02",
+  "fase": "F3",
+  "titulo": "Orden por voz o texto → propuesta → confirmación.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "IAS-01"
+    },
+    {
+      "id": "MOS-02"
+    }
+  ],
+  "resources": [
+    "ai",
+    "mostrador"
+  ],
+  "criterio": "Con respuestas grabadas del modelo, la frase de ejemplo produce la propuesta correcta; nada se escribe sin confirmar; deudor ambiguo → pide elegir.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

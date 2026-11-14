@@ -1,0 +1,22 @@
+{
+  "id": "WAP-04",
+  "fase": "F4",
+  "titulo": "Enrutamiento de respuestas entre negocios.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-03"
+    }
+  ],
+  "resources": [
+    "whatsapp"
+  ],
+  "criterio": "Pruebas de los seis pasos de B4.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

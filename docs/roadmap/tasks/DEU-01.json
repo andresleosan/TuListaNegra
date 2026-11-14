@@ -1,0 +1,22 @@
+{
+  "id": "DEU-01",
+  "fase": "F1",
+  "titulo": "Deudores: crear, editar, archivar, código `TLN-XXXX`, documento opcional, lista negra.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-03"
+    }
+  ],
+  "resources": [
+    "debtors"
+  ],
+  "criterio": "Código único bajo altas simultáneas; documento duplicado rechazado; límite de 15 en prueba.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

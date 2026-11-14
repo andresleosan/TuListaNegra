@@ -1,0 +1,25 @@
+{
+  "id": "SUP-04",
+  "fase": "F2",
+  "titulo": "Indicadores globales.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "SUP-02"
+    },
+    {
+      "id": "SUP-03"
+    }
+  ],
+  "resources": [
+    "superadmin"
+  ],
+  "criterio": "Las cifras coinciden con una base de prueba conocida; los gratis van aparte y no suman ingresos.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "MOS-04",
+  "fase": "F1",
+  "titulo": "Morosos y botón Cobrar por el WhatsApp del tendero.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "MOS-03"
+    },
+    {
+      "id": "COB-01"
+    }
+  ],
+  "resources": [
+    "morosos",
+    "ui-app"
+  ],
+  "criterio": "Lista ordenada por antigüedad; los tres tonos generan el texto correcto; fuera de horario o sin consentimiento no abre el enlace y explica por qué.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

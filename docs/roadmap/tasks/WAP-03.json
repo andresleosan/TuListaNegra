@@ -1,0 +1,25 @@
+{
+  "id": "WAP-03",
+  "fase": "F4",
+  "titulo": "Cobro por plantilla con los tres tonos.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "WAP-01"
+    },
+    {
+      "id": "COB-01"
+    }
+  ],
+  "resources": [
+    "whatsapp"
+  ],
+  "criterio": "Respeta COB-01 y la cuota; cada envío queda registrado.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

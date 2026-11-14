@@ -1,0 +1,25 @@
+{
+  "id": "SUP-01",
+  "fase": "F2",
+  "titulo": "Acceso de superadministrador y consola base.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-01"
+    },
+    {
+      "id": "BAS-02"
+    }
+  ],
+  "resources": [
+    "superadmin"
+  ],
+  "criterio": "Una prueba recorre todas las rutas `/api/superadmin/*`: correo no listado, no verificado o sin Google → 403.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

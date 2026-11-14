@@ -1,0 +1,26 @@
+{
+  "id": "AJU-01",
+  "fase": "F1",
+  "titulo": "Ajustes de la tienda.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "AUT-03"
+    },
+    {
+      "id": "BAS-02"
+    }
+  ],
+  "resources": [
+    "settings",
+    "ui-app"
+  ],
+  "criterio": "Los cambios se guardan y aparecen en la tirilla y en los cobros.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

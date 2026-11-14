@@ -1,0 +1,26 @@
+{
+  "id": "SUP-03",
+  "fase": "F2",
+  "titulo": "Negocios: días de cortesía, **suscripción gratis sin vencimiento**, reiniciar contadores, suspender y reactivar.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "SUP-01"
+    },
+    {
+      "id": "AUT-03"
+    }
+  ],
+  "resources": [
+    "superadmin",
+    "access"
+  ],
+  "criterio": "Marcar gratis deja activo un negocio vencido, sin fecha ni aviso de renovación; desmarcar lo devuelve a sus fechas; suspender gana a gratis; cada acción exige motivo y queda en auditoría.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

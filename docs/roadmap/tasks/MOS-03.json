@@ -1,0 +1,26 @@
+{
+  "id": "MOS-03",
+  "fase": "F1",
+  "titulo": "Ficha del deudor y tirilla compartible.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "LIB-01"
+    },
+    {
+      "id": "BAS-02"
+    }
+  ],
+  "resources": [
+    "ficha",
+    "ui-app"
+  ],
+  "criterio": "Saldo corrido correcto; la tirilla muestra código y montos en monoespaciada; compartir abre WhatsApp o el menú del sistema.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

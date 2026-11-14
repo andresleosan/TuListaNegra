@@ -1,0 +1,26 @@
+{
+  "id": "SUP-02",
+  "fase": "F2",
+  "titulo": "Bandeja de pagos: aprobar y rechazar.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "SUS-02"
+    },
+    {
+      "id": "SUP-01"
+    }
+  ],
+  "resources": [
+    "superadmin",
+    "payments"
+  ],
+  "criterio": "Pasan los tres casos de la fórmula; aprobar dos veces suma una vez; rechazar termina el desbloqueo; queda auditoría.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "WAP-01",
+  "fase": "F4",
+  "titulo": "`SarinGateway`, simulador local, webhook firmado y tabla `whatsapp_messages`.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "BAS-04"
+    },
+    {
+      "id": "BAS-03"
+    }
+  ],
+  "resources": [
+    "whatsapp",
+    "schema"
+  ],
+  "criterio": "Firma inválida → 401; evento repetido no se procesa dos veces; el simulador permite el recorrido completo sin Meta.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

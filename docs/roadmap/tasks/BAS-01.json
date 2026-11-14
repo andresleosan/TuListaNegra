@@ -1,0 +1,18 @@
+{
+  "id": "BAS-01",
+  "fase": "F0",
+  "titulo": "Proyecto base: pnpm, TypeScript estricto, Vite + React, Worker con Hono y archivos estáticos, scripts `dev`, `test`, `typecheck`, `build`, `check:release`.",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [],
+  "resources": [
+    "scaffold"
+  ],
+  "criterio": "Instalación limpia, pruebas y build pasan; `GET /api/health` responde en local; no existen `package-lock.json` ni `yarn.lock`.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "COB-01",
+  "fase": "F1",
+  "titulo": "Reglas de contacto (módulo puro).",
+  "estado": "pendiente",
+  "responsable": "desarrollo",
+  "dependencies": [
+    {
+      "id": "BAS-01"
+    }
+  ],
+  "resources": [
+    "contact-rules"
+  ],
+  "criterio": "Prueba por tabla: domingo, festivo, 19:01, segundo cobro en la semana, sin consentimiento y con baja → bloqueado con su motivo.",
+  "hecho": "",
+  "falta": "",
+  "externalBlocker": "",
+  "nextStep": "",
+  "evidencia": [],
+  "actualizado": "2026-11-14"
+}
