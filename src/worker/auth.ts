@@ -13,7 +13,10 @@ export type Sesion = {
   proveedor: string | null;
 };
 
-export type AppEnv = { Bindings: Env; Variables: { sesion: Sesion } };
+export type AppEnv = {
+  Bindings: Env;
+  Variables: { sesion: Sesion; negocio: import('./guardian').Negocio; estado: import('../shared/acceso').EstadoNegocio };
+};
 
 export class AuthNoConfigurada extends Error {}
 

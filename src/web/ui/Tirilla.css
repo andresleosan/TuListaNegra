@@ -1,0 +1,63 @@
+/* Recibo térmico: papel blanco estrecho, todo en monoespaciada, separadores discontinuos.
+   Lleva su propio fondo y borde para que una captura de pantalla sea el recibo completo. */
+.tirilla {
+  width: 100%;
+  max-width: 20rem;
+  padding: var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  box-shadow: var(--sombra-dura);
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+  font-size: var(--texto-s);
+  line-height: 1.5;
+}
+
+.tirilla__tienda {
+  font-size: var(--texto-m);
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.tirilla__codigo {
+  text-align: center;
+}
+
+.tirilla__lineas {
+  margin-top: var(--esp-3);
+  padding-top: var(--esp-3);
+  border-top: 1.5px dashed var(--tinta);
+}
+
+.tirilla__linea {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--esp-3);
+}
+
+.tirilla__linea dt {
+  overflow-wrap: anywhere;
+}
+
+.tirilla__total {
+  margin-top: var(--esp-3);
+  padding-top: var(--esp-3);
+  border-top: 1.5px dashed var(--tinta);
+  font-size: var(--texto-m);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tirilla__total .monto {
+  font-weight: 800;
+}
+
+.tirilla__pie {
+  margin-top: var(--esp-3);
+  padding-top: var(--esp-3);
+  border-top: 1.5px dashed var(--tinta);
+  text-align: center;
+}

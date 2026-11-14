@@ -2,7 +2,7 @@
   "id": "AUT-03",
   "fase": "F1",
   "titulo": "Guardián de acceso: estado calculado y límites del plan.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,10 +16,15 @@
     "access"
   ],
   "criterio": "Prueba por tabla de `estadoEfectivo` con los seis casos de B2 y de cada permiso por ruta.",
-  "hecho": "",
+  "hecho": "estadoEfectivo y la tabla de permisos en src/shared/acceso.ts (puro); PLANES y cuotas en src/worker/planes.ts; guardián src/worker/guardian.ts que saca el negocio de la sesión, calcula el estado y decide por método y ruta (siempre / no suspendido / ver / escribir / ia); GET /api/negocio con estado, permisos, límites y lo usado.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm test → 159 pruebas pasan. acceso.test.ts: los seis casos de B2 más orden y bordes (suspensión gana a gratis; vencimiento exacto ya es vencido). guardian.test.ts: requisito de 17 combinaciones método/ruta, tabla de B2 por requisito, y los cinco estados contra la API (lectura, escritura, IA, suscripción y estado propio).",
+    "Decisión (más simple; fuente B2): el requisito sale del método y la ruta, sin anotación por ruta, así una ruta nueva queda protegida por defecto (GET exige ver; el resto exige escribir). Excepciones: GET /api/negocio siempre (el suspendido lee su aviso) y /api/suscripcion/* para todo no suspendido (un vencido debe poder renovar).",
+    "Decisión: PLANES vive solo en el Worker (B2: constante única en el servidor); la app recibe límites y precios por la API. Las cuotas de IA se descontarán con sentencia condicional en IAS-01; aquí solo se exponen.",
+    "pnpm typecheck, pnpm build y pnpm check:release pasan."
+  ],
   "actualizado": "2026-11-14"
 }

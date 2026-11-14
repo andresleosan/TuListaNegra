@@ -1,0 +1,35 @@
+/* Sello de caucho: borde doble grueso, mayúsculas y una ligera rotación. */
+.sello {
+  display: inline-block;
+  padding: 1px var(--esp-2);
+  background: var(--blanco);
+  color: var(--tinta);
+  border: 4px double currentColor;
+  border-radius: var(--radio);
+  font-size: var(--texto-s);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-2deg);
+}
+
+.sello--AL_DIA {
+  color: var(--verde);
+}
+
+/* El ámbar no da contraste como texto: va de fondo con texto en tinta. */
+.sello--PROMESA_PAGO {
+  background: var(--ambar);
+}
+
+.sello--EN_MORA {
+  color: var(--rojo);
+}
+
+/* Lista negra: el estado más grave va relleno para distinguirse de «en mora». */
+.sello--LISTA_NEGRA {
+  background: var(--rojo);
+  color: var(--blanco);
+}

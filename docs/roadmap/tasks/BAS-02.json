@@ -2,7 +2,7 @@
   "id": "BAS-02",
   "fase": "F0",
   "titulo": "`DESIGN.md`, variables CSS y piezas base: botón, tarjeta, sello, monto, tirilla.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -14,10 +14,15 @@
     "ui-base"
   ],
   "criterio": "Una página de muestra (solo desarrollo) enseña las piezas a 360 y 1280 px; contraste AA comprobado; capturas en la evidencia.",
-  "hecho": "",
+  "hecho": "DESIGN.md ampliado (tokens, piezas, prohibido); src/web/styles (tokens.css, base.css, fuentes autoalojadas Plus Jakarta Sans y JetBrains Mono, solo latín); piezas Boton, Tarjeta, Sello, Monto y Tirilla en src/web/ui; formatoCOP en src/shared/dinero.ts; página de muestra /__muestra solo en desarrollo.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: capturas docs/roadmap/evidencia/BAS-02-360.png y BAS-02-1280.png (scripts/capturas-muestra.mjs con Chrome del sistema); desborde horizontal 0 px a 360 y 1280; revisadas visualmente por el subagente y por el orquestador.",
+    "Contraste AA: src/web/styles/contraste.test.ts exige ≥ 4,5 en cada par usado (mínimo real 4,83: blanco/rojo y rojo/blanco) y falla si pares.ts no coincide con tokens.css. Regla resultante en DESIGN.md: el rojo como texto solo va sobre blanco (4,39 sobre papel no alcanza) y el ámbar nunca es color de texto.",
+    "pnpm build: la muestra no entra en dist/client (grep sin coincidencias); solo dos .woff2 latinos (27 kB y 40 kB).",
+    "No comprobado: móvil real, Safari/iOS, Firefox ni lector de pantalla; solo Chrome de escritorio a 360 y 1280 px. Hecho por subagente."
+  ],
   "actualizado": "2026-11-14"
 }

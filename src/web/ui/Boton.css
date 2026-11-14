@@ -1,0 +1,43 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--toque);
+  padding: var(--esp-2) var(--esp-4);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.boton--primaria {
+  background: var(--tinta);
+  color: var(--blanco);
+}
+
+.boton--secundaria {
+  background: var(--blanco);
+  color: var(--tinta);
+}
+
+.boton--peligro {
+  background: var(--rojo);
+  color: var(--blanco);
+}
+
+/* Al pulsar, el botón «se hunde» sobre su sombra. */
+.boton:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Deshabilitado: plano, borde discontinuo y texto en tinta (sigue siendo legible). */
+.boton:disabled {
+  background: var(--crema);
+  color: var(--tinta);
+  border-style: dashed;
+  box-shadow: none;
+  cursor: not-allowed;
+}

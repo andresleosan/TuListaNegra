@@ -1,0 +1,11 @@
+.tarjeta {
+  padding: var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.tarjeta--crema {
+  background: var(--crema);
+}

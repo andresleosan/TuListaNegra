@@ -1,0 +1,54 @@
+/* Reset mínimo, tipografía y foco visible. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  font-size: var(--texto-m);
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--texto-xl);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+h2 {
+  font-size: var(--texto-l);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Códigos (`TLN-0042`) y documentos: monoespaciada con cifras tabulares. */
+code {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--tinta);
+  outline-offset: 2px;
+}

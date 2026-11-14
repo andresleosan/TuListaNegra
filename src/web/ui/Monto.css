@@ -1,0 +1,16 @@
+/* Hereda el tamaño del contexto: el mismo monto sirve en una fila o como saldo destacado. */
+.monto {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.monto--verde {
+  color: var(--verde);
+}
+
+.monto--rojo {
+  color: var(--rojo);
+}

@@ -1,0 +1,35 @@
+/* Variables del sistema «Libro mayor y recibo térmico». La autoridad es DESIGN.md.
+   Los colores se repiten en pares.ts; contraste.test.ts falla si dejan de coincidir. */
+:root {
+  /* Color */
+  --papel: #F6F4EE; /* fondo de la app */
+  --blanco: #FFFFFF; /* tarjeta, tirilla y texto sobre tinta, verde o rojo */
+  --crema: #EFECE6; /* tarjeta alterna y botón deshabilitado */
+  --tinta: #141413; /* texto, bordes y sombra */
+  --verde: #166534; /* al día, abonos */
+  --ambar: #D97706; /* promesas y avisos: solo como fondo, con texto en tinta */
+  --rojo: #DC2626; /* mora, tope excedido, lista negra, peligro */
+
+  /* Bordes y sombra dura (sin difuminar) */
+  --borde-fino: 1.5px solid var(--tinta);
+  --borde-grueso: 2px solid var(--tinta);
+  --sombra-dura: 2px 2px 0 #141413;
+  --radio: 4px;
+
+  /* Espaciado (base 4 px) */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-6: 24px;
+  --esp-8: 32px;
+  --toque: 44px; /* zona táctil mínima */
+
+  /* Tipografía */
+  --fuente-texto: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+  --fuente-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --texto-s: 0.8125rem; /* 13 px: sellos, etiquetas, pie de tirilla */
+  --texto-m: 1rem; /* 16 px: cuerpo y botones */
+  --texto-l: 1.25rem; /* 20 px: títulos de sección */
+  --texto-xl: 1.75rem; /* 28 px: título de pantalla y saldo destacado */
+}
