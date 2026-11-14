@@ -2,7 +2,7 @@
   "id": "SUS-02",
   "fase": "F2",
   "titulo": "Desbloqueo preventivo de 24 h.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,14 @@
     "payments"
   ],
   "criterio": "Vencido y elegible → desbloqueo; tras un rechazo → sin desbloqueo; el desbloqueo no renueva cuotas.",
-  "hecho": "",
+  "hecho": "Desbloqueo preventivo de 24 h decidido en el servidor al subir la captura: se concede solo a un negocio vencido cuyo último pago revisado no fue rechazado, en el mismo db.batch que crea el pago (grace_started_at y grace_unlock_ends_at). No toca plan, vencimiento, ciclo ni contadores. Regla pura elegibleDesbloqueo en src/worker/pagos.ts.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/suscripcion.test.ts src/worker/pagos.test.ts → pasan: vencido elegible → GET /api/negocio pasa a GRACE_UNLOCK_24H con desbloqueo ≈ ahora + 24 h; último revisado REJECTED → pago creado y sigue EXPIRED_READONLY; REJECTED antiguo + PAID posterior → elegible; TRIAL, ACTIVE y gratis no reciben desbloqueo; la fila del negocio antes y después solo difiere en grace_unlock_ends_at (las cuotas no se renuevan).",
+    "Atomicidad probada con un disparador que hace fallar el UPDATE: no queda pago, objeto ni desbloqueo. Hecho por subagente con pruebas primero y 5 mutaciones; el orquestador leyó la ruta y unificó la detección de índice único.",
+    "Límite conocido (en MEJORAS.md): la elegibilidad se lee y luego se escribe; una revisión del superadministrador en esos milisegundos decidiría con datos viejos."
+  ],
   "actualizado": "2026-11-14"
 }

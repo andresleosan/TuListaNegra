@@ -2,7 +2,7 @@
   "id": "SUS-01",
   "fase": "F2",
   "titulo": "Pases y captura de pago en R2 privado.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,10 +13,13 @@
     "payments"
   ],
   "criterio": "El servidor fija monto y días; imagen inválida o grande, rechazada; segundo pago pendiente, rechazado; la captura solo la ven su dueño y el superadministrador.",
-  "hecho": "",
-  "falta": "",
+  "hecho": "API: GET /api/suscripcion (pases y precios de PLANES, cuentas de PAYMENT_ACCOUNTS_JSON, pago pendiente y último revisado) y POST /api/suscripcion/pagos (multipart plan + captura; monto y días del servidor; JPEG/PNG/WebP validados por firma de bytes; máximo 2 MB; un solo pendiente por el índice único; captura en R2 privado con clave negocios/<id>/pagos/<pay>.<ext>; límite de subidas). GET /api/archivos/* sirve solo claves del negocio de la sesión.",
+  "falta": "Pantalla de Suscripción en la app (elegir pase, ver cuentas, subir captura). La ruta por la que el superadministrador ve la captura llega con SUP-02; hoy solo está probada la función servirObjeto.",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Construir la pantalla de Suscripción sobre el esqueleto de AUT-02 y comprobar el recorrido en navegador a 360 y 1280 px.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/suscripcion.test.ts src/worker/rutas/archivos.test.ts src/worker/pagos.test.ts → 120 pruebas pasan: monto/días/estado/id enviados por el navegador se ignoran; texto renombrado a .png → 400; 2 MB + 1 byte → 413; segundo pendiente → 409 y dos subidas simultáneas → una sola fila y un solo objeto; otro negocio recibe 404 al pedir la captura, también con clave manipulada; un fallo de D1 no deja objetos huérfanos.",
+    "Decisión del subagente, aceptada: sin Content-Length → 411 (no se lee a memoria un cuerpo de tamaño desconocido). No comprobado en Cloudflare real (todo en workerd local)."
+  ],
   "actualizado": "2026-11-14"
 }

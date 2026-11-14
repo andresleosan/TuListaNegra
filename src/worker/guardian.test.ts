@@ -63,7 +63,7 @@ describe('el guardián en la API', () => {
       api('/api/ruta-de-lectura'),
       api('/api/ruta-de-escritura', {}, { method: 'POST' }),
       api('/api/ia/orden', {}, { method: 'POST' }),
-      api('/api/suscripcion/pagos', {}, { method: 'POST' }),
+      api('/api/suscripcion/ruta-inexistente', {}, { method: 'POST' }),
     ]);
     expect(estados.map((r) => r.status)).toEqual([ver, escribir, ia, suscripcion]);
     const propio = await api('/api/negocio');

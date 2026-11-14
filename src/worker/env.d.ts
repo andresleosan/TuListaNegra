@@ -6,6 +6,7 @@ declare namespace Cloudflare {
     PILOT_EMAILS?: string;
     /** Cómo contactar a soporte; se muestra a un negocio suspendido. */
     SOPORTE_CONTACTO?: string;
+    PAYMENT_ACCOUNTS_JSON?: string; // cuentas donde se pagan los pases: lista JSON que se muestra al dueño
     /** Solo pruebas y simulador local: JWKS propio en vez del de Google. check:release impide que llegue a producción. */
     TEST_JWKS_JSON?: string;
   }
