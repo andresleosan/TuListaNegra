@@ -7,7 +7,7 @@ Lo que solo el dueño puede hacer o decidir. Responde debajo de la fila o bórra
 | Iniciar sesión de Cloudflare en este equipo (`pnpm exec wrangler login`). | BAS-05 y todo lo de producción. |
 | Proyecto de Firebase con Google y correo/contraseña activados; pasar el `PROJECT_ID` y la configuración web. | Ingreso real. |
 | Poner `SUPERADMIN_EMAILS` (y `PILOT_EMAILS`) como variables en Cloudflare. | Consola real. |
-| Crear el repositorio remoto. | Push. |
+| Dar credencial de GitHub en este equipo para publicar (el remoto `origin` → `andresleosan/tulistanegra.git` ya está configurado; el push falla por falta de credencial). | Push. |
 | Cuentas de pago de ALS DevStudio para `PAYMENT_ACCOUNTS_JSON`. | Pago real de pases. |
 | Clave de DeepSeek como secreto (`DEEPSEEK_API_KEY`) y encender `AI_READY`. Al encender: probar una frase real, porque el cliente solo se ha probado contra respuestas simuladas. Para leer fotos de cuadernos hace falta además el binding de Workers AI (`"ai": { "binding": "AI" }` en `wrangler.jsonc`; cobra por uso) y probar una foto real. | Fase 3 en real (frases y migrador de cuadernos). |
 | WhatsApp: decidir número propio o reenvío desde Sarin Bot (comparación en `docs/spec/contrato-sarin.md`, sección c; la A es la más simple); número verificado y plantillas aprobadas en Meta; poner `WHATSAPP_APP_SECRET` y `WHATSAPP_VERIFY_TOKEN` como secretos y encender `WHATSAPP_SEND_READY` a la vez (con el interruptor apagado el webhook rechaza a propósito los secretos reales, para no recoger mensajes del público). | Fase 4 en real. |
