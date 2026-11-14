@@ -303,3 +303,13 @@ describe('revisión independiente de WAP-01', () => {
     expect((await filas()).map((f) => f.wa_message_id)).toEqual([bueno.id]);
   });
 });
+
+test('B5: el webhook tiene límite de frecuencia por IP; al pasarlo responde 429 antes de leer, firmar o escribir', async () => {
+  const pedidos: string[] = [];
+  const agotado = entornoWa({ LIMITE_WEBHOOK: { limit: async ({ key }: { key: string }) => (pedidos.push(key), { success: false }) } as unknown as RateLimit });
+  const bytes = bytesDe(unTexto());
+  const res = await app.request('/api/whatsapp/webhook', { method: 'POST', body: bytes, headers: { 'X-Hub-Signature-256': await firmar(bytes), 'CF-Connecting-IP': '198.51.100.7' } }, agotado);
+  expect(res.status).toBe(429);
+  expect(pedidos).toEqual(['198.51.100.7']);
+  expect(await filas()).toEqual([]);
+});

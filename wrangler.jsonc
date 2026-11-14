@@ -18,7 +18,9 @@
   "ratelimits": [
     { "name": "LIMITE_ALTAS", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
     { "name": "LIMITE_SUBIDAS", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
-    { "name": "LIMITE_IA", "namespace_id": "1003", "simple": { "limit": 20, "period": 60 } }
+    { "name": "LIMITE_IA", "namespace_id": "1003", "simple": { "limit": 20, "period": 60 } },
+    // Webhook público de WhatsApp, por IP. Holgado: Meta envía desde pocas IP y reintenta un 429.
+    { "name": "LIMITE_WEBHOOK", "namespace_id": "1004", "simple": { "limit": 600, "period": 60 } }
   ],
   "observability": { "enabled": true },
   // Interruptores (docs/spec/reglas.md, A3). Solo el dueño los enciende.

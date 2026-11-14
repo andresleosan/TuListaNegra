@@ -4,7 +4,7 @@ import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from './auth';
 
-type Limitador = 'LIMITE_ALTAS' | 'LIMITE_SUBIDAS' | 'LIMITE_IA';
+type Limitador = 'LIMITE_ALTAS' | 'LIMITE_SUBIDAS' | 'LIMITE_IA' | 'LIMITE_WEBHOOK';
 
 export const ipDe = (c: Context<AppEnv>) => c.req.header('CF-Connecting-IP') ?? 'desconocida';
 

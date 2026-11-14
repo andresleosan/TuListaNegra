@@ -2,6 +2,7 @@
 // Nada de registrar cuerpos ni teléfonos.
 import { Hono } from 'hono';
 import type { AppEnv } from '../auth';
+import { ipDe, limitar } from '../limite';
 import { guardarEventos } from '../whatsapp/bandeja';
 import { gatewayPara } from '../whatsapp';
 import { MAX_WEBHOOK_BYTES } from '../whatsapp/meta';
@@ -41,7 +42,7 @@ whatsapp.get('/webhook', (c) => {
 });
 
 // Orden obligatorio: tamaño → bytes crudos → firma → JSON + zod → guardar por wa_message_id → 200.
-whatsapp.post('/webhook', async (c) => {
+whatsapp.post('/webhook', limitar('LIMITE_WEBHOOK', ipDe), async (c) => {
   if (Number(c.req.header('Content-Length') ?? 0) > MAX_WEBHOOK_BYTES) return c.json({ error: 'cuerpo_muy_grande' }, 413);
   const crudo = await leerConTope(c.req.raw, MAX_WEBHOOK_BYTES);
   if (!crudo) return c.json({ error: 'cuerpo_muy_grande' }, 413);
