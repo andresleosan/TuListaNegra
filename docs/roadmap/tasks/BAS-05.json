@@ -16,12 +16,13 @@
     "deploy"
   ],
   "criterio": "La URL pública responde `GET /api/health` y las migraciones remotas están al día.",
-  "hecho": "D1 `tulistanegra` y R2 privado `tulistanegra-archivos` creados en la cuenta del dueño; database_id en wrangler.jsonc; migraciones 0000..0005 aplicadas en remoto; Worker desplegado con wrangler en https://tulistanegra.andres-san1404.workers.dev con los cuatro interruptores en \"0\" y FIREBASE_PROJECT_ID real.",
+  "hecho": "D1 `tulistanegra` y R2 privado `tulistanegra-archivos` creados en la cuenta del dueño; database_id en wrangler.jsonc; migraciones 0000..0005 aplicadas en remoto; Worker desplegado con wrangler en https://tulistanegra.andres-san1404.workers.dev con los cuatro interruptores en \"0\" y FIREBASE_PROJECT_ID real. Dirección pública: https://tulistanegra.pages.dev (proyecto de Pages `tulistanegra` que sirve dist/client y pasa /api/* al Worker por service binding; pages/ y `pnpm deploy:pages`).",
   "falta": "Despliegue automático en cada push (Workers Builds: lo conecta el dueño en el panel) y VITE_FIREBASE_CONFIG como variable de build.",
   "externalBlocker": "",
-  "nextStep": "Conectar el repositorio en Workers Builds (fila en COLA-DUENO.md); mientras tanto se despliega con `pnpm build && pnpm check:release && pnpm exec wrangler deploy`.",
+  "nextStep": "Desplegar con `pnpm build && pnpm check:release && pnpm exec wrangler deploy && pnpm deploy:pages` (Worker primero, luego la fachada). Workers Builds automático: fila en COLA-DUENO.md.",
   "evidencia": [
-    "2026-11-14: pnpm test 1097 · typecheck · build · check:release OK; `wrangler d1 migrations apply tulistanegra --remote` → 0000..0005 ✅; `wrangler deploy` → versión c003d93b; GET /api/health → {\"ok\":true,\"servicio\":\"tulistanegra\"}; GET / → 200; GET /api/negocio sin token → 401 sin_sesion; reto del webhook sin configurar → 403; `wrangler secret list` → [] (ningún TEST_* ni tln-dev-whatsapp-)."
+    "2026-11-14: pnpm test 1097 · typecheck · build · check:release OK; `wrangler d1 migrations apply tulistanegra --remote` → 0000..0005 ✅; `wrangler deploy` → versión c003d93b; GET /api/health → {\"ok\":true,\"servicio\":\"tulistanegra\"}; GET / → 200; GET /api/negocio sin token → 401 sin_sesion; reto del webhook sin configurar → 403; `wrangler secret list` → [] (ningún TEST_* ni tln-dev-whatsapp-).",
+    "2026-11-14: tulistanegra.pages.dev → /api/health ok; /, /privacidad, /deudores/x → index.html 200; /sw.js y manifest 200; /api/negocio sin token → 401; /_worker.js no se sirve (devuelve la SPA); wrangler tail del Worker: llega con host tulistanegra.pages.dev y con CF-Connecting-IP."
   ],
   "actualizado": "2026-11-14"
 }

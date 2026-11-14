@@ -13,6 +13,7 @@
     "test": "vitest run",
     "typecheck": "wrangler types --strict-vars false && tsc -p tsconfig.web.json && tsc -p tsconfig.worker.json",
     "check:release": "node scripts/check-release.mjs",
+    "deploy:pages": "d=$(mktemp -d) && cp -r dist/client \"$d/salida\" && cp pages/_worker.js pages/_routes.json \"$d/salida/\" && cp pages/wrangler.jsonc \"$d/\" && cd \"$d\" && wrangler pages deploy --branch main",
     "e2e": "playwright test",
     "verificar:saldos": "node scripts/verificar-saldos.mjs"
   },

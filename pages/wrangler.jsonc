@@ -1,0 +1,10 @@
+// Proyecto de Pages `tulistanegra` (tulistanegra.pages.dev). Solo fachada: la lógica, la base y el cron viven en el
+// Worker `tulistanegra` (../wrangler.jsonc). Se despliega con `pnpm deploy:pages` después de `pnpm build`: el script lo
+// copia a una carpeta temporal fuera del repo, porque dentro wrangler toma la redirección del build del Worker.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "tulistanegra",
+  "pages_build_output_dir": "salida",
+  "compatibility_date": "2026-11-01",
+  "services": [{ "binding": "API", "service": "tulistanegra" }]
+}
