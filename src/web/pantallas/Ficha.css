@@ -1,0 +1,292 @@
+/* Ficha del deudor: la hoja de su cuenta en el libro mayor, con su recibo térmico cuando se pide. */
+.ficha,
+.ficha__seccion,
+.ficha__cabecera,
+.ficha__saldo,
+.ficha__bloque,
+.ficha__formulario {
+  display: grid;
+  align-content: start;
+  gap: var(--esp-3);
+}
+
+.ficha {
+  gap: var(--esp-6);
+}
+
+.ficha__formulario {
+  gap: var(--esp-4);
+}
+
+.ficha__volver {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-height: var(--toque);
+}
+
+.ficha__volver::before {
+  content: '←';
+  margin-right: var(--esp-2);
+}
+
+.ficha__identidad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.ficha__identidad code {
+  font-size: var(--texto-l);
+  font-weight: 700;
+}
+
+.ficha__seccion h2 {
+  padding-bottom: var(--esp-1);
+  border-bottom: var(--borde-grueso);
+}
+
+/* Saldo destacado */
+.ficha__rotulo {
+  font-size: var(--texto-s);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ficha__cifra {
+  font-size: var(--texto-xl);
+  line-height: 1.1;
+}
+
+.ficha__cifra .monto {
+  font-weight: 800;
+}
+
+.ficha__datos-saldo {
+  display: grid;
+  gap: var(--esp-1);
+  margin: 0;
+  padding: var(--esp-3) 0 0;
+  border-top: 1.5px dashed var(--tinta);
+  list-style: none;
+}
+
+/* Libro de movimientos: renglones separados por línea discontinua. */
+.ficha__libro {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.ficha__renglon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'concepto valor accion'
+    'fecha corrido accion';
+  align-items: center;
+  column-gap: var(--esp-3);
+  padding: var(--esp-2) var(--esp-3);
+}
+
+.ficha__renglon + .ficha__renglon {
+  border-top: 1.5px dashed var(--tinta);
+}
+
+.ficha__renglon--cabeza {
+  display: none;
+}
+
+.ficha__fecha {
+  grid-area: fecha;
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-s);
+}
+
+.ficha__concepto {
+  grid-area: concepto;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ficha__valor {
+  grid-area: valor;
+  justify-self: end;
+}
+
+.ficha__corrido {
+  grid-area: corrido;
+  justify-self: end;
+  font-size: var(--texto-s);
+  white-space: nowrap;
+}
+
+.ficha__accion {
+  grid-area: accion;
+}
+
+.ficha__ver-recibo {
+  min-height: var(--toque);
+  padding: 0 var(--esp-3);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  font-size: var(--texto-s);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ficha__ver-recibo:active {
+  transform: translate(1px, 1px);
+}
+
+/* Recibo: la tirilla y los medios de pago forman un solo papel, para que la captura sea el recibo completo. */
+.ficha__recibo {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-4);
+}
+
+.ficha__papel {
+  width: 100%;
+  max-width: 20rem;
+  background: var(--blanco);
+  border: var(--borde-fino);
+  box-shadow: var(--sombra-dura);
+}
+
+.ficha__papel .tirilla {
+  max-width: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.ficha__medios {
+  display: grid;
+  gap: var(--esp-1);
+  margin: 0 var(--esp-4);
+  padding: var(--esp-3) 0 var(--esp-4);
+  border-top: 1.5px dashed var(--tinta);
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-s);
+  overflow-wrap: anywhere;
+}
+
+.ficha__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+}
+
+/* Datos */
+.ficha__lista > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--esp-1) var(--esp-3);
+  padding: var(--esp-2) 0;
+}
+
+.ficha__lista > div + div {
+  border-top: 1.5px dashed var(--tinta);
+}
+
+.ficha__lista {
+  justify-self: stretch;
+}
+
+.ficha__lista dt {
+  font-weight: 700;
+}
+
+.ficha__bloque {
+  justify-items: start;
+}
+
+.ficha__select {
+  width: 100%;
+  min-height: var(--toque);
+  margin-top: var(--esp-1);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--blanco);
+  color: var(--tinta);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+  font: inherit;
+}
+
+.ficha__select[aria-invalid='true'] {
+  border-color: var(--rojo);
+}
+
+@media (min-width: 48rem) {
+  .ficha__renglon {
+    grid-template-columns: 11.5rem minmax(0, 1fr) 7.5rem 7.5rem 5.5rem;
+    grid-template-areas: 'fecha concepto valor corrido accion';
+  }
+
+  .ficha__renglon--cabeza {
+    display: grid;
+    padding-block: var(--esp-2);
+    font-family: var(--fuente-mono);
+    font-size: var(--texto-s);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .ficha__renglon--cabeza span:nth-child(1) { grid-area: fecha; }
+  .ficha__renglon--cabeza span:nth-child(2) { grid-area: concepto; }
+  .ficha__renglon--cabeza span:nth-child(3) { grid-area: valor; justify-self: end; }
+  .ficha__renglon--cabeza span:nth-child(4) { grid-area: corrido; justify-self: end; }
+
+  .ficha__renglon + .ficha__renglon--cabeza,
+  .ficha__renglon--cabeza + .ficha__renglon {
+    border-top: var(--borde-fino);
+  }
+
+  .ficha__corrido {
+    font-size: var(--texto-m);
+  }
+
+  .ficha__fecha {
+    white-space: nowrap;
+  }
+
+  .ficha__etiqueta-movil {
+    display: none;
+  }
+
+  .ficha__accion {
+    justify-self: end;
+  }
+}
+
+.ficha__columnas {
+  display: grid;
+  gap: var(--esp-6);
+}
+
+/* Pantalla ancha: saldo y datos lado a lado, el libro a todo lo ancho y las marcas debajo. */
+@media (min-width: 64rem) {
+  .ficha__columnas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'saldo datos'
+      'movimientos movimientos'
+      'permiso marcas';
+    align-items: start;
+    gap: var(--esp-6) var(--esp-8);
+  }
+
+  .ficha__zona-saldo { grid-area: saldo; }
+  .ficha__zona-datos { grid-area: datos; }
+  .ficha__zona-movimientos { grid-area: movimientos; }
+  .ficha__zona-permiso { grid-area: permiso; }
+  .ficha__zona-marcas { grid-area: marcas; }
+}

@@ -2,7 +2,7 @@
   "id": "MOS-02",
   "fase": "F1",
   "titulo": "Fiar y abonar en un toque.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,10 +16,13 @@
     "mostrador"
   ],
   "criterio": "En navegador a 360 px: buscar → fiar $ 5.000 → saldo actualizado en 3 toques o menos; alerta al pasar el tope.",
-  "hecho": "",
+  "hecho": "Pantalla: FIAR y ABONAR desde la fila con montos rápidos que se suman, alerta roja de tope que exige confirmar (confirmar_tope), request_id por panel (reintentar no duplica), errores traducidos y enlace «Ver recibo» tras abonar.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: e2e/mostrador.spec.ts cuenta los toques a 360 px: Fiar → «+5.000» → «Fiar $ 5.000» = 3 y el saldo se actualiza; abonar con enlace a /deudor/<id>?recibo=mov_…; pasar el tope muestra la alerta y solo fía al confirmar; tienda sin permiso de escribir solo consulta. Capturas docs/roadmap/evidencia/mostrador-fiar-360.png, mostrador-tope-360.png, mostrador-abono-360.png.",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
+  ],
   "actualizado": "2026-11-14"
 }

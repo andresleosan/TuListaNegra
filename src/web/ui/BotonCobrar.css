@@ -1,0 +1,100 @@
+/* Cobrar por WhatsApp: tres tonos como teclas de una caja registradora y el mensaje tal como le llega. */
+.cobrar {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.cobrar__panel {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.cobrar__tonos {
+  display: grid;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cobrar__tonos legend {
+  margin-bottom: var(--esp-2);
+  padding: 0;
+  font-weight: 700;
+}
+
+.cobrar__tono {
+  display: flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--blanco);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* La opción elegida va en tinta con texto blanco, como la sección actual de la navegación. */
+.cobrar__tono:has(input:checked) {
+  background: var(--tinta);
+  color: var(--blanco);
+  box-shadow: var(--sombra-dura);
+}
+
+.cobrar__tono:has(input:checked)::after {
+  content: 'Elegido';
+  margin-left: auto;
+  font-size: var(--texto-s);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cobrar__tono input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.cobrar__tono:has(input:focus-visible) {
+  outline: 3px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.cobrar__mensaje {
+  display: grid;
+  gap: var(--esp-1);
+  padding: var(--esp-3);
+  background: var(--crema);
+  border: 1.5px dashed var(--tinta);
+  border-radius: var(--radio);
+  overflow-wrap: anywhere;
+}
+
+.cobrar__etiqueta {
+  font-size: var(--texto-s);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cobrar__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+}
+
+.cobrar__botones .boton {
+  flex: 1 1 10rem;
+}
+
+.cobrar__nota {
+  font-size: var(--texto-s);
+}
+
+@media (min-width: 48rem) {
+  .cobrar__tonos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

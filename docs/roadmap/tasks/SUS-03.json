@@ -2,7 +2,7 @@
   "id": "SUS-03",
   "fase": "F2",
   "titulo": "Avisos de vencimiento: aviso en la app y cron horario.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -14,10 +14,13 @@
     "access"
   ],
   "criterio": "Aviso correcto a 3 días, a 1 día y vencido; el manejador `scheduled` se prueba en local.",
-  "hecho": "",
+  "hecho": "Aviso en la app: avisoDeEstado/avisoVigencia (src/web/vigencia.ts) en la cabecera y el mostrador: «Te quedan 3 días», «Te queda 1 día», «Vence hoy», «Vencido»; oculto en cuentas gratis. Cron horario (wrangler.jsonc «0 * * * *»): scheduled → registrarAvisos (src/worker/avisos.ts) deja en subscription_notices un aviso TRES_DIAS, UN_DIA o VENCIDO por negocio y vencimiento; nunca toca el negocio ni decide el acceso.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "El envío de esos avisos al WhatsApp del dueño (filas con sent_at NULL) llega con la fase 4, detrás de WHATSAPP_SEND_READY.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/avisos.test.ts → 17 pruebas pasan. avisoQueToca con bordes exactos (3 días justos → TRES_DIAS, 24 h → UN_DIA, 0 → VENCIDO, vencido hace 72 h → nada); el manejador scheduled corrido en local (createScheduledController de workerd) deja un aviso por negocio y tipo; correrlo otra vez no duplica; el mismo negocio recibe 3 días → 1 día → vencido; un pase nuevo vuelve a tener sus avisos; el negocio no cambia ni un campo. src/web/vigencia.test.ts cubre el aviso en la app.",
+    "Decisiones (lo más simple): la prueba de 72 h no recibe el aviso de 3 días (nacería con él); gratis, suspendido y desbloqueo de 24 h no reciben avisos; «vencido» se avisa solo durante 3 días desde que se perdió el acceso (contando el fin del desbloqueo), para no avisar vencimientos viejos al estrenar el cron. Migración aditiva 0002_avisos.sql (tabla nueva)."
+  ],
   "actualizado": "2026-11-14"
 }

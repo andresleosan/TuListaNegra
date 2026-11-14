@@ -1,0 +1,152 @@
+/* Morosos: página del libro con las cuentas vencidas. A la izquierda, los días de atraso como en un talonario. */
+.morosos,
+.morosos__cabecera,
+.morosos__vacio,
+.morosos__quien {
+  display: grid;
+  align-content: start;
+  gap: var(--esp-2);
+}
+
+.morosos {
+  gap: var(--esp-4);
+}
+
+.morosos__vacio {
+  justify-items: start;
+  gap: var(--esp-3);
+}
+
+.morosos__vacio .boton {
+  text-decoration: none;
+}
+
+.morosos__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--esp-1) var(--esp-4);
+  padding: var(--esp-2) 0;
+  border-block: var(--borde-grueso);
+  font-weight: 800;
+}
+
+.morosos__lista {
+  display: grid;
+  gap: var(--esp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.morosos__fila {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  grid-template-areas:
+    'dias quien'
+    'dias saldo'
+    'cobrar cobrar';
+  gap: var(--esp-2) var(--esp-3);
+  padding: var(--esp-3) var(--esp-4) var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.morosos__dias {
+  grid-area: dias;
+  align-self: start;
+  display: grid;
+  justify-items: center;
+  padding: var(--esp-2) 0;
+  border: 1.5px dashed var(--tinta);
+  border-radius: var(--radio);
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texto-s);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.morosos__dias strong {
+  font-size: var(--texto-xl);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.morosos__quien {
+  grid-area: quien;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.morosos__nombre {
+  justify-self: start;
+  font-size: var(--texto-l);
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.morosos__codigo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2) var(--esp-3);
+}
+
+.morosos__detalle {
+  font-size: var(--texto-s);
+}
+
+.morosos__saldo {
+  grid-area: saldo;
+  font-size: var(--texto-l);
+}
+
+.morosos__saldo .monto {
+  font-weight: 800;
+}
+
+.morosos__cobrar {
+  grid-area: cobrar;
+  padding-top: var(--esp-3);
+  border-top: 1.5px dashed var(--tinta);
+}
+
+.morosos__cobrar > .cobrar > .boton {
+  width: 100%;
+}
+
+@media (min-width: 48rem) {
+  .morosos__fila {
+    grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'dias quien saldo'
+      'dias cobrar cobrar';
+    column-gap: var(--esp-4);
+  }
+
+  .morosos__saldo {
+    font-size: var(--texto-xl);
+  }
+
+  .morosos__cobrar {
+    padding-top: var(--esp-2);
+  }
+
+  .morosos__cobrar > .cobrar {
+    justify-items: start;
+  }
+
+  .morosos__cobrar > .cobrar > .boton {
+    width: auto;
+    min-width: 12rem;
+  }
+
+  .morosos__cobrar .cobrar__panel,
+  .morosos__cobrar .aviso {
+    justify-self: stretch;
+  }
+}

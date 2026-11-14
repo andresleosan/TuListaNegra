@@ -2,7 +2,7 @@
   "id": "SUS-01",
   "fase": "F2",
   "titulo": "Pases y captura de pago en R2 privado.",
-  "estado": "parcial",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -13,13 +13,16 @@
     "payments"
   ],
   "criterio": "El servidor fija monto y días; imagen inválida o grande, rechazada; segundo pago pendiente, rechazado; la captura solo la ven su dueño y el superadministrador.",
-  "hecho": "API: GET /api/suscripcion (pases y precios de PLANES, cuentas de PAYMENT_ACCOUNTS_JSON, pago pendiente y último revisado) y POST /api/suscripcion/pagos (multipart plan + captura; monto y días del servidor; JPEG/PNG/WebP validados por firma de bytes; máximo 2 MB; un solo pendiente por el índice único; captura en R2 privado con clave negocios/<id>/pagos/<pay>.<ext>; límite de subidas). GET /api/archivos/* sirve solo claves del negocio de la sesión.",
-  "falta": "Pantalla de Suscripción en la app (elegir pase, ver cuentas, subir captura). La ruta por la que el superadministrador ve la captura llega con SUP-02; hoy solo está probada la función servirObjeto.",
+  "hecho": "API: GET /api/suscripcion (pases y precios de PLANES, cuentas de PAYMENT_ACCOUNTS_JSON, pago pendiente y último revisado) y POST /api/suscripcion/pagos (multipart plan + captura; monto y días del servidor; JPEG/PNG/WebP validados por firma de bytes; máximo 2 MB; un solo pendiente por el índice único; captura en R2 privado con clave negocios/<id>/pagos/<pay>.<ext>; límite de subidas). GET /api/archivos/* sirve solo claves del negocio de la sesión. Pantalla /suscripcion: estado del plan, pases y precios del servidor, cuentas de pago, subir captura (validada también en el navegador), «Lo estamos revisando» y motivo de rechazo.",
+  "falta": "",
   "externalBlocker": "",
-  "nextStep": "Construir la pantalla de Suscripción sobre el esqueleto de AUT-02 y comprobar el recorrido en navegador a 360 y 1280 px.",
+  "nextStep": "",
   "evidencia": [
     "2026-11-14: pnpm exec vitest run src/worker/rutas/suscripcion.test.ts src/worker/rutas/archivos.test.ts src/worker/pagos.test.ts → 120 pruebas pasan: monto/días/estado/id enviados por el navegador se ignoran; texto renombrado a .png → 400; 2 MB + 1 byte → 413; segundo pendiente → 409 y dos subidas simultáneas → una sola fila y un solo objeto; otro negocio recibe 404 al pedir la captura, también con clave manipulada; un fallo de D1 no deja objetos huérfanos.",
-    "Decisión del subagente, aceptada: sin Content-Length → 411 (no se lee a memoria un cuerpo de tamaño desconocido). No comprobado en Cloudflare real (todo en workerd local)."
+    "Decisión del subagente, aceptada: sin Content-Length → 411 (no se lee a memoria un cuerpo de tamaño desconocido). No comprobado en Cloudflare real (todo en workerd local).",
+    "2026-11-14: e2e/suscripcion.spec.ts: pases del servidor; sin cuentas configuradas lo dice y no ofrece subir; .txt y > 2 MB rechazados en el navegador; texto renombrado a .png → 400 real junto al campo; PNG válido → pendiente (comprobado por la API); segundo pago → 409 real explicado. Capturas docs/roadmap/evidencia/suscripcion-360.png, suscripcion-1280.png, suscripcion-error-360.png, suscripcion-pendiente-360.png. La captura la ve el superadministrador en la bandeja (e2e/consola.spec.ts).",
+    "Las cuentas de pago se simularon con page.route (PAYMENT_ACCOUNTS_JSON no está en local; las reales son de la cola del dueño).",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
   ],
   "actualizado": "2026-11-14"
 }

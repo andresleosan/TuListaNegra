@@ -2,7 +2,7 @@
   "id": "SUP-01",
   "fase": "F2",
   "titulo": "Acceso de superadministrador y consola base.",
-  "estado": "parcial",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,13 +16,15 @@
     "superadmin"
   ],
   "criterio": "Una prueba recorre todas las rutas `/api/superadmin/*`: correo no listado, no verificado o sin Google → 403.",
-  "hecho": "Servidor: src/worker/superadmin.ts (correo en SUPERADMIN_EMAILS, comparación exacta, email_verified y sesión de Google) aplicado a todo /api/superadmin/* antes de enrutar; GET /api/superadmin/yo; /api/sesion incluye es_superadmin solo para pintar el enlace.",
-  "falta": "Consola base en la app (/superadmin): pantalla con navegación Pagos / Negocios / Indicadores, visible solo si es_superadmin, sobre el esqueleto de AUT-02.",
+  "hecho": "Servidor: src/worker/superadmin.ts (correo en SUPERADMIN_EMAILS, comparación exacta, email_verified y sesión de Google) aplicado a todo /api/superadmin/* antes de enrutar; GET /api/superadmin/yo; /api/sesion incluye es_superadmin solo para pintar el enlace. Pantalla: Consola /superadmin: cabecera propia, pestañas Pagos / Negocios / Indicadores como subrutas; quien no es superadministrador ve «No tienes acceso» (lo decide GET /api/superadmin/yo).",
+  "falta": "",
   "externalBlocker": "",
-  "nextStep": "Construir la pantalla /superadmin y comprobarla en navegador con el simulador (admin@ejemplo.test con Google).",
+  "nextStep": "",
   "evidencia": [
     "2026-11-14: pnpm exec vitest run src/worker/superadmin.test.ts → pasa. La prueba saca las rutas de app.routes (una ruta nueva de la consola entra sola en el recorrido): sin sesión → 401; correo no listado, listado sin verificar, listado sin Google, correo parecido y sin correo → 403; superadministrador → no 403. Una ruta inexistente de la consola da 403 a un no autorizado y 404 al superadministrador.",
-    "Sin SUPERADMIN_EMAILS configurado nadie entra. El correo del superadministrador no está en el repositorio (A1.5): las pruebas usan admin@ejemplo.test."
+    "Sin SUPERADMIN_EMAILS configurado nadie entra. El correo del superadministrador no está en el repositorio (A1.5): las pruebas usan admin@ejemplo.test.",
+    "2026-11-14: e2e/consola.spec.ts: piloto@ejemplo.test ve «No tienes acceso»; admin@ejemplo.test entra con Google; localStorage queda vacío. Captura docs/roadmap/evidencia/consola-pagos-1280.png.",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
   ],
   "actualizado": "2026-11-14"
 }

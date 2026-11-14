@@ -1,0 +1,17 @@
+/* Mismo trazo que la entrada de `Campo`; crece hacia abajo y solo se redimensiona en vertical. */
+.campo textarea {
+  width: 100%;
+  min-height: calc(var(--toque) * 2);
+  margin-top: var(--esp-1);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--blanco);
+  color: var(--tinta);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+  font: inherit;
+  resize: vertical;
+}
+
+.campo textarea[aria-invalid='true'] {
+  border-color: var(--rojo);
+}

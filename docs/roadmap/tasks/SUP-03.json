@@ -2,7 +2,7 @@
   "id": "SUP-03",
   "fase": "F2",
   "titulo": "Negocios: días de cortesía, **suscripción gratis sin vencimiento**, reiniciar contadores, suspender y reactivar.",
-  "estado": "parcial",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,14 +17,16 @@
     "access"
   ],
   "criterio": "Marcar gratis deja activo un negocio vencido, sin fecha ni aviso de renovación; desmarcar lo devuelve a sus fechas; suspender gana a gratis; cada acción exige motivo y queda en auditoría.",
-  "hecho": "Servidor: GET /api/superadmin/negocios?q= (buscador por nombre, correo, teléfono o id, con estado calculado) y POST /api/superadmin/negocios/:id/{cortesia,gratis,reiniciar-contadores,suspender,reactivar}. Cada acción es un UPDATE fijo y su fila de auditoría va en el mismo batch; todas exigen motivo.",
-  "falta": "Pantalla de Negocios en /superadmin (buscador y acciones con confirmación y motivo).",
+  "hecho": "Servidor: GET /api/superadmin/negocios?q= (buscador por nombre, correo, teléfono o id, con estado calculado) y POST /api/superadmin/negocios/:id/{cortesia,gratis,reiniciar-contadores,suspender,reactivar}. Cada acción es un UPDATE fijo y su fila de auditoría va en el mismo batch; todas exigen motivo. Pantalla: Negocios: buscador con estado calculado y acciones (cortesía +3/+7/+15/+30, gratis, reiniciar contadores, suspender, reactivar), cada una con motivo obligatorio y confirmación.",
+  "falta": "",
   "externalBlocker": "",
-  "nextStep": "Construir la pantalla sobre la consola base (SUP-01) y recorrerla en navegador.",
+  "nextStep": "",
   "evidencia": [
     "2026-11-14: pnpm exec vitest run src/worker/rutas/superadmin.test.ts → pasa: marcar gratis deja ACTIVE un negocio vencido, con vence_en null y cuotas de cortesía, y la tienda lo ve así en GET /api/negocio; desmarcar lo devuelve a EXPIRED_READONLY con su fecha original; suspender gana a gratis y a un pase vigente (la tienda solo recibe el aviso y 403 en su cartera); reactivar lo devuelve.",
     "Cortesía +3/+7/+15/+30 desde ahora si está vencido o sumados al vencimiento si está activo; otros valores → 400. Cada una de las cinco acciones sin motivo → 400 sin tocar el negocio ni la auditoría; con motivo → una fila de auditoría con actor, negocio y detalle. Negocio o acción inexistente → 404 sin auditoría.",
-    "Decisión (fuente B2): marcar gratis empieza un ciclo de cuotas (contadores a 0) solo la primera vez; volver a marcar no los reinicia."
+    "Decisión (fuente B2): marcar gratis empieza un ciclo de cuotas (contadores a 0) solo la primera vez; volver a marcar no los reinicia.",
+    "2026-11-14: e2e/consola.spec.ts: buscar la tienda, +7 días sin motivo → error, con motivo cambia el vencimiento; marcar gratis → sellos Activo y Gratis, «Sin vencimiento». Capturas docs/roadmap/evidencia/consola-negocios-360.png, consola-negocios-1280.png. Suspender, reactivar y reiniciar usan el mismo código; su lógica está probada en el servidor.",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
   ],
   "actualizado": "2026-11-14"
 }

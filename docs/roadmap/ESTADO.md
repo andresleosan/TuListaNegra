@@ -2,6 +2,11 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · SUP-01..04 · El superadministrador tiene su consola: revisa capturas y aprueba o rechaza pagos con motivo, busca negocios y les da cortesía, gratis, suspensión o reactivación con motivo, y ve los indicadores. · 19 → 23 de 39
+- 2026-11-14 · SUS-01, AJU-01 · El tendero elige su pase, ve dónde pagar y sube la captura desde la app; en Ajustes cambia cómo le pagan, los días para pasar a mora y el tono de cobro, y lo ve en el recibo y en el cobro. · 17 → 19 de 39
+- 2026-11-14 · MOS-03, MOS-04 · Cada deudor tiene su ficha con saldo corrido y recibo compartible por WhatsApp; Morosos los ordena por antigüedad y cobra con tres tonos, sin abrir nada si el horario o el permiso no lo dejan. · 15 → 17 de 39
+- 2026-11-14 · MOS-01, MOS-02 · El mostrador funciona: buscar por nombre, apodo, código o documento, fiar $ 5.000 en 3 toques, abonar con recibo y alerta al pasar el tope; sin conexión se sigue buscando. · 13 → 15 de 39
+- 2026-11-14 · SUS-03 · El sistema deja anotado cada hora el aviso de 3 días, 1 día y vencido de cada tienda (el envío por WhatsApp llega en la fase 4); en la app el aviso ya se veía. · 12 → 13 de 39
 - 2026-11-14 · IAS-01 · Existe el cliente de IA con cuota por plan y sin enviar documentos, teléfonos ni saldos. Apagado hasta que el dueño encienda AI_READY. · 11 → 12 de 39
 - 2026-11-14 · AUT-02 (parcial) · Ya se puede entrar, crear la tienda con su prueba de 3 días y ver el mostrador vacío con «Te quedan 3 días». Probado con el simulador local; falta el ingreso real de Firebase (cola del dueño). · 11 de 39
 - 2026-11-14 · SEG-01 · Una prueba automática ataca cada ruta con dos tiendas y falla si una ve o cambia algo de la otra, o si alguien añade una ruta sin protegerla. Sin cambio visible. · 10 → 11 de 39

@@ -1,0 +1,151 @@
+/* Suscripción: estado del plan con sello de caucho y tres pasos numerados como renglones de un comprobante. */
+.sus__estado {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-2);
+}
+
+.sus__etiqueta {
+  font-size: var(--texto-s);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Sello del estado: mismo trazo que los sellos de la cartera. Cada uno con su texto. */
+.sus__sello {
+  display: inline-block;
+  padding: 2px var(--esp-3);
+  background: var(--blanco);
+  color: var(--tinta);
+  border: 4px double currentColor;
+  border-radius: var(--radio);
+  font-size: var(--texto-m);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.sus__sello--bien {
+  color: var(--verde);
+}
+
+/* El ámbar solo como fondo, con texto y borde en tinta. */
+.sus__sello--atencion {
+  background: var(--ambar);
+}
+
+.sus__sello--peligro {
+  color: var(--rojo);
+}
+
+.sus__formulario {
+  display: grid;
+  gap: var(--esp-8);
+}
+
+.sus__paso {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-3);
+}
+
+.sus__paso > * {
+  width: 100%;
+}
+
+.sus__paso > .boton {
+  width: auto;
+}
+
+/* El selector de archivo no necesita todo el ancho en pantalla grande. */
+.sus__paso > .campo {
+  max-width: 32rem;
+}
+
+.sus__paso h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding-bottom: var(--esp-2);
+  border-bottom: var(--borde-grueso);
+}
+
+/* Número de paso: casilla en tinta con cifra blanca, en monoespaciada. */
+.sus__numero {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  background: var(--tinta);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-m);
+  font-weight: 800;
+}
+
+.sus__pases {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.sus__precio {
+  font-size: var(--texto-l);
+}
+
+.sus__nota {
+  font-size: var(--texto-s);
+}
+
+.sus__cuentas {
+  display: grid;
+  gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada cuenta, como un recibo: blanco, borde fino, datos en monoespaciada. */
+.sus__cuenta {
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  box-shadow: var(--sombra-dura);
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+  overflow-wrap: anywhere;
+}
+
+.sus__cuenta dl {
+  display: grid;
+  gap: var(--esp-1);
+}
+
+.sus__cuenta dl div {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: var(--esp-2);
+}
+
+.sus__cuenta dt {
+  font-size: var(--texto-s);
+}
+
+.sus__cuenta dd {
+  font-weight: 700;
+}
+
+@media (min-width: 48rem) {
+  .sus__pases {
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  }
+
+  /* auto-fill: una sola cuenta no se estira a todo el ancho. */
+  .sus__cuentas {
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  }
+}

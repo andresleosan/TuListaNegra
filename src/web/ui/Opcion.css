@@ -1,0 +1,58 @@
+/* Ficha de opción: papel blanco con borde fino; la elegida se marca con el cuadro lleno, borde reforzado y sombra dura. */
+.opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  min-height: var(--toque);
+  padding: var(--esp-3);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+/* El refuerzo va por dentro (sombra interior): el borde no cambia de grosor y nada se mueve. */
+.opcion:has(input:checked) {
+  box-shadow: var(--sombra-dura), inset 0 0 0 1px var(--tinta);
+}
+
+.opcion:has(input:disabled) {
+  background: var(--crema);
+  cursor: not-allowed;
+}
+
+.opcion input {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  background: var(--blanco);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+  cursor: inherit;
+}
+
+.opcion input::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: var(--tinta);
+  transform: scale(0);
+}
+
+.opcion input:checked::before {
+  transform: scale(1);
+}
+
+.opcion__texto {
+  display: grid;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.opcion__titulo {
+  font-weight: 800;
+}

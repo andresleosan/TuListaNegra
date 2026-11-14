@@ -2,7 +2,7 @@
   "id": "AJU-01",
   "fase": "F1",
   "titulo": "Ajustes de la tienda.",
-  "estado": "parcial",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,12 +17,15 @@
     "ui-app"
   ],
   "criterio": "Los cambios se guardan y aparecen en la tirilla y en los cobros.",
-  "hecho": "Servidor: PATCH /api/negocio guarda medios de pago de la tienda, días de alerta (1–365) y tono de cobro por defecto (dentro de sarin_settings_json, sin pisar el resto); GET /api/negocio los devuelve. Los cobros usan los medios de pago y el estado de mora usa los días de alerta.",
-  "falta": "Pantalla de Ajustes en la app y comprobar en navegador que los cambios aparecen en la tirilla y en los cobros.",
+  "hecho": "Servidor: PATCH /api/negocio guarda medios de pago de la tienda, días de alerta (1–365) y tono de cobro por defecto (dentro de sarin_settings_json, sin pisar el resto); GET /api/negocio los devuelve. Los cobros usan los medios de pago y el estado de mora usa los días de alerta. Pantalla /ajustes: medios de pago (CampoTexto), días de alerta (1–365) y tono por defecto (Opcion) con vista previa del cobro; vencida → todo visible y deshabilitado con enlace a Suscripción.",
+  "falta": "",
   "externalBlocker": "",
-  "nextStep": "Construir src/web/pantallas/Ajustes.tsx y su recorrido e2e.",
+  "nextStep": "",
   "evidencia": [
-    "2026-11-14: pnpm exec vitest run src/worker/rutas/cobros.test.ts → pasa: los ajustes se guardan y aparecen en el texto del cobro («Puede pagar así: …») y en el estado EN_MORA al bajar los días de alerta; cambiar una cosa no pisa las otras; valores inválidos → 400 sin cambiar nada; plan, fechas y nombre no se cambian por aquí; vencida → 403. La ruta nueva tiene su ataque en aislamiento.test.ts."
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/cobros.test.ts → pasa: los ajustes se guardan y aparecen en el texto del cobro («Puede pagar así: …») y en el estado EN_MORA al bajar los días de alerta; cambiar una cosa no pisa las otras; valores inválidos → 400 sin cambiar nada; plan, fechas y nombre no se cambian por aquí; vencida → 403. La ruta nueva tiene su ataque en aislamiento.test.ts.",
+    "2026-11-14: e2e/ajustes.spec.ts: guardar, recargar y ver los valores (también en GET /api/negocio); error junto al campo con días = 0. Los medios de pago guardados por PATCH /api/negocio salen en la tirilla (e2e/ficha.spec.ts) y en el texto del cobro (cobros.test.ts; el e2e de cobro real cayó fuera de horario). Capturas docs/roadmap/evidencia/ajustes-360.png, ajustes-1280.png.",
+    "Arreglo al integrar: el texto del cobro ahora siempre lleva un punto tras los medios de pago (src/shared/cobro.ts, prueba nueva en cobro.test.ts).",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
   ],
   "actualizado": "2026-11-14"
 }

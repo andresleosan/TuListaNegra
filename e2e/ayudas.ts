@@ -1,5 +1,5 @@
 // Ayudas compartidas por los recorridos de navegador (Playwright) contra el simulador local de identidad.
-import { expect, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 /** Único por ejecución (lo fija playwright.config.ts): la D1 local persiste y cada recorrido necesita cuentas nuevas. */
 export const SUFIJO = process.env.E2E_SUFIJO!;
@@ -29,7 +29,23 @@ export async function tiendaNueva(pagina: Page, clave: string, prefijo: string, 
   await entrar(pagina, 'piloto@ejemplo.test', `e2e_${SUFIJO}_${clave}`);
   await expect(pagina.getByRole('heading', { name: 'Crea tu tienda' })).toBeVisible();
   await llenarAlta(pagina, nombre, `${prefijo}${SUFIJO}`);
-  await expect(pagina.getByRole('heading', { name: 'Mostrador' })).toBeVisible();
+  await esperarMostrador(pagina);
+}
+
+/**
+ * Tras enviar el alta, espera el mostrador. El límite de altas (5 por minuto por IP) es real y al correr todos los
+ * recorridos juntos se alcanza: se hace lo que haría una persona, esperar el minuto y volver a tocar el botón.
+ */
+export async function esperarMostrador(pagina: Page) {
+  const mostrador = pagina.getByRole('heading', { name: 'Mostrador' });
+  for (let intento = 0; intento < 3; intento++) {
+    await expect(mostrador.or(pagina.getByText('Demasiados intentos seguidos'))).toBeVisible();
+    if (await mostrador.isVisible()) return;
+    test.info().setTimeout(test.info().timeout + 75_000);
+    await pagina.waitForTimeout(61_000);
+    await pagina.getByRole('button', { name: 'Empezar mi prueba de 3 días' }).click();
+  }
+  await expect(mostrador).toBeVisible();
 }
 
 /** Nada se sale de la pantalla en horizontal. */

@@ -4,8 +4,10 @@ import { colores, contraste, pares } from './styles/pares';
 import { Aviso } from './ui/Aviso';
 import { Boton } from './ui/Boton';
 import { Campo } from './ui/Campo';
+import { CampoTexto } from './ui/CampoTexto';
 import { Casilla } from './ui/Casilla';
 import { Monto } from './ui/Monto';
+import { Opcion } from './ui/Opcion';
 import { Progreso } from './ui/Progreso';
 import { Sello, type EstadoSello } from './ui/Sello';
 import { Tarjeta } from './ui/Tarjeta';
@@ -175,6 +177,13 @@ export default function Muestra() {
         />
         <Casilla defaultChecked>Acepto los términos y la política de datos</Casilla>
         <Casilla error="Marca la casilla para aceptar y poder empezar.">Casilla sin marcar, con error</Casilla>
+        <CampoTexto etiqueta="Cómo te pueden pagar" ayuda="Sale al final de cada cobro." defaultValue="Nequi 300 999 0000 a nombre de Rubiela" />
+        <Opcion name="muestra-pase" titulo="Pase de 7 días" defaultChecked>
+          <Monto valor={14900} />
+        </Opcion>
+        <Opcion name="muestra-pase" titulo="Pase de 30 días">
+          <Monto valor={49900} />
+        </Opcion>
       </section>
 
       <section>

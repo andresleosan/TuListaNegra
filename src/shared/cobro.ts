@@ -20,7 +20,7 @@ const PLANTILLAS: Record<Tono, (d: DatosDeCobro & { saldo: string }) => string> 
 };
 
 export function textoDeCobro(tono: Tono, d: DatosDeCobro): string {
-  const comoPagar = d.medios_de_pago ? `Puede pagar así: ${d.medios_de_pago}` : 'Puede pagar directamente en la tienda.';
+  const comoPagar = d.medios_de_pago ? `Puede pagar así: ${d.medios_de_pago.replace(/[.\s]*$/, '')}.` : 'Puede pagar directamente en la tienda.';
   return [
     PLANTILLAS[tono]({ ...d, saldo: formatoCOP(d.saldo_cop) }),
     comoPagar,

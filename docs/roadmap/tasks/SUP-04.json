@@ -2,7 +2,7 @@
   "id": "SUP-04",
   "fase": "F2",
   "titulo": "Indicadores globales.",
-  "estado": "parcial",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,13 +16,15 @@
     "superadmin"
   ],
   "criterio": "Las cifras coinciden con una base de prueba conocida; los gratis van aparte y no suman ingresos.",
-  "hecho": "Servidor: src/worker/indicadores.ts y GET /api/superadmin/indicadores: negocios por estado calculado (prueba, activos por plan, gratis aparte, desbloqueo, vencidos, suspendidos), ingresos confirmados del mes en hora de Bogotá, pagos pendientes, conversión de prueba a pago y consumo de IA y WhatsApp.",
-  "falta": "Pantalla de Indicadores en /superadmin.",
+  "hecho": "Servidor: src/worker/indicadores.ts y GET /api/superadmin/indicadores: negocios por estado calculado (prueba, activos por plan, gratis aparte, desbloqueo, vencidos, suspendidos), ingresos confirmados del mes en hora de Bogotá, pagos pendientes, conversión de prueba a pago y consumo de IA y WhatsApp. Pantalla: Indicadores: negocios por estado (gratis aparte, sin sumar ingresos), ingresos del mes, pagos pendientes, conversión «X de Y (sin contar los gratis)» y consumo, en monoespaciada.",
+  "falta": "",
   "externalBlocker": "",
-  "nextStep": "Pintar los indicadores en la consola base (SUP-01).",
+  "nextStep": "",
   "evidencia": [
     "2026-11-14: pnpm exec vitest run src/worker/indicadores.test.ts → pasa contra una base conocida de 12 negocios y 7 pagos: 2 en prueba, 4 activos (1/1/2 por plan), 1 gratis aparte, 1 en desbloqueo, 2 vencidos, 2 suspendidos (suspendido gana a gratis); ingresos del mes 64.800 (el pago de octubre, el rechazado y los pendientes no suman); conversión 3 de 11 = 27,3 %; consumo 10/100/20.",
-    "Decisión (más simple): la conversión es «negocios con al menos un pase pagado» sobre «negocios que no son de cortesía». Los ingresos son solo pagos PAID; una cuenta gratis no tiene pagos, así que no suma."
+    "Decisión (más simple): la conversión es «negocios con al menos un pase pagado» sobre «negocios que no son de cortesía». Los ingresos son solo pagos PAID; una cuenta gratis no tiene pagos, así que no suma.",
+    "2026-11-14: e2e/consola.spec.ts: las cifras aparecen. Arreglo de la revisión independiente: la conversión ya no cuenta a un negocio que pagó y hoy es gratis (indicadores.test.ts). Capturas docs/roadmap/evidencia/consola-indicadores-1280.png.",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
   ],
   "actualizado": "2026-11-14"
 }

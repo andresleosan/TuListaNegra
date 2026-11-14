@@ -1,0 +1,412 @@
+/* Consola del superadministrador: libro mayor denso en escritorio, filas apiladas en móvil. */
+.consola {
+  --margen: max(var(--esp-4), calc((100% - 72rem) / 2));
+  min-height: 100dvh;
+}
+
+.consola__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--esp-2) var(--esp-4);
+  padding: var(--esp-2) var(--margen);
+  background: var(--blanco);
+  border-bottom: var(--borde-grueso);
+}
+
+.consola__marca,
+.consola__cuenta {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+.consola__rotulo {
+  padding: 0 var(--esp-2);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  font-size: var(--texto-s);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.consola__correo {
+  min-width: 0;
+  font-size: var(--texto-s);
+  overflow-wrap: anywhere;
+}
+
+/* Pestañas de la consola: tres casillas de lado a lado, la actual en tinta. */
+.consola__nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--blanco);
+  border-bottom: var(--borde-grueso);
+}
+
+.consola__nav a {
+  display: grid;
+  place-items: center;
+  min-height: var(--toque);
+  padding: 0 var(--esp-2);
+  text-decoration: none;
+}
+
+.consola__nav a + a {
+  border-left: var(--borde-fino);
+}
+
+.consola__nav a[aria-current='page'] {
+  background: var(--tinta);
+  color: var(--blanco);
+}
+
+.consola__nav a:focus-visible {
+  outline-offset: -5px;
+}
+
+.consola__nav a[aria-current='page']:focus-visible {
+  outline-color: var(--blanco);
+}
+
+.consola__cuerpo {
+  display: grid;
+  align-content: start;
+  gap: var(--esp-4);
+  padding: var(--esp-6) var(--margen) var(--esp-8);
+}
+
+.consola__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--esp-2) var(--esp-4);
+  padding-bottom: var(--esp-2);
+  border-bottom: var(--borde-grueso);
+}
+
+.consola__cuenta-filas,
+.consola__nota,
+.consola__dato-menor {
+  font-size: var(--texto-s);
+}
+
+.consola__vacio-titulo {
+  font-size: var(--texto-l);
+  font-weight: 800;
+}
+
+/* --- Libro: encabezado de columnas (solo en pantalla ancha) y renglones --- */
+.consola__libro {
+  background: var(--blanco);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+}
+
+.consola__libro--pagos {
+  --columnas: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.3fr);
+}
+
+.consola__libro--negocios {
+  --columnas: minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.3fr);
+}
+
+.consola__encabezado {
+  display: none;
+}
+
+.consola__filas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consola__fila {
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+}
+
+.consola__fila + .consola__fila {
+  border-top: 1.5px dashed var(--tinta);
+}
+
+/* Móvil: cada dato con su etiqueta a la izquierda. */
+.consola__datos {
+  display: grid;
+  gap: var(--esp-2);
+}
+
+.consola__datos > div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--esp-2);
+  align-items: baseline;
+}
+
+.consola__datos dt {
+  font-size: var(--texto-s);
+  font-weight: 700;
+}
+
+.consola__nombre,
+.consola__dato-menor {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.consola__nombre {
+  font-size: var(--texto-m);
+  font-weight: 800;
+}
+
+.consola__sellos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  padding-top: var(--esp-1);
+}
+
+.consola__consumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--esp-3);
+  font-size: var(--texto-s);
+}
+
+/* Alertas del OCR: ámbar de fondo y texto en tinta, nunca solo color. */
+.consola__alertas {
+  display: grid;
+  gap: var(--esp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consola__alertas li {
+  padding: var(--esp-1) var(--esp-3);
+  background: var(--ambar);
+  border: var(--borde-fino);
+  border-radius: var(--radio);
+  font-size: var(--texto-s);
+  font-weight: 700;
+}
+
+.consola__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.consola__acciones {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+/* Cortesía: cuatro botones iguales en una fila, con su rótulo encima. */
+.consola__cortesia {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--esp-2);
+  align-items: center;
+}
+
+.consola__grupo {
+  grid-column: 1 / -1;
+  font-size: var(--texto-s);
+  font-weight: 700;
+}
+
+/* Bandeja en móvil: «Ver captura» a lo ancho; Aprobar y Rechazar lado a lado. */
+.consola__libro--pagos .consola__fila > .consola__botones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.consola__libro--pagos .consola__fila > .consola__botones > :first-child {
+  grid-column: 1 / -1;
+}
+
+.consola__confirmar {
+  display: grid;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  background: var(--crema);
+  border: var(--borde-grueso);
+  border-radius: var(--radio);
+}
+
+.consola__confirmar-titulo {
+  font-weight: 800;
+}
+
+.consola__captura {
+  margin: 0;
+}
+
+.consola__captura img {
+  display: block;
+  max-width: 100%;
+  max-height: 32rem;
+  background: var(--blanco);
+  border: var(--borde-fino);
+}
+
+.consola__buscador {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+/* Sellos de estado de un negocio (mismos pares que los sellos de deudor). */
+.consola__sello--ACTIVE {
+  color: var(--verde);
+}
+
+.consola__sello--TRIAL,
+.consola__sello--GRACE_UNLOCK_24H {
+  background: var(--ambar);
+}
+
+.consola__sello--EXPIRED_READONLY {
+  color: var(--rojo);
+}
+
+.consola__sello--SUSPENDED_BY_ADMIN {
+  background: var(--rojo);
+  color: var(--blanco);
+}
+
+/* --- Indicadores --- */
+.consola__indicadores {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.consola__bloque > .tarjeta {
+  display: grid;
+  align-content: start;
+  gap: var(--esp-2);
+  height: 100%;
+}
+
+.consola__grande {
+  font-size: var(--texto-xl);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.consola__renglones {
+  display: grid;
+}
+
+.consola__renglon {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-1) 0;
+  border-bottom: 1.5px dashed var(--tinta);
+}
+
+.consola__renglon dd {
+  font-weight: 700;
+}
+
+.consola__renglon--total {
+  border-top: var(--borde-grueso);
+  border-bottom: 0;
+  font-weight: 800;
+}
+
+@media (min-width: 48rem) {
+  .consola__nav {
+    grid-template-columns: repeat(3, max-content);
+    padding: 0 var(--margen);
+  }
+
+  .consola__nav a {
+    padding: 0 var(--esp-6);
+    border-right: var(--borde-fino);
+  }
+
+  .consola__nav a:first-child {
+    border-left: var(--borde-fino);
+  }
+
+  .consola__buscador {
+    grid-template-columns: minmax(0, 32rem) auto;
+    justify-content: start;
+    align-items: end;
+  }
+
+  .consola__indicadores {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .consola__bloque--estados {
+    grid-column: span 2;
+  }
+}
+
+/* Escritorio: renglones de libro mayor con columnas fijas. */
+@media (min-width: 64rem) {
+  .consola__encabezado,
+  .consola__datos {
+    display: grid;
+    grid-template-columns: var(--columnas);
+    gap: var(--esp-4);
+  }
+
+  .consola__encabezado {
+    padding: var(--esp-2) var(--esp-4);
+    border-bottom: var(--borde-grueso);
+    font-family: var(--fuente-mono);
+    font-size: var(--texto-s);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .consola__datos > div {
+    display: block;
+  }
+
+  /* Las etiquetas las da el encabezado; siguen ahí para el lector de pantalla. */
+  .consola__datos dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .consola__num {
+    text-align: right;
+  }
+
+  .consola__consumo {
+    justify-content: flex-end;
+  }
+
+  .consola__libro--pagos .consola__fila > .consola__botones {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .consola__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--esp-2) var(--esp-6);
+  }
+
+  .consola__cortesia {
+    display: flex;
+  }
+}

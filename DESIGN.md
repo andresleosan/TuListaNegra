@@ -56,6 +56,9 @@ Separadores dentro de tarjetas y tirillas: línea discontinua de 1,5 px en tinta
 - **`Casilla`**: cuadro de 24 px con borde grueso dentro de una fila de 44 px que se pulsa entera; marcada, cuadro en tinta con visto bueno blanco. Admite enlaces en el texto y el mismo mensaje de error que `Campo`.
 - **`Aviso`**: nota al margen. Fondo blanco, borde fino y franja izquierda de 8 px en ámbar (`atencion`), rojo (`error`, se anuncia) o verde (`bien`). Título en 800 y texto siempre en tinta: el color nunca va solo.
 - **`Progreso`**: «Paso X de N · nombre» y una fila de tramos de 8 px con borde fino; los pasos hechos van en tinta y el actual, medio lleno. Lleva `role="progressbar"`.
+- **`CampoTexto`**: `Campo` de varias líneas (textarea), con la misma etiqueta, ayuda y error. Para textos que no caben en un renglón, como los medios de pago.
+- **`Opcion`**: radio en forma de ficha blanca que se pulsa entera; cuadro de 24 px. La elegida lleva el cuadro relleno, sombra dura y refuerzo interior, no solo color. Pases y tonos de cobro.
+- **`BotonCobrar`**: botón Cobrar que despliega los tres tonos, muestra «Así le llega» con el texto y abre el WhatsApp del tendero. Si el servidor bloquea (horario, consentimiento, ya cobrado), explica el motivo en un `Aviso` y no abre nada; con el plan vencido, enlaza a Suscripción. Lo usan Ficha y Morosos.
 - **Foco**: contorno de 3 px en tinta separado 2 px, en todo elemento enfocable.
 
 ## Esqueleto de la app (`src/web/pantallas/`)

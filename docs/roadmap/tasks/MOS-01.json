@@ -2,7 +2,7 @@
   "id": "MOS-01",
   "fase": "F1",
   "titulo": "Mostrador: buscador con copia local de solo lectura.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "ui-app"
   ],
   "criterio": "Búsqueda por nombre, apodo, código y últimos 4 en menos de 50 ms con 5.000 deudores sintéticos; sin conexión busca y avisa; la copia se borra al salir.",
-  "hecho": "",
+  "hecho": "Pantalla: buscador sobre la copia local (src/shared/buscar.ts: nombre, apodo, código TLN-0042/0042 y últimos 4 del documento, sin tildes ni mayúsculas), copia persistida en IndexedDB (tln-cartera, ligada al uid), aviso «Sin conexión» y borrado de la copia al salir.",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Abrir la app desde cero sin red (sin que cargue /api/negocio) llega con la PWA: está en el falta de MOS-05.",
+  "evidencia": [
+    "2026-11-14: src/shared/buscar.test.ts → 5.000 deudores sintéticos, cada búsqueda < 50 ms (también la primera, que prepara el índice) y aciertos por cada campo. e2e/mostrador.spec.ts: búsqueda, sin conexión (se corta /api/deudores y se recarga: busca en la copia y avisa) y, tras salir, tln-cartera ya no está en indexedDB.databases(). Capturas docs/roadmap/evidencia/mostrador-360.png, mostrador-1280.png, mostrador-sin-conexion-360.png.",
+    "Decisión (fuente B4): los últimos 4 son del documento, no del teléfono; DeudorResumen no trae teléfono a propósito.",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
+  ],
   "actualizado": "2026-11-14"
 }

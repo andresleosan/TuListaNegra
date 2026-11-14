@@ -1,8 +1,10 @@
 // Copia local de solo lectura de los deudores (MOS-01): con ella se busca sin esperar a la red.
 // Solo lleva lo necesario para buscar y pintar la lista (`DeudorResumen`): nunca el documento completo ni el teléfono.
+// Se guarda también en IndexedDB para que, si la red falla, se pueda buscar en la última copia. Se borra al salir.
 import { useSyncExternalStore } from 'react';
 import type { DeudorResumen } from '../shared/deudor';
 import { api, ErrorApi } from './api';
+import { cargarProveedor } from './sesion';
 
 export type Cartera = {
   deudores: DeudorResumen[];
@@ -27,18 +29,91 @@ export const useCartera = () =>
     () => cartera,
   );
 
+// --- Copia persistente. Si IndexedDB no está (modo privado, bloqueado), la app sigue igual, solo sin copia guardada.
+const BASE = 'tln-cartera';
+const ALMACEN = 'copia';
+type Guardada = { uid: string; deudores: DeudorResumen[]; actualizada_en: number };
+
+// Sube al borrar: una copia que se estaba guardando mientras se salía no vuelve a escribirse.
+let generacion = 0;
+
+const uidActual = async () => (await cargarProveedor())?.usuario()?.uid ?? null;
+
+function abrir(): Promise<IDBDatabase> {
+  return new Promise((resolver, fallar) => {
+    const pedido = indexedDB.open(BASE, 1);
+    pedido.onupgradeneeded = () => pedido.result.createObjectStore(ALMACEN);
+    pedido.onsuccess = () => resolver(pedido.result);
+    pedido.onerror = () => fallar(pedido.error);
+  });
+}
+
+async function guardar(copia: Omit<Guardada, 'uid'>) {
+  const antes = generacion;
+  try {
+    const uid = await uidActual();
+    if (!uid || antes !== generacion) return;
+    const db = await abrir();
+    if (antes !== generacion) return db.close();
+    const tx = db.transaction(ALMACEN, 'readwrite');
+    tx.objectStore(ALMACEN).put({ ...copia, uid } satisfies Guardada, 'actual');
+    tx.oncomplete = tx.onerror = () => db.close();
+  } catch {
+    // Sin copia persistente: se busca igual mientras la pestaña siga abierta.
+  }
+}
+
+/** La última copia guardada de esta misma cuenta, o `null`. */
+async function leerGuardada(): Promise<Guardada | null> {
+  try {
+    const uid = await uidActual();
+    const db = await abrir();
+    const copia = await new Promise<Guardada | undefined>((resolver, fallar) => {
+      const pedido = db.transaction(ALMACEN).objectStore(ALMACEN).get('actual');
+      pedido.onsuccess = () => resolver(pedido.result as Guardada | undefined);
+      pedido.onerror = () => fallar(pedido.error);
+    });
+    db.close();
+    return copia && copia.uid === uid ? copia : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Vuelve a traer la lista del servidor. Llamar tras crear o editar un deudor, fiar, abonar o cobrar. */
+// Solo publica la última petición: una respuesta vieja que llega tarde no pisa a una más nueva (p. ej. el «sin conexión»).
+let ultimaPeticion = 0;
+
 export async function refrescarCartera(): Promise<void> {
+  const esta = ++ultimaPeticion;
   try {
     const { deudores } = await api<{ deudores: DeudorResumen[] }>('/deudores');
-    publicar({ deudores, estado: 'lista', actualizada_en: Date.now() });
+    if (esta !== ultimaPeticion) return;
+    const actualizada_en = Date.now();
+    publicar({ deudores, estado: 'lista', actualizada_en });
+    void guardar({ deudores, actualizada_en });
   } catch (e) {
-    if (e instanceof ErrorApi && e.status === 0) publicar({ ...cartera, estado: 'sin_conexion' });
-    else throw e;
+    if (esta !== ultimaPeticion) return;
+    if (!(e instanceof ErrorApi && e.status === 0)) throw e;
+    // Sin red: lo que ya hay en memoria, o si no la última copia guardada en este navegador.
+    const guardada = cartera.actualizada_en === null ? await leerGuardada() : null;
+    if (esta !== ultimaPeticion) return;
+    publicar(guardada ? { deudores: guardada.deudores, estado: 'sin_conexion', actualizada_en: guardada.actualizada_en } : { ...cartera, estado: 'sin_conexion' });
   }
 }
 
 /** Al cerrar sesión no queda nada de la tienda en este navegador. */
 export async function borrarCartera(): Promise<void> {
+  generacion++;
+  ultimaPeticion++; // una lista que aún venga en camino ya no se publica
   publicar({ deudores: [], estado: 'cargando', actualizada_en: null });
+  try {
+    await new Promise<void>((resolver) => {
+      const pedido = indexedDB.deleteDatabase(BASE);
+      // `blocked`: otra pestaña la tiene abierta; el borrado se completa al cerrarla. Salir no espera por eso.
+      pedido.onsuccess = pedido.onerror = pedido.onblocked = () => resolver();
+    });
+  } catch {
+    // Sin IndexedDB no hay nada guardado que borrar.
+  }
 }

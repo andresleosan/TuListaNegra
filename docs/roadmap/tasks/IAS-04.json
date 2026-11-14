@@ -2,7 +2,7 @@
   "id": "IAS-04",
   "fase": "F3",
   "titulo": "Migrador de cuadernos.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,13 @@
     "ledger"
   ],
   "criterio": "Con 3 fotos de prueba: la tabla se puede corregir; importar crea deudores y saldos con la foto como evidencia; nada entra sin confirmar.",
-  "hecho": "",
-  "falta": "",
+  "hecho": "Servidor: POST /api/cuadernos/fotos guarda la foto en R2 privado (negocios/<id>/cuadernos/cua_….ext; JPEG/PNG/WebP por firma de bytes, máx. 2 MB, límite de subidas) y, si la IA está encendida, la lee con Workers AI gastando una foto de cuota y devuelve filas propuestas (validadas fila a fila; las que no cuadran se descartan). POST /api/cuadernos/importar recibe la tabla corregida por el tendero y crea en UN solo batch cada deudor con su FIADO «Saldo anterior (cuaderno)», la foto como evidencia y origen SARIN_IMAGE_OCR (las sentencias del libro salen de sentenciasMovimiento, las mismas de registrarMovimiento).",
+  "falta": "Pantalla del migrador (subir foto, tabla editable, importar) y su recorrido en navegador. Lectura real con Workers AI: requiere el binding AI en wrangler.jsonc y AI_READY (cola del dueño).",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Construir la pantalla /cuaderno con la tabla editable y su e2e; enlazarla desde el mostrador.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/rutas/cuadernos.test.ts → 10 pruebas pasan, con Workers AI simulado: 3 fotos de prueba proponen sus tablas (JSON envuelto en texto, filas sin nombre, saldo negativo o decimal descartadas; «no veo nada» → tabla vacía) y gastan 3 fotos; leer no escribe nada en el libro; IA caída → la cuota se devuelve; sin cuota → no se llama. Importar la tabla corregida crea TLN-0001/0002 con su saldo y el FIADO con evidencia; reintentar (también dos a la vez) no duplica; foto de otra tienda, inexistente, de pagos o con «..» → 400; si el plan no admite tantos deudores no entra ninguno (409). aislamiento.test.ts tiene el ataque de las dos rutas.",
+    "Modelo de visión: @cf/meta/llama-4-scout-17b-16e-instruct, según el catálogo que conozco; no comprobado contra Workers AI real (AI_READY apagado). Con la IA apagada la foto se guarda igual y la tabla se llena a mano mirando la foto."
+  ],
   "actualizado": "2026-11-14"
 }

@@ -2,7 +2,7 @@
   "id": "MOS-04",
   "fase": "F1",
   "titulo": "Morosos y botón Cobrar por el WhatsApp del tendero.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,12 +17,15 @@
     "ui-app"
   ],
   "criterio": "Lista ordenada por antigüedad; los tres tonos generan el texto correcto; fuera de horario o sin consentimiento no abre el enlace y explica por qué.",
-  "hecho": "Servidor (parte de esta tarea ya construida): plantillas fijas de los tres tonos en src/shared/cobro.ts y POST /api/deudores/:id/cobros, que aplica las reglas de contacto en el servidor, anota el cobro y devuelve el enlace wa.me con el texto.",
+  "hecho": "Servidor (parte de esta tarea ya construida): plantillas fijas de los tres tonos en src/shared/cobro.ts y POST /api/deudores/:id/cobros, que aplica las reglas de contacto en el servidor, anota el cobro y devuelve el enlace wa.me con el texto. Pantalla /morosos (deudores EN_MORA ordenados por la fecha del fiado sin cubrir más antiguo, también los de lista negra) y pieza BotonCobrar (tres tonos, vista previa «Así le llega», abre wa.me; si el servidor bloquea no abre nada y explica el motivo).",
   "falta": "",
   "externalBlocker": "",
-  "nextStep": "Pantalla de Morosos y botón Cobrar (depende de la ficha, MOS-03).",
+  "nextStep": "",
   "evidencia": [
-    "2026-11-14: src/shared/cobro.test.ts (texto exacto de cada tono; ninguno amenaza ni menciona listas o reportes) y src/worker/rutas/cobros.test.ts con reloj controlado: sin consentimiento, domingo, festivo, 19:01, sábado 15:01 y baja → 409 con motivo y mensaje, sin enlace; un cobro al día, uno cada 7 días, y tres toques a la vez → un solo cobro."
+    "2026-11-14: src/shared/cobro.test.ts (texto exacto de cada tono; ninguno amenaza ni menciona listas o reportes) y src/worker/rutas/cobros.test.ts con reloj controlado: sin consentimiento, domingo, festivo, 19:01, sábado 15:01 y baja → 409 con motivo y mensaje, sin enlace; un cobro al día, uno cada 7 días, y tres toques a la vez → un solo cobro.",
+    "2026-11-14: e2e/morosos.spec.ts: orden 75 → 48 → 33 → 0 días (distinto del alfabético y del de creación); el tono por defecto sale de Ajustes; sin consentimiento el servidor real responde 409, no se abre nada y se explica. Capturas docs/roadmap/evidencia/morosos-360.png, morosos-1280.png, morosos-bloqueado-360.png, morosos-vacio-360.png.",
+    "Los tres tonos con éxito y el «fuera de horario» se comprobaron en navegador con respuesta simulada (el recorrido corrió de madrugada y el servidor real rechaza fuera de horario); el texto exacto de cada tono y las reglas de horario están probados en el servidor con reloj controlado (cobro.test.ts, cobros.test.ts).",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
   ],
   "actualizado": "2026-11-14"
 }

@@ -2,7 +2,7 @@
   "id": "MOS-03",
   "fase": "F1",
   "titulo": "Ficha del deudor y tirilla compartible.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "ui-app"
   ],
   "criterio": "Saldo corrido correcto; la tirilla muestra código y montos en monoespaciada; compartir abre WhatsApp o el menú del sistema.",
-  "hecho": "",
+  "hecho": "Pantalla /deudor/<id>: saldo actual, movimientos con saldo corrido (balance_after_cop del servidor), editar datos, permiso de WhatsApp, lista negra, archivar con confirmación; con ?recibo= la tirilla en monoespaciada con medios de pago y Compartir (navigator.share o wa.me).",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: e2e/ficha.spec.ts: saldo corrido 30.000 → 20.000 → 25.000; la tirilla sale en JetBrains Mono (getComputedStyle); sin navigator.share abre https://wa.me/?text=… con el recibo, con navigator.share simulado usa el menú del sistema; editar con error junto al campo, lista negra y archivar. Capturas docs/roadmap/evidencia/ficha-360.png, ficha-1280.png, ficha-recibo-360.png.",
+    "No comprobado: compartir en un celular real (solo con navigator.share simulado).",
+    "2026-11-14: lote verificado: pnpm test (719 pruebas, 31 archivos), pnpm typecheck, pnpm build y pnpm check:release en verde; recorrido e2e completo (todas las pantallas, 360 y 1280 px, base local nueva) → 16 pasan, 2 saltadas por diseño (rechazos del alta solo en móvil)."
+  ],
   "actualizado": "2026-11-14"
 }

@@ -17,6 +17,12 @@ describe('los tres tonos', () => {
     expect(texto).not.toMatch(/lista negra|report|datacr[eé]dito|central(es)? de riesgo|demanda|abogad|embarg|jur[ií]dic|moros|deudor|vergüenza|última advertencia|consecuencias/i);
   });
 
+  test('los medios de pago terminan en un solo punto, los escriba el tendero con punto o sin él', () => {
+    for (const medios of ['Nequi 300 123 4567', 'Nequi 300 123 4567.', 'Nequi 300 123 4567 . ', 'Nequi 300 123 4567...']) {
+      expect(textoDeCobro('VECINO_AMIGABLE', { ...datos, medios_de_pago: medios })).toContain('Puede pagar así: Nequi 300 123 4567. Si ya pagó');
+    }
+  });
+
   test('sin medios de pago configurados, se paga en la tienda', () => {
     expect(textoDeCobro('VECINO_AMIGABLE', { ...datos, medios_de_pago: null })).toContain('Puede pagar directamente en la tienda.');
   });

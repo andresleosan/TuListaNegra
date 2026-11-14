@@ -1,0 +1,76 @@
+/* Ajustes: formulario a la izquierda y, desde 768 px, la muestra del cobro a la derecha como un recibo. */
+.ajustes {
+  display: grid;
+  gap: var(--esp-6);
+  align-items: start;
+}
+
+.ajustes__formulario {
+  display: grid;
+  justify-items: start;
+  gap: var(--esp-6);
+}
+
+.ajustes__grupo {
+  display: grid;
+  gap: var(--esp-6);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ajustes__tonos {
+  gap: var(--esp-2);
+}
+
+.ajustes__tonos legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.ajustes__ayuda {
+  font-size: var(--texto-s);
+}
+
+/* Recibo del mensaje: blanco, borde fino, sombra dura y monoespaciada, como la tirilla. */
+.ajustes__muestra {
+  display: grid;
+  gap: var(--esp-2);
+  padding: var(--esp-4);
+  background: var(--blanco);
+  border: var(--borde-fino);
+  box-shadow: var(--sombra-dura);
+}
+
+.ajustes__muestra h2 {
+  padding-bottom: var(--esp-2);
+  border-bottom: var(--borde-grueso);
+}
+
+.ajustes__mensaje {
+  padding-top: var(--esp-2);
+  border-top: 1.5px dashed var(--tinta);
+  font-family: var(--fuente-mono);
+  font-variant-ligatures: none;
+  font-size: var(--texto-s);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.ajustes .boton {
+  text-decoration: none;
+}
+
+@media (min-width: 48rem) {
+  .ajustes {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: var(--esp-8);
+  }
+
+  .ajustes__muestra {
+    position: sticky;
+    top: var(--esp-4);
+  }
+}

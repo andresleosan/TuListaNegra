@@ -14,7 +14,7 @@
   ],
   "criterio": "Se instala en el móvil y, tras una carga, busca sin conexión.",
   "hecho": "",
-  "falta": "",
+  "falta": "Abrir la app desde cero sin red: hoy la copia local en IndexedDB solo sirve si /api/negocio carga (App.tsx muestra «No hay conexión» si no). Con la PWA hay que servir el esqueleto y el último negocio sin red (viene de MOS-01).",
   "externalBlocker": "",
   "nextStep": "",
   "evidencia": [],
