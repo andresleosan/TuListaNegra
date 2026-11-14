@@ -1,8 +1,8 @@
 {
   "id": "BAS-05",
   "fase": "F0",
-  "titulo": "Despliegue: Worker, D1 y R2 remotos. *(Requiere sesión de Cloudflare: cola del dueño.)*",
-  "estado": "bloqueado",
+  "titulo": "Despliegue: Worker, D1 y R2 remotos.",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -16,10 +16,12 @@
     "deploy"
   ],
   "criterio": "La URL pública responde `GET /api/health` y las migraciones remotas están al día.",
-  "hecho": "",
-  "falta": "",
-  "externalBlocker": "Sesión de Cloudflare en este equipo (fila en COLA-DUENO.md).",
-  "nextStep": "",
-  "evidencia": [],
+  "hecho": "D1 `tulistanegra` y R2 privado `tulistanegra-archivos` creados en la cuenta del dueño; database_id en wrangler.jsonc; migraciones 0000..0005 aplicadas en remoto; Worker desplegado con wrangler en https://tulistanegra.andres-san1404.workers.dev con los cuatro interruptores en \"0\" y FIREBASE_PROJECT_ID real.",
+  "falta": "Despliegue automático en cada push (Workers Builds: lo conecta el dueño en el panel) y VITE_FIREBASE_CONFIG como variable de build.",
+  "externalBlocker": "",
+  "nextStep": "Conectar el repositorio en Workers Builds (fila en COLA-DUENO.md); mientras tanto se despliega con `pnpm build && pnpm check:release && pnpm exec wrangler deploy`.",
+  "evidencia": [
+    "2026-11-14: pnpm test 1097 · typecheck · build · check:release OK; `wrangler d1 migrations apply tulistanegra --remote` → 0000..0005 ✅; `wrangler deploy` → versión c003d93b; GET /api/health → {\"ok\":true,\"servicio\":\"tulistanegra\"}; GET / → 200; GET /api/negocio sin token → 401 sin_sesion; reto del webhook sin configurar → 403; `wrangler secret list` → [] (ningún TEST_* ni tln-dev-whatsapp-)."
+  ],
   "actualizado": "2026-11-14"
 }
