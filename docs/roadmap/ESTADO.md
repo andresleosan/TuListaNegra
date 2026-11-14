@@ -2,6 +2,7 @@
 
 Lo más nuevo arriba: fecha · código · qué cambió para el tendero o el superadministrador · progreso antes → después.
 
+- 2026-11-14 · SEG-01 · Una prueba automática ataca cada ruta con dos tiendas y falla si una ve o cambia algo de la otra, o si alguien añade una ruta sin protegerla. Sin cambio visible. · 10 → 11 de 39
 - 2026-11-14 · SUS-02 · Una tienda vencida que sube su captura de pago queda desbloqueada 24 horas para seguir atendiendo, salvo que su último pago haya sido rechazado. Falta la pantalla. · 9 → 10 de 39
 - 2026-11-14 · LIB-01 · La API ya fía, abona y ajusta con el saldo exacto aunque lleguen muchos toques a la vez, sin duplicar si se reintenta, y sabe desde cuándo debe cada deudor. Falta la pantalla (MOS-02). · 8 → 9 de 39
 - 2026-11-14 · DEU-01 · La API ya permite crear deudores con solo el nombre, darles su código TLN, editarlos, archivarlos y marcarlos en lista negra, con el límite de 15 en la prueba. Falta la pantalla (MOS-01). · 7 → 8 de 39

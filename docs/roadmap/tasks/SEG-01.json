@@ -2,7 +2,7 @@
   "id": "SEG-01",
   "fase": "F1",
   "titulo": "Aislamiento entre negocios y validación de entradas.",
-  "estado": "pendiente",
+  "estado": "hecho",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -14,10 +14,15 @@
     "tests-isolation"
   ],
   "criterio": "La prueba de aislamiento de B5 existe y pasa.",
-  "hecho": "",
+  "hecho": "src/worker/aislamiento.test.ts: saca todas las rutas de negocio del enrutador, exige un ataque escrito por ruta y, con dos tiendas, comprueba que B no recibe ningún dato de A (ids, nombres, documento, teléfono, request_id, captura) ni cambia un byte de sus filas en D1 ni de sus objetos en R2. Segunda pasada: entradas basura en cada ruta de escritura → 4xx sin escribir.",
   "falta": "",
   "externalBlocker": "",
   "nextStep": "",
-  "evidencia": [],
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/aislamiento.test.ts → 16 pruebas pasan sobre 10 rutas de negocio (negocio, deudores, movimientos, suscripción, pagos, archivos), incluidos ids ajenos en la URL, business_id ajeno en el cuerpo, el request_id de la otra tienda y claves de archivo con .. y %2e%2e.",
+    "Comprobado que la prueba detecta lo que debe (mutaciones, revertidas): quitar el filtro de negocio del historial → falla «filtró SECRETO»; registrar una ruta nueva sin ataque → falla «rutas nuevas sin cubrir: DELETE /api/deudores/:id/notas».",
+    "Validación: un PATCH de deudor sin ningún campo editable respondía 200 sin hacer nada; ahora es 400. Toda entrada pasa por zod (src/worker/validar.ts) y lo que el navegador no puede fijar se descarta.",
+    "Fuera de este recorrido a propósito: POST /api/negocio (alta, sin negocio aún; lo cubre AUT-02) y /api/superadmin/* (su propio recorrido en superadmin.test.ts)."
+  ],
   "actualizado": "2026-11-14"
 }

@@ -103,7 +103,8 @@ deudores.get('/:id', async (c) => {
 });
 
 deudores.patch('/:id', async (c) => {
-  const d = await cuerpo(c, Cambios);
+  // Un cambio sin ningún campo editable (o solo con campos que no se editan por aquí, como el saldo) es un error del cliente.
+  const d = await cuerpo(c, Cambios.refine((x) => Object.keys(x).length > 0, { message: 'Nada que cambiar' }));
   const ahora = Date.now();
   const suyo = and(eq(debtors.id, c.req.param('id')), eq(debtors.business_id, c.var.negocio.id));
   const actual = await bd(c.env).select().from(debtors).where(suyo).get();
@@ -121,7 +122,6 @@ deudores.patch('/:id', async (c) => {
   if (wa_baja) cambios.wa_opt_out_at = actual.wa_opt_out_at ?? ahora;
   if (lista_negra !== undefined) cambios.blacklisted_at = lista_negra ? (actual.blacklisted_at ?? ahora) : null;
   if (archivado !== undefined) cambios.archived_at = archivado ? (actual.archived_at ?? ahora) : null;
-  if (Object.keys(cambios).length === 0) return c.json(detalle(actual, c.var.negocio.default_alert_days));
 
   try {
     const [fila] = await bd(c.env).update(debtors).set(cambios).where(suyo).returning();

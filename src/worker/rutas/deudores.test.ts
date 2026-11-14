@@ -162,7 +162,10 @@ describe('editar, archivar y lista negra', () => {
   test('ni el saldo ni el código se pueden editar por aquí', async () => {
     await sembrarNegocio();
     const d = await json(crear({ full_name: 'X' }));
-    expect(await json(editar(d.id, { current_balance_cop: 99, unique_code: 'TLN-7777', oldest_unpaid_date: 1 }))).toMatchObject({ current_balance_cop: 0, unique_code: 'TLN-0001', oldest_unpaid_date: null });
+    expect((await editar(d.id, { current_balance_cop: 99, unique_code: 'TLN-7777', oldest_unpaid_date: 1 })).status).toBe(400);
+    // Mezclados con un campo válido, se ignoran.
+    expect(await json(editar(d.id, { full_name: 'Y', current_balance_cop: 99, unique_code: 'TLN-7777' }))).toMatchObject({ full_name: 'Y', current_balance_cop: 0, unique_code: 'TLN-0001' });
+    expect(await json(api(`/api/deudores/${d.id}`))).toMatchObject({ current_balance_cop: 0, unique_code: 'TLN-0001', oldest_unpaid_date: null });
   });
 });
 
