@@ -2,7 +2,7 @@
   "id": "SUP-02",
   "fase": "F2",
   "titulo": "Bandeja de pagos: aprobar y rechazar.",
-  "estado": "pendiente",
+  "estado": "parcial",
   "responsable": "desarrollo",
   "dependencies": [
     {
@@ -17,10 +17,14 @@
     "payments"
   ],
   "criterio": "Pasan los tres casos de la fórmula; aprobar dos veces suma una vez; rechazar termina el desbloqueo; queda auditoría.",
-  "hecho": "",
-  "falta": "",
+  "hecho": "Servidor: src/worker/revision.ts (aprobarPago y rechazarPago, cada uno en un db.batch con la condición «sigue pendiente» en todas las sentencias: atómico e idempotente) y rutas de la consola: GET /api/superadmin/pagos (bandeja con monto esperado, lo leído por OCR y alertas de monto distinto y referencia repetida), GET /api/superadmin/archivos/* (captura), POST …/pagos/:id/aprobar y …/rechazar (motivo obligatorio).",
+  "falta": "Pantalla de la bandeja en /superadmin (ver captura, Aprobar y Rechazar con confirmación y motivo).",
   "externalBlocker": "",
-  "nextStep": "",
-  "evidencia": [],
+  "nextStep": "Construir la bandeja sobre la consola base (SUP-01) y recorrerla en navegador con el simulador.",
+  "evidencia": [
+    "2026-11-14: pnpm exec vitest run src/worker/revision.test.ts → 12 pruebas pasan. Los tres casos de B2 con horas exactas de Bogotá: sube lunes 10:00 y aprueba lunes 16:00 → vence lunes siguiente 10:00; aprueba miércoles 10:00 → vence martes siguiente 10:00; activo con 2 días → +9 días. Aprobar dos veces (y dos a la vez) suma una sola vez y audita una sola vez. Rechazar deja grace_unlock_ends_at en el instante del rechazo y no toca plan, vencimiento ni contadores.",
+    "pnpm exec vitest run src/worker/rutas/superadmin.test.ts → pasa por la API: aprobar pasa el negocio de GRACE_UNLOCK_24H a ACTIVE con contadores en 0; rechazar exige motivo, vuelve a EXPIRED_READONLY y el dueño ve el motivo en GET /api/suscripcion; el siguiente pago tras un rechazo no desbloquea; el superadministrador ve la captura (bytes idénticos) y otro tendero recibe 403/404.",
+    "El control de acceso de estas rutas lo cubre el recorrido de superadmin.test.ts, que las toma del enrutador."
+  ],
   "actualizado": "2026-11-14"
 }
